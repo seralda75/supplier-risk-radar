@@ -18,7 +18,17 @@ data/raw/            Excel originales del reto
 core/config.py       rutas, modelos y parámetros
 core/llm.py          cliente de Ollama: chat, extract (JSON schema + Pydantic + caché), embed
 core/rag.py          ejemplos parecidos en ChromaDB
-core/schemas.py      NewsAssessment (salida del juez)
+core/schemas.py      NewsAssessment (salida del juez) y taxonomía de eventos
+core/suppliers.py    fichas de proveedores + diccionario geográfico
+core/matching.py     candidatos por nombre, ubicación, ruta, material y categoría (RapidFuzz)
+core/rules.py        modo solo reglas: tipo de evento, gravedad y proveedores afectados
+core/urgency.py      dependencia del proveedor y decisión de urgencia
+core/pipeline.py     assess(noticia) -> veredicto + explicación + acción + auditoría
+core/audit.py        auditoría en SQLite
+core/data.py         carga de las noticias de los tres Excel
+evaluate.py          métricas (python evaluate.py --no-llm | --split train)
+tests/               pytest con casos del entrenamiento
+docs/evaluacion.md   historial de métricas
 scripts/check_env.py comprobación del entorno
 scripts/bench_models.py comparación de modelos (ver docs/fase0_modelos.md)
 ```

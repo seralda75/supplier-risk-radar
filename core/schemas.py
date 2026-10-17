@@ -43,6 +43,27 @@ EVENT_LABELS: dict[str, str] = {
     "not_relevant": "Not relevant",
 }
 
+# Nombre en español para las explicaciones y el panel
+EVENT_LABELS_ES: dict[str, str] = {
+    "fire_plant_incident": "incendio / incidente en planta",
+    "natural_disaster": "desastre natural",
+    "labour_strike": "huelga",
+    "logistics_disruption": "interrupción logística",
+    "regulatory_action": "acción regulatoria",
+    "quality_recall": "retirada por calidad",
+    "export_restriction": "restricción a la exportación",
+    "financial_distress": "dificultades financieras",
+    "acquisition": "adquisición por un competidor",
+    "leadership_change": "cambio en la dirección",
+    "cyber_incident": "ciberataque / incidente informático",
+    "utility_outage": "corte de suministros básicos",
+    "supply_shortage": "escasez de suministro",
+    "geopolitical_conflict": "conflicto geopolítico",
+    "other_risk": "otro riesgo",
+    "positive_news": "noticia positiva",
+    "not_relevant": "no relevante",
+}
+
 _ID_RE = re.compile(r"^S\d{3}$")
 
 
