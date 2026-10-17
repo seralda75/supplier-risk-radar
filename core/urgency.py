@@ -14,6 +14,7 @@ Los umbrales son constantes visibles: el cliente puede ajustarlos según su apet
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 from .schemas import NewsAssessment
@@ -50,6 +51,22 @@ def dependency(s: Supplier) -> Dependency:
         score += 0.2 if inv <= 30 else 0.1 if inv <= 45 else 0.0
         factors.append(f"{inv:.0f} días de inventario")
     return Dependency(s.id, round(min(score, 1.0), 2), factors)
+
+
+def combine_with_rules(a: NewsAssessment, rules_severity: int, rules_soon: bool) -> NewsAssessment:
+    """Dos jueces independientes para la gravedad: el LLM (matiza el contexto) y las reglas (ejemplos
+    del README: incendio, regulador, desastre, veto, quiebra -> grave).
+
+    En el entrenamiento el LLM comprime la escala (una retirada de lotes o una suspensión de licencia
+    le parecen 'no inmediatas'). Gravedad = media redondeada hacia arriba (ninguno de los dos decide
+    solo y, ante la duda, prima no perder una urgente); inmediatez = basta con que uno la vea.
+    """
+    if not a.is_risk:
+        return a
+    return a.model_copy(update={
+        "severity": max(1, min(5, math.ceil((a.severity + rules_severity) / 2))),
+        "stops_supply_soon": a.stops_supply_soon or rules_soon,
+    })
 
 
 def is_urgent(a: NewsAssessment, deps: list[Dependency]) -> tuple[bool, str]:

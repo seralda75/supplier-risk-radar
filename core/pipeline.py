@@ -9,12 +9,12 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 from . import audit
-from .config import CONFIDENCE_THRESHOLD
+from .config import CONFIDENCE_THRESHOLD, LLM_MODEL
 from .matching import Candidate, find_candidates
-from .rules import assess_rules, verified_named
+from .rules import assess_rules, severity_signal, verified_named
 from .schemas import EVENT_LABELS, EVENT_LABELS_ES, NewsAssessment
 from .suppliers import Supplier, load_suppliers
-from .urgency import dependency, is_urgent
+from .urgency import combine_with_rules, dependency, is_urgent
 
 
 class AssessmentResult(BaseModel):
@@ -39,6 +39,8 @@ class AssessmentResult(BaseModel):
     needs_review: bool
     mode: str                                   # "llm" o "reglas"
     model: str = ""
+    examples: list[str] = Field(default_factory=list)   # noticias de entrenamiento usadas como ejemplo
+    signals: dict = Field(default_factory=dict)          # gravedad según el LLM y según las reglas
     dependencies: list[dict] = Field(default_factory=list)
     candidates: list[dict] = Field(default_factory=list)
 
@@ -121,13 +123,28 @@ def recommend_action(a: NewsAssessment, urgent: bool) -> str:
 # Punto de entrada
 # ---------------------------------------------------------------------------
 
-def assess(news: dict, use_llm: bool = False, log: bool = True) -> AssessmentResult:
-    """Evalúa una noticia (dict con News_ID, Headline, Summary...)."""
+def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_MODEL,
+           exclude_examples: set[str] | None = None) -> AssessmentResult:
+    """Evalúa una noticia (dict con News_ID, Headline, Summary...).
+
+    use_llm=False -> solo reglas. Sin candidatos no se llama al LLM: no hay ningún proveedor
+    relacionado, así que la respuesta es 'sin riesgo' sin gastar ~20 s de GPU.
+    exclude_examples -> IDs que no pueden usarse como ejemplo (leave-one-out en entrenamiento).
+    """
     headline, summary = news["Headline"], news.get("Summary", "") or ""
     cands = find_candidates(headline, summary)
-    if use_llm:
-        raise NotImplementedError("El juez LLM llega en la fase 2")
-    a, model = assess_rules(headline, summary, cands), ""
+    examples: list[str] = []
+    signals: dict = {}
+    mode = "llm" if use_llm and cands else "reglas"
+    if mode == "llm":
+        from .judge import judge
+        a, examples = judge(headline, summary, cands, model=model, exclude_ids=exclude_examples)
+        rules_sev, rules_soon = severity_signal(headline, summary)
+        signals = {"severity_llm": a.severity, "soon_llm": a.stops_supply_soon,
+                   "severity_rules": rules_sev, "soon_rules": rules_soon}
+        a = combine_with_rules(a, rules_sev, rules_soon)
+    else:
+        a, model = assess_rules(headline, summary, cands), ""
 
     sup = load_suppliers()
     deps = [dependency(sup[i]) for i in a.affected_ids]
@@ -139,8 +156,8 @@ def assess(news: dict, use_llm: bool = False, log: bool = True) -> AssessmentRes
         event_type=a.event_type, event_label=EVENT_LABELS.get(a.event_type, a.event_type), severity=a.severity,
         stops_supply_soon=a.stops_supply_soon, recovery_days=a.recovery_days, evidence=a.evidence,
         confidence=a.confidence, urgency_reason=why, explanation=explain(a, urgent, cands, headline, summary),
-        action=recommend_action(a, urgent), needs_review=needs_review, mode="llm" if use_llm else "reglas",
-        model=model, dependencies=[d.__dict__ for d in deps],
+        action=recommend_action(a, urgent), needs_review=needs_review, mode=mode,
+        model=model, examples=examples, signals=signals, dependencies=[d.__dict__ for d in deps],
         candidates=[{"id": c.id, "name": c.supplier.name, "score": c.score, "evidence": c.evidence()}
                     for c in cands],
     )

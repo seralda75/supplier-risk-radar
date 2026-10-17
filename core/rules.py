@@ -117,6 +117,16 @@ def estimate_severity(event: str, headline: str, summary: str = "") -> int:
     return max(1, min(5, sev))
 
 
+def severity_signal(headline: str, summary: str = "") -> tuple[int, bool]:
+    """Opinión de las reglas sobre la gravedad (1-5) y la inmediatez, independiente de los proveedores.
+    Se combina con la del LLM en urgency.combine_with_rules()."""
+    event, _ = classify_event(headline, summary)
+    if event in NON_RISK_EVENTS:
+        return 1, False
+    sev = estimate_severity(event, headline, summary)
+    return sev, sev >= 3 and event not in SLOW_EVENTS
+
+
 def evidence_sentence(headline: str, summary: str, keyword: str) -> str:
     """La frase de la noticia que contiene la palabra clave (o el titular)."""
     if keyword:
