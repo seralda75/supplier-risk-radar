@@ -21,6 +21,8 @@ def _db() -> sqlite3.Connection:
     cols = {row[1] for row in con.execute("PRAGMA table_info(assessments)")}
     if "consensus" not in cols:
         con.execute("ALTER TABLE assessments ADD COLUMN consensus INTEGER")   # 1 / 0 / NULL (modo reglas)
+    if "review_reason" not in cols:
+        con.execute("ALTER TABLE assessments ADD COLUMN review_reason TEXT")  # "confianza_baja; sin_consenso"
     return con
 
 
@@ -30,17 +32,18 @@ def log(result) -> None:
     with _db() as con:
         con.execute(
             "INSERT INTO assessments (ts, news_id, headline, mode, model, is_risk, urgent, affected_ids, "
-            "event_type, severity, confidence, needs_review, consensus, payload) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            "event_type, severity, confidence, needs_review, consensus, review_reason, payload) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
             (datetime.now().isoformat(timespec="seconds"), r["news_id"], r["headline"], r["mode"], r["model"],
              int(r["is_risk"]), int(r["urgent"]), "; ".join(r["affected_ids"]), r["event_type"], r["severity"],
              r["confidence"], int(r["needs_review"]),
-             None if r.get("consensus") is None else int(r["consensus"]), json.dumps(r, ensure_ascii=False, default=str)))
+             None if r.get("consensus") is None else int(r["consensus"]),
+             "; ".join(r.get("review_reasons", [])), json.dumps(r, ensure_ascii=False, default=str)))
 
 
 def history(limit: int = 500):
     import pandas as pd
     with _db() as con:
         return pd.read_sql("SELECT id, ts, news_id, headline, mode, model, is_risk, urgent, affected_ids, "
-                           "event_type, severity, confidence, needs_review, consensus FROM assessments "
+                           "event_type, severity, confidence, needs_review, consensus, review_reason FROM assessments "
                            f"ORDER BY id DESC LIMIT {int(limit)}", con)

@@ -37,6 +37,7 @@ class AssessmentResult(BaseModel):
     explanation: str
     action: str
     needs_review: bool
+    review_reasons: list[str] = Field(default_factory=list)   # "confianza_baja", "sin_consenso"
     mode: str                                   # "llm" o "reglas"
     model: str = ""
     examples: list[str] = Field(default_factory=list)   # noticias de entrenamiento usadas como ejemplo
@@ -188,14 +189,21 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
         deps = [dependency(sup[i]) for i in a.affected_ids]
     elif use_llm:
         consensus = True     # sin candidatos el LLM no puede dar otra respuesta: sin riesgo y sin IDs
-    needs_review = a.confidence < CONFIDENCE_THRESHOLD and a.is_risk
+    # Revisión humana: la confianza declarada por el LLM es casi constante y no separa aciertos de
+    # errores (docs/evaluacion.md, v7); la discrepancia entre los dos jueces sí. Se guardan los motivos.
+    review_reasons = []
+    if a.is_risk and a.confidence < CONFIDENCE_THRESHOLD:
+        review_reasons.append("confianza_baja")
+    if consensus is False:
+        review_reasons.append("sin_consenso")
+    needs_review = bool(review_reasons)
     result = AssessmentResult(
         news_id=news["News_ID"], headline=headline, published_date=str(news.get("Published_Date", "")),
         source=news.get("Source", "") or "", is_risk=a.is_risk, urgent=urgent, affected_ids=sorted(a.affected_ids),
         event_type=a.event_type, event_label=EVENT_LABELS.get(a.event_type, a.event_type), severity=a.severity,
         stops_supply_soon=a.stops_supply_soon, recovery_days=a.recovery_days, evidence=a.evidence,
         confidence=a.confidence, urgency_reason=why, explanation=explain(a, urgent, cands, headline, summary),
-        action=recommend_action(a, urgent), needs_review=needs_review, mode=mode,
+        action=recommend_action(a, urgent), needs_review=needs_review, review_reasons=review_reasons, mode=mode,
         model=model, examples=examples, signals=signals, consensus=consensus, disagreement=disagreement,
         dependencies=[d.__dict__ for d in deps],
         candidates=[{"id": c.id, "name": c.supplier.name, "score": c.score, "evidence": c.evidence()}

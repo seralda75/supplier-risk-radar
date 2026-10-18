@@ -112,7 +112,8 @@ Límite conocido · el LLM marca como riesgo noticias que solo coinciden por ubi
 - **Por qué no se corrige ahora:** no aparece en el entrenamiento ni en la validación (el LLM
   acierta N013, N028, N042, N045 y N058, que son de este tipo), así que cualquier regla nueva
   estaría hecha a medida para el test.
-- **Señales que ya lo detectan:** las tres noticias no tienen consenso con las reglas.
+- **Señales que ya lo detectan:** las tres noticias no tienen consenso con las reglas y, desde la
+  v7, salen con revisión humana (`Review_Reason = sin_consenso`).
   ~~En las tres el LLM da una confianza muy baja (0,03-0,04) y salen con revisión humana.~~ Corregido
   en la v6: esa confianza baja era un fallo del campo `confidence`, no una señal real.
 - **Mitigación en producción:** la marca de revisión humana (una persona confirma antes de alertar)
@@ -145,3 +146,25 @@ Notas de la fase 2 v6 · corrección de un fallo detectado al revisar las discre
   errores**, así que `Needs_Review` (confianza < 0,75) ya no se activa en ninguna noticia del test.
   La señal útil para la revisión humana es la falta de consenso entre reglas y LLM (acierto del
   100 % con consenso frente a 0-50 % sin consenso).
+
+Notas de la fase 2 v7 · revisión humana basada en el consenso:
+- **La confianza declarada por el LLM no discrimina aciertos de errores.** Tras corregir su escala
+  (v6) es casi constante: en entrenamiento, 0,95 en 21 noticias y 1,0 en 5 (las otras 4 no tienen
+  candidatos y no pasan por el LLM); en validación, 0,95 en las 10. Los errores tienen la misma
+  confianza que los aciertos: N037 (entrenamiento), N041 y N044 (validación) tienen 0,95, igual que
+  la media de los aciertos (0,95-0,96). Con el umbral de 0,75, la marca antigua no capturaba
+  **ningún** error.
+- **El consenso entre reglas y LLM sí es una señal de incertidumbre:**
+
+  | Conjunto | Consenso | Perfecta con consenso | Perfecta sin consenso | Marcadas para revisión | Errores capturados |
+  |---|---|---|---|---|---|
+  | Entrenamiento LOO (30) | 93,3 % | 100 % | 50 % (1 de 2) | 6,7 % (2) | 100 % (1 de 1: N037) |
+  | Validación (10) | 90 % | 88,9 % | 0 % (0 de 1) | 10 % (1) | 50 % (1 de 2: N041; N044 no) |
+
+- **Regla:** `Needs_Review` = (riesgo con confianza < 0,75) **o** (reglas y LLM discrepan en algún
+  campo). El motivo se guarda en `Review_Reason` (`confianza_baja`, `sin_consenso` o ambos) en
+  `test_detalle.csv` y en la columna `review_reason` de la auditoría.
+- **No cambia ninguna respuesta Y/N:** solo decide qué noticias revisa una persona. En el test se
+  marcan 7 de 20 (todas por `sin_consenso`): N003, N009, N021, N036, N043, N049 y N055.
+- **Límite:** cuando los dos jueces se equivocan igual (N044), la marca no salta. Con 40 noticias
+  etiquetadas, los porcentajes de esta tabla son orientativos.

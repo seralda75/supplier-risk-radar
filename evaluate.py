@@ -51,6 +51,7 @@ def evaluate(split: str, use_llm: bool, model: str = LLM_MODEL, verbose: bool = 
             "pred_event": r.event_type, "severity": r.severity, "soon": r.stops_supply_soon,
             "recovery_days": r.recovery_days, "urgency_reason": r.urgency_reason,
             "consensus": r.consensus, "disagreement": ", ".join(r.disagreement),
+            "needs_review": r.needs_review, "review_reason": "; ".join(r.review_reasons), "confidence": r.confidence,
         })
         if verbose:
             mark = "✔" if (rows[-1]["gold_risk"] == rows[-1]["pred_risk"] and rows[-1]["ids_exact"]
@@ -81,6 +82,10 @@ def evaluate(split: str, use_llm: bool, model: str = LLM_MODEL, verbose: bool = 
         metrics["consenso reglas-LLM"] = agree.mean()
         metrics["perfecta si hay consenso"] = perfect[agree].mean() if agree.any() else float("nan")
         metrics["perfecta si discrepan"] = perfect[~agree].mean() if (~agree).any() else float("nan")
+        # Marca de revisión humana: cuántas noticias marca y qué parte de los errores captura
+        review = df.needs_review.astype(bool)
+        metrics["marcadas para revisión"] = review.mean()
+        metrics["errores marcados para revisión"] = review[~perfect].mean() if (~perfect).any() else float("nan")
     return metrics, df
 
 
