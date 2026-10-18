@@ -37,6 +37,7 @@ core/geo.py          coordenadas de las 40 ciudades (mapa)
 core/feedback.py     respuestas de los compradores (confirmar / falsa alarma) en SQLite
 core/results.py      resultados guardados para el panel y métricas
 core/countdown.py    cuenta atrás: TTS (inventario + alternativo) − TTR (recuperación)
+core/actions.py      acción recomendada a partir de la cuenta atrás (déficit, alternativo a tiempo o no)
 core/pipeline.py     assess(noticia) -> veredicto + explicación + acción + auditoría
 core/audit.py        auditoría en SQLite
 core/data.py         carga de las noticias de los tres Excel

@@ -68,12 +68,37 @@ valor por defecto ("TTR estimado"), porque en el segundo caso la señal es mucho
 - `test_detalle.csv`: columnas `Affected_Products`, `Countdown` (una línea por proveedor),
   `Min_Margin_Days` y `Countdown_Status` (el proveedor con menos margen).
 
+## Acción recomendada según la cuenta atrás (`core/actions.py`)
+
+Antes la acción solo miraba si había alternativo ("preparar la activación del alternativo") y podía
+contradecir a la cuenta atrás: en N004 proponía activar S001, que tarda 60 días en entregar cuando el
+inventario de S002 dura 45. Ahora la acción sale del margen de cada proveedor afectado:
+
+| Situación | Acción |
+|---|---|
+| El inventario cubre por sí solo la recuperación | Confirmar stock y fecha de reanudación; el alternativo queda en reserva |
+| El alternativo no está afectado y llega antes de que se acabe el inventario | Activarlo ya (con el margen resultante); si aun así no basta, déficit y medidas |
+| El alternativo **no llega a tiempo** | No es la solución principal: déficit en días + envío urgente del alternativo, compra puntual (con cualificación de urgencia), reasignar stock, priorizar productos |
+| El alternativo **también está afectado** | No se propone: déficit + compra puntual fuera de la zona, reasignar stock, priorizar productos |
+| Proveedor único con déficit | Déficit + compra puntual, reasignar stock, priorizar productos |
+| Sin inventario (logística, servicios) | Impacto inmediato durante el TTR: derivar al alternativo si no está afectado; si no, servicio puntual / plan de contingencia |
+
+- **Días de déficit** = −margen (TTR − TTS) cuando hay inventario; en logística y servicios, el TTR
+  completo. Nuevos campos de `Countdown`: `deficit_days`, `alternate_lead_days`, `alternate_in_time`.
+- Una noticia no urgente con margen negativo empieza por "No urgente, pero con riesgo latente".
+- No hay datos de criticidad clínica por producto: la acción nombra los productos afectados y deja la
+  priorización entre ellos al comprador.
+- **No cambia ninguna respuesta Y/N ni la urgencia** (comprobado: el Excel del test es idéntico).
+  Cambian la columna `Action` de `test_detalle.csv` y los resultados del panel.
+
 ## Observaciones en la entrega del test
 
 - **N016** (huelga de 48 horas en Antwerp-Bruges): antes el LLM devolvía 48 días y salía una rotura
   de −18 d. **Resuelto** en la v8: 48 horas -> 2 días, margen +28 d (cubierto).
 - **N004** (warning letter a Kaveri): `Urgent = N` y margen −45 d con TTR estimado de 90 días ->
   `riesgo_latente · TTR estimado`. La noticia no da plazo; el valor por defecto de una acción
-  regulatoria es pesimista a propósito y el cliente puede ajustarlo.
+  regulatoria es pesimista a propósito y el cliente puede ajustarlo. La acción ya no propone activar
+  S001 (tarda 60 d y el inventario dura 45): indica 45 días de déficit, envío urgente de S001,
+  compra puntual, reasignar stock y reservar el stock para Amoxira.
 - **N024** (Celsius, retrasos de 12 semanas): urgente y rotura prevista (−44 d) con un TTR que sí
   viene de la noticia: es el caso más claro para el comprador.

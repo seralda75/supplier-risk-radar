@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from . import audit
 from .config import CONFIDENCE_THRESHOLD, LLM_MODEL
+from .actions import recommend_action
 from .countdown import as_dicts, countdown
 from .matching import Candidate, find_candidates
 from .rules import assess_rules, severity_signal, verified_named
@@ -60,7 +61,7 @@ class AssessmentResult(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Explicación (mismo esquema que la columna Explanation del reto) y acción recomendada
+# Explicación (mismo esquema que la columna Explanation del reto); la acción está en actions.py
 # ---------------------------------------------------------------------------
 
 def _who(s: Supplier) -> str:
@@ -98,33 +99,6 @@ def explain(a: NewsAssessment, urgent: bool, cands: list[Candidate], headline: s
         return (f"Sin riesgo: menciona {alias}, donde está {_who(place.supplier)}, pero no describe nada "
                 "que afecte al suministro.")
     return "Sin riesgo: sin relación con ningún proveedor de Helixa."
-
-
-def recommend_action(a: NewsAssessment, urgent: bool) -> str:
-    """Acción calculada a partir de los datos (alternativo, inventario, productos), no inventada."""
-    if not a.is_risk:
-        return "Ninguna acción: no afecta al suministro."
-    sup = load_suppliers()
-    affected = set(a.affected_ids)
-    lines = []
-    for i in a.affected_ids:
-        s = sup[i]
-        prods = f" ({', '.join(s.products)})" if s.products else ""
-        inv = (f"quedan ~{s.inventory_cover_days:.0f} días de inventario"
-               if s.inventory_cover_days is not None else "sin inventario de reserva")
-        if s.single_source:
-            lines.append(f"{s.id} es proveedor ÚNICO de {s.material}{prods}: {inv}. Revisar el stock, "
-                         "priorizar pedidos y buscar un proveedor alternativo de emergencia.")
-        elif s.alternate_id and s.alternate_id in affected:
-            lines.append(f"{s.id} y su alternativo {s.alternate_id} están afectados a la vez ({s.material}{prods}; "
-                         f"{inv}): riesgo de concentración, buscar suministro fuera de la zona.")
-        elif s.alternate_id:
-            lines.append(f"{s.id} ({s.material}{prods}; {inv}): preparar la activación del alternativo "
-                         f"{s.alternate_id} {s.alternate_name}.")
-        else:
-            lines.append(f"{s.id} ({s.material}): sin alternativo registrado; preparar plan de contingencia.")
-    prefix = "ACTUAR YA. " if urgent else "Seguimiento en el informe semanal. "
-    return prefix + " ".join(lines)
 
 
 # ---------------------------------------------------------------------------
@@ -204,6 +178,7 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
     if consensus is False:
         review_reasons.append("sin_consenso")
     needs_review = bool(review_reasons)
+    cds = countdown(a, urgent)       # la acción recomendada se calcula a partir de la cuenta atrás
     result = AssessmentResult(
         news_id=news["News_ID"], headline=headline, published_date=str(news.get("Published_Date", "")),
         source=news.get("Source", "") or "", is_risk=a.is_risk, urgent=urgent, affected_ids=sorted(a.affected_ids),
@@ -212,10 +187,10 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
         recovery_reported="" if a.recovery_value is None else f"{a.recovery_value:g} {a.recovery_unit or 'days'}",
         evidence=a.evidence,
         confidence=a.confidence, urgency_reason=why, explanation=explain(a, urgent, cands, headline, summary),
-        action=recommend_action(a, urgent), needs_review=needs_review, review_reasons=review_reasons, mode=mode,
+        action=recommend_action(a, urgent, cds), needs_review=needs_review, review_reasons=review_reasons, mode=mode,
         model=model, examples=examples, signals=signals, consensus=consensus, disagreement=disagreement,
         dependencies=[d.__dict__ for d in deps],
-        countdown=as_dicts(countdown(a, urgent)),
+        countdown=as_dicts(cds),
         candidates=[{"id": c.id, "name": c.supplier.name, "score": c.score, "evidence": c.evidence()}
                     for c in cands],
     )

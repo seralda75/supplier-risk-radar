@@ -71,11 +71,14 @@ class Countdown:
     alternate_id: str | None
     alternate_affected: bool
     alternate_margin_days: float
+    alternate_lead_days: float | None     # plazo de entrega del alternativo
+    alternate_in_time: bool               # ¿el alternativo entrega antes de que se acabe el inventario?
     tts_days: float
     ttr_days: int
     ttr_estimated: bool
     ttr_basis: str
     margin_days: float
+    deficit_days: float                   # días sin suministro: −margen (o el TTR si no hay inventario)
     status: str
     products: list[str] = field(default_factory=list)
     monthly_requirement: str = ""
@@ -107,29 +110,41 @@ def time_to_recover(a: NewsAssessment) -> tuple[int, bool, str]:
     return DEFAULT_RECOVERY_DAYS.get(a.event_type, 30), True, f"valor por defecto para {label}"
 
 
-def alternate_margin(s: Supplier, affected: set[str]) -> tuple[float, bool, str]:
-    """(días extra que da el alternativo, ¿alternativo también afectado?, nota)."""
+@dataclass
+class AlternateCover:
+    extra_days: float = 0.0           # días extra que da el alternativo
+    affected: bool = False            # ¿el alternativo también está afectado?
+    lead_days: float | None = None    # su plazo de entrega
+    in_time: bool = False             # ¿llega antes de que se acabe el inventario?
+    note: str = ""
+
+
+def alternate_margin(s: Supplier, affected: set[str]) -> AlternateCover:
+    """Cuánto ayuda el alternativo aprobado (supuesto 2 del docstring del módulo)."""
     if not s.alternate_id:
-        return 0.0, False, "proveedor único: sin alternativo aprobado" if s.single_source else "sin alternativo"
-    if s.alternate_id in affected:
-        return 0.0, True, f"el alternativo {s.alternate_id} también está afectado"
+        return AlternateCover(note="proveedor único: sin alternativo aprobado" if s.single_source
+                              else "sin alternativo")
     alt = load_suppliers().get(s.alternate_id)
     lead = alt.lead_time_days if alt else None
+    if s.alternate_id in affected:
+        return AlternateCover(affected=True, lead_days=lead,
+                              note=f"el alternativo {s.alternate_id} también está afectado")
     inv = s.inventory_cover_days or 0.0
     if lead is None:
-        return 0.0, False, f"alternativo {s.alternate_id} sin plazo de entrega conocido"
+        return AlternateCover(note=f"alternativo {s.alternate_id} sin plazo de entrega conocido")
     if lead >= inv:
-        return 0.0, False, (f"el alternativo {s.alternate_id} tarda {lead:.0f} d en entregar: "
-                            f"no llega antes de que se acabe el inventario")
+        return AlternateCover(lead_days=lead, note=(f"el alternativo {s.alternate_id} tarda {lead:.0f} d en "
+                                                    f"entregar: no llega antes de que se acabe el inventario"))
     extra = (inv - lead) * ALTERNATE_SHARE / (1 - ALTERNATE_SHARE)
-    return extra, False, f"el alternativo {s.alternate_id} entrega en {lead:.0f} d y asume el {ALTERNATE_SHARE:.0%}"
+    return AlternateCover(extra, False, lead, True,
+                          f"el alternativo {s.alternate_id} entrega en {lead:.0f} d y asume el {ALTERNATE_SHARE:.0%}")
 
 
 def supplier_countdown(s: Supplier, a: NewsAssessment, affected: set[str], urgent: bool = True) -> Countdown:
     ttr, estimated, basis = time_to_recover(a)
-    extra, alt_affected, note = alternate_margin(s, affected)
+    alt = alternate_margin(s, affected)
     inv = s.inventory_cover_days
-    tts = (inv or 0.0) + extra
+    tts = (inv or 0.0) + alt.extra_days
     margin = tts - ttr
     if inv is None:
         status = "cubierto" if ttr == 0 else "sin_inventario"     # sin interrupción no hace falta colchón
@@ -141,9 +156,11 @@ def supplier_countdown(s: Supplier, a: NewsAssessment, affected: set[str], urgen
         status = "cubierto"
     return Countdown(
         supplier_id=s.id, supplier_name=s.name, inventory_days=inv, alternate_id=s.alternate_id,
-        alternate_affected=alt_affected, alternate_margin_days=round(extra, 1), tts_days=round(tts, 1),
-        ttr_days=ttr, ttr_estimated=estimated, ttr_basis=basis, margin_days=round(margin, 1), status=status,
-        products=list(s.products), monthly_requirement=s.monthly_requirement, note=note,
+        alternate_affected=alt.affected, alternate_margin_days=round(alt.extra_days, 1),
+        alternate_lead_days=alt.lead_days, alternate_in_time=alt.in_time, tts_days=round(tts, 1),
+        ttr_days=ttr, ttr_estimated=estimated, ttr_basis=basis, margin_days=round(margin, 1),
+        deficit_days=float(ttr) if inv is None else round(max(0.0, -margin), 1), status=status,
+        products=list(s.products), monthly_requirement=s.monthly_requirement, note=alt.note,
     )
 
 

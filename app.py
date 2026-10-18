@@ -457,6 +457,9 @@ CHANGES = [  # versión, cambio, de dónde sale, efecto en las respuestas
      "Entrenamiento + validación", "No"),
     ("v8", "Duración de la recuperación en las unidades de la noticia (48 horas ≠ 48 días) y anclada al texto",
      "Robustez detectada en el test", "No"),
+    ("v9", "La acción recomendada sale de la cuenta atrás: si el alternativo no llega a tiempo o también está "
+           "afectado, no se propone como solución; se indican los días de déficit y otras medidas",
+     "Incoherencia detectada en el test (N004)", "No"),
 ]
 LIMITS = [
     ("N044 · racionamiento eléctrico en Zhejiang", "Sale urgente (gravedad 3 + proveedor único S003) y la etiqueta "
