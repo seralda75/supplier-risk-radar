@@ -1,6 +1,6 @@
 """Juez LLM: confirma o descarta candidatos (nombres trampa), clasifica el evento y su gravedad.
 
-    judge(headline, summary, candidates) -> NewsAssessment
+    judge(headline, summary, candidates) -> (NewsAssessment, ejemplos usados, veredicto en bruto)
 
 - Few-shot dinámico: las noticias de ENTRENAMIENTO más parecidas (Chroma + nomic-embed-text), con
   su etiqueta y su Explanation, que es el razonamiento que el README pide copiar.
@@ -165,8 +165,9 @@ def apply_guards(a: NewsAssessment, cands: list[Candidate], headline: str = "",
 
 
 def judge(headline: str, summary: str, cands: list[Candidate], model: str = LLM_MODEL,
-          exclude_ids: set[str] | None = None) -> tuple[NewsAssessment, list[str]]:
-    """Devuelve el veredicto del LLM (ya con salvaguardas) y los IDs de los ejemplos usados."""
+          exclude_ids: set[str] | None = None) -> tuple[NewsAssessment, list[str], NewsAssessment]:
+    """Devuelve el veredicto del LLM ya con salvaguardas, los IDs de los ejemplos usados y el
+    veredicto en bruto (para la auditoría: qué cambiaron las salvaguardas)."""
     prompt, used = build_prompt(headline, summary, cands, exclude_ids)
     raw = llm.extract(prompt, NewsAssessment, model=model, system=SYSTEM)
-    return apply_guards(raw, cands, headline, summary), used
+    return apply_guards(raw, cands, headline, summary), used, raw

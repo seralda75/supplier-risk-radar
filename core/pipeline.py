@@ -157,10 +157,14 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
     mode = "llm" if use_llm and cands else "reglas"
     if mode == "llm":
         from .judge import judge
-        a, examples = judge(headline, summary, cands, model=model, exclude_ids=exclude_examples)
+        a, examples, raw = judge(headline, summary, cands, model=model, exclude_ids=exclude_examples)
         rules_sev, rules_soon = severity_signal(headline, summary)
         signals = {"severity_llm": a.severity, "soon_llm": a.stops_supply_soon,
                    "severity_rules": rules_sev, "soon_rules": rules_soon}
+        if raw.recovery_value is not None:
+            # Duración que dio el LLM y si está escrita en la noticia (judge.duration_in_text)
+            signals["recovery_llm"] = f"{raw.recovery_value:g} {raw.recovery_unit or 'days'}"
+            signals["recovery_anchored"] = a.recovery_value is not None
         a = combine_with_rules(a, rules_sev, rules_soon)
         rules_a = assess_rules(headline, summary, cands)
     else:

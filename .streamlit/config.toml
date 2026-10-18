@@ -1,0 +1,16 @@
+# Tema del panel: blanco y limpio, con el morado de Accenture como color de acento
+[theme]
+base = "light"
+primaryColor = "#A100FF"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F6F2FA"
+textColor = "#1C1A22"
+font = "sans serif"
+
+[server]
+headless = true
+# Sirve static/ (contorno del mapa del mundo): el mapa funciona sin internet durante la demo
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false

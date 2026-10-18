@@ -12,6 +12,15 @@ ollama pull qwen2.5:7b; ollama pull nomic-embed-text
 .venv\Scripts\python scripts\check_env.py
 ```
 
+## Panel (Streamlit)
+```powershell
+.venv\Scripts\python scriptsuild_results.py     # guarda los resultados de los 3 conjuntos (usa la caché del LLM)
+.venv\Scripts\streamlit run app.py                 # http://localhost:8501
+```
+La app solo lee `data/results/*.json` (incluidos en el repo): abre en segundos, sin llamar al LLM y
+sin internet (el contorno del mapa se sirve desde `static/`). Pestañas: Alertas (ordenadas por
+margen de días, con confirmar / falsa alarma guardados en SQLite), Mapa, Proveedor y Transparencia.
+
 ## Estructura
 ```
 data/raw/            Excel originales del reto
@@ -24,11 +33,16 @@ core/matching.py     candidatos por nombre, ubicación, ruta, material y categor
 core/rules.py        modo solo reglas: tipo de evento, gravedad y proveedores afectados
 core/urgency.py      dependencia del proveedor y decisión de urgencia
 core/judge.py        juez LLM: few-shot del entrenamiento (Chroma) + JSON schema + salvaguardas
+core/geo.py          coordenadas de las 40 ciudades (mapa)
+core/feedback.py     respuestas de los compradores (confirmar / falsa alarma) en SQLite
+core/results.py      resultados guardados para el panel y métricas
 core/countdown.py    cuenta atrás: TTS (inventario + alternativo) − TTR (recuperación)
 core/pipeline.py     assess(noticia) -> veredicto + explicación + acción + auditoría
 core/audit.py        auditoría en SQLite
 core/data.py         carga de las noticias de los tres Excel
 evaluate.py          métricas (python evaluate.py [--no-llm] [--split train])
+app.py               panel Streamlit (fase 4)
+scripts/build_results.py  genera data/results/{train,validation,test}.json
 fill_test.py         rellena outputs/Supplier_Risk_3_Test_respuestas.xlsx y valida el formato
 deliverables/        entrega final del test (copia versionada de outputs/) + detalle con consenso
 tests/               pytest con casos del entrenamiento

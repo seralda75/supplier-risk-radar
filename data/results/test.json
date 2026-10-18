@@ -1,0 +1,1660 @@
+{
+ "split": "test",
+ "generated": "2026-10-18T16:55:06",
+ "mode": "llm",
+ "model": "qwen2.5:7b",
+ "results": [
+  {
+   "news_id": "N003",
+   "headline": "Typhoon forces three-day closure of Shanghai and Ningbo ports",
+   "published_date": "2026-09-03",
+   "source": "Global Newswire",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S007"
+   ],
+   "event_type": "natural_disaster",
+   "event_label": "Natural disaster",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": 3,
+   "recovery_reported": "3 days",
+   "evidence": "Typhoon Hagen made landfall south of Shanghai, forcing authorities to suspend operations at the Shanghai and Ningbo-Zhoushan ports for three days. Shippers warn of knock-on delays of up to two weeks.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 3/5 con dependencia 0.15: impacto limitado o con alternativa",
+   "explanation": "Riesgo para S007 Huaxin Pharmaceutical Materials (situado en la zona afectada). No urgente: desastre natural con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S007 (Paracetamol (Fevrex 500 mg tablets); quedan ~50 días de inventario): preparar la activación del alternativo S006 Narmada Lifesciences.",
+   "needs_review": true,
+   "review_reasons": [
+    "sin_consenso"
+   ],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N001",
+    "N053",
+    "N020",
+    "N029"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": true,
+    "severity_rules": 4,
+    "soon_rules": true,
+    "recovery_llm": "3 days",
+    "recovery_anchored": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S007"
+     ]
+    },
+    "tiebreak": {
+     "Urgent": "llm"
+    }
+   },
+   "consensus": false,
+   "disagreement": [
+    "Urgent"
+   ],
+   "dependencies": [
+    {
+     "supplier_id": "S007",
+     "score": 0.15,
+     "factors": [
+      "alternativo S006",
+      "criticidad Medium",
+      "50 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S007",
+     "supplier_name": "Huaxin Pharmaceutical Materials",
+     "inventory_days": 50.0,
+     "alternate_id": "S006",
+     "alternate_affected": false,
+     "alternate_margin_days": 10.0,
+     "tts_days": 60.0,
+     "ttr_days": 3,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": 57.0,
+     "status": "cubierto",
+     "products": [
+      "Fevrex 500 mg tablets"
+     ],
+     "monthly_requirement": "2600 kg",
+     "note": "el alternativo S006 entrega en 40 d y asume el 50%"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S007",
+     "name": "Huaxin Pharmaceutical Materials",
+     "score": 0.8,
+     "evidence": "location:city 'Shanghai'"
+    }
+   ],
+   "summary": "Typhoon Hagen made landfall south of Shanghai, forcing authorities to suspend operations at the Shanghai and Ningbo-Zhoushan ports for three days. Shippers warn of knock-on delays of up to two weeks."
+  },
+  {
+   "news_id": "N004",
+   "headline": "US regulator issues warning letter to Kaveri Fine Chemicals over data integrity lapses",
+   "published_date": "2026-09-04",
+   "source": "Regulatory Notice",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S002"
+   ],
+   "event_type": "regulatory_action",
+   "event_label": "Regulatory action",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "The U.S. Food and Drug Administration (FDA) said inspectors found incomplete laboratory records at Kaveri Fine Chemicals' Ahmedabad site. Shipments to the US may be held until corrective actions are verified.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 3/5 con dependencia 0.40: impacto limitado o con alternativa",
+   "explanation": "Riesgo para S002 Kaveri Fine Chemicals (citado en la noticia). No urgente: acción regulatoria con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S002 (Amoxicillin trihydrate (Amoxira 500 mg capsules); quedan ~45 días de inventario): preparar la activación del alternativo S001 Sunrise BioChem Ltd.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N033",
+    "N020",
+    "N014",
+    "N001"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": false,
+    "severity_rules": 3,
+    "soon_rules": true,
+    "recovery_llm": "2 weeks",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S002"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S002",
+     "score": 0.4,
+     "factors": [
+      "alternativo S001",
+      "criticidad High",
+      "45 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S002",
+     "supplier_name": "Kaveri Fine Chemicals",
+     "inventory_days": 45.0,
+     "alternate_id": "S001",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 45.0,
+     "ttr_days": 90,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para acción regulatoria",
+     "margin_days": -45.0,
+     "status": "riesgo_latente",
+     "products": [
+      "Amoxira 500 mg capsules"
+     ],
+     "monthly_requirement": "1200 kg",
+     "note": "el alternativo S001 tarda 60 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S002",
+     "name": "Kaveri Fine Chemicals",
+     "score": 1.05,
+     "evidence": "name:full 'kaveri fine chemicals' | location:city 'Ahmedabad'"
+    },
+    {
+     "id": "S006",
+     "name": "Narmada Lifesciences",
+     "score": 0.8,
+     "evidence": "location:city 'Ahmedabad'"
+    },
+    {
+     "id": "S017",
+     "name": "Stellar Elastomers Inc.",
+     "score": 0.3,
+     "evidence": "location:country 'US'"
+    },
+    {
+     "id": "S029",
+     "name": "Boston Assay Supplies",
+     "score": 0.3,
+     "evidence": "location:country 'US'"
+    }
+   ],
+   "summary": "The U.S. Food and Drug Administration (FDA) said inspectors found incomplete laboratory records at Kaveri Fine Chemicals' Ahmedabad site. Shipments to the US may be held until corrective actions are verified."
+  },
+  {
+   "news_id": "N009",
+   "headline": "Workers at Lumina Glassworks' Mainz plant begin indefinite strike",
+   "published_date": "2026-09-08",
+   "source": "Trade Press",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S015"
+   ],
+   "event_type": "labour_strike",
+   "event_label": "Labour strike",
+   "severity": 4,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Production of pharmaceutical glass vials at Lumina Glassworks' Mainz plant has stopped after the workers' union rejected the latest pay offer and called an indefinite strike.",
+   "confidence": 0.95,
+   "urgency_reason": "evento grave (gravedad 4/5) que puede parar el suministro pronto",
+   "explanation": "Riesgo para S015 Lumina Glassworks (citado en la noticia). Urgente: este evento (huelga) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S015 (Type I glass vials (HX-mAb 100 mg injection); quedan ~35 días de inventario): preparar la activación del alternativo S016 Vitrum Medica SpA.",
+   "needs_review": true,
+   "review_reasons": [
+    "sin_consenso"
+   ],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N053",
+    "N014",
+    "N046",
+    "N020"
+   ],
+   "signals": {
+    "severity_llm": 4,
+    "soon_llm": true,
+    "severity_rules": 3,
+    "soon_rules": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S015"
+     ]
+    },
+    "tiebreak": {
+     "Urgent": "llm"
+    }
+   },
+   "consensus": false,
+   "disagreement": [
+    "Urgent"
+   ],
+   "dependencies": [
+    {
+     "supplier_id": "S015",
+     "score": 0.4,
+     "factors": [
+      "alternativo S016",
+      "criticidad High",
+      "35 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S015",
+     "supplier_name": "Lumina Glassworks",
+     "inventory_days": 35.0,
+     "alternate_id": "S016",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 35.0,
+     "ttr_days": 7,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para huelga",
+     "margin_days": 28.0,
+     "status": "cubierto",
+     "products": [
+      "HX-mAb 100 mg injection"
+     ],
+     "monthly_requirement": "450000 units",
+     "note": "el alternativo S016 tarda 50 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S015",
+     "name": "Lumina Glassworks",
+     "score": 1.1,
+     "evidence": "name:full 'lumina glassworks' | location:city 'Mainz' | material:material 'glass vials'"
+    },
+    {
+     "id": "S016",
+     "name": "Vitrum Medica SpA",
+     "score": 0.4,
+     "evidence": "material:material 'glass vials'"
+    }
+   ],
+   "summary": "Production of pharmaceutical glass vials at Lumina Glassworks' Mainz plant has stopped after the workers' union rejected the latest pay offer and called an indefinite strike."
+  },
+  {
+   "news_id": "N010",
+   "headline": "Industry body publishes guidance on artificial intelligence in pharmaceutical manufacturing",
+   "published_date": "2026-09-08",
+   "source": "Trade Press",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Industry body publishes guidance on artificial intelligence in pharmaceutical manufacturing",
+   "confidence": 0.6,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: sin relación con ningún proveedor de Helixa.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "reglas",
+   "model": "",
+   "examples": [],
+   "signals": {},
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [],
+   "summary": "A European industry association has issued guidance on using artificial intelligence in quality control and production."
+  },
+  {
+   "news_id": "N012",
+   "headline": "Ransomware attack halts operations at Spanish serialisation software firm Vectra",
+   "published_date": "2026-09-10",
+   "source": "Global Newswire",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S035"
+   ],
+   "event_type": "cyber_incident",
+   "event_label": "Cyber incident",
+   "severity": 4,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Vectra Serialisation Software said a ransomware attack has taken its track-and-trace platform offline for customers across Europe. The company could not say when full service would resume.",
+   "confidence": 0.95,
+   "urgency_reason": "evento grave (gravedad 4/5) que puede parar el suministro pronto",
+   "explanation": "Riesgo para S035 Vectra Serialisation Software (citado en la noticia). Urgente: este evento (ciberataque / incidente informático) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S035 es proveedor ÚNICO de Track-and-trace serialisation platform: sin inventario de reserva. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N029",
+    "N018",
+    "N014",
+    "N046"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": false,
+    "severity_rules": 4,
+    "soon_rules": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S035"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S035",
+     "score": 0.8,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "sin inventario de reserva (servicio)"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S035",
+     "supplier_name": "Vectra Serialisation Software",
+     "inventory_days": null,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 0.0,
+     "ttr_days": 14,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para ciberataque / incidente informático",
+     "margin_days": -14.0,
+     "status": "sin_inventario",
+     "products": [],
+     "monthly_requirement": "",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S035",
+     "name": "Vectra Serialisation Software",
+     "score": 1.1,
+     "evidence": "name:full 'vectra serialisation software' | material:material 'serialisation' | location:country+material 'Spanish'"
+    }
+   ],
+   "summary": "Vectra Serialisation Software said a ransomware attack has taken its track-and-trace platform offline for customers across Europe. The company could not say when full service would resume."
+  },
+  {
+   "news_id": "N016",
+   "headline": "Dockworkers at Antwerp-Bruges port announce 48-hour strike",
+   "published_date": "2026-09-12",
+   "source": "Trade Press",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S022"
+   ],
+   "event_type": "labour_strike",
+   "event_label": "Labour strike",
+   "severity": 2,
+   "stops_supply_soon": false,
+   "recovery_days": 2,
+   "recovery_reported": "48 hours",
+   "evidence": "Port unions in Antwerp-Bruges have called a 48-hour strike for next week over working conditions, which is expected to delay container traffic.",
+   "confidence": 0.95,
+   "urgency_reason": "efecto lento o limitado: puede esperar al informe semanal",
+   "explanation": "Riesgo para S022 Benelux Print & Pack (situado en la zona afectada). No urgente: huelga con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S022 (Folding cartons (Amoxira 500 mg capsules, Fevrex 500 mg tablets, Glucora 850 mg tablets, Lipivia 20 mg tablets); quedan ~25 días de inventario): preparar la activación del alternativo S021 Andes Cartonaje.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N053",
+    "N046",
+    "N039",
+    "N037"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "recovery_llm": "48 hours",
+    "recovery_anchored": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S022"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S022",
+     "score": 0.2,
+     "factors": [
+      "alternativo S021",
+      "criticidad Low",
+      "25 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S022",
+     "supplier_name": "Benelux Print & Pack",
+     "inventory_days": 25.0,
+     "alternate_id": "S021",
+     "alternate_affected": false,
+     "alternate_margin_days": 5.0,
+     "tts_days": 30.0,
+     "ttr_days": 2,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": 28.0,
+     "status": "cubierto",
+     "products": [
+      "Amoxira 500 mg capsules",
+      "Fevrex 500 mg tablets",
+      "Glucora 850 mg tablets",
+      "Lipivia 20 mg tablets"
+     ],
+     "monthly_requirement": "900000 units",
+     "note": "el alternativo S021 entrega en 20 d y asume el 50%"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S022",
+     "name": "Benelux Print & Pack",
+     "score": 0.8,
+     "evidence": "location:city 'Antwerp'"
+    }
+   ],
+   "summary": "Port unions in Antwerp-Bruges have called a 48-hour strike for next week over working conditions, which is expected to delay container traffic."
+  },
+  {
+   "news_id": "N021",
+   "headline": "Polar vortex expected to bring record cold to the US Midwest",
+   "published_date": "2026-09-15",
+   "source": "Weather",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S017"
+   ],
+   "event_type": "supply_shortage",
+   "event_label": "Supply shortage",
+   "severity": 2,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Forecasters expect temperatures well below freezing across the US Midwest next week.",
+   "confidence": 0.9,
+   "urgency_reason": "efecto lento o limitado: puede esperar al informe semanal",
+   "explanation": "Riesgo para S017 Stellar Elastomers Inc. (situado en la zona afectada). No urgente: escasez de suministro con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S017 es proveedor ÚNICO de Rubber stoppers (HX-mAb 100 mg injection): quedan ~40 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": true,
+   "review_reasons": [
+    "sin_consenso"
+   ],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N013",
+    "N015",
+    "N028",
+    "N045"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "recovery_llm": "1 weeks",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {
+     "Is_Risk": "llm",
+     "Affected_Supplier_IDs": "llm"
+    }
+   },
+   "consensus": false,
+   "disagreement": [
+    "Is_Risk",
+    "Affected_Supplier_IDs"
+   ],
+   "dependencies": [
+    {
+     "supplier_id": "S017",
+     "score": 0.8,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "40 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S017",
+     "supplier_name": "Stellar Elastomers Inc.",
+     "inventory_days": 40.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 40.0,
+     "ttr_days": 0,
+     "ttr_estimated": true,
+     "ttr_basis": "efecto lento: no interrumpe el suministro a corto plazo",
+     "margin_days": 40.0,
+     "status": "cubierto",
+     "products": [
+      "HX-mAb 100 mg injection"
+     ],
+     "monthly_requirement": "450000 units",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S017",
+     "name": "Stellar Elastomers Inc.",
+     "score": 0.3,
+     "evidence": "location:country 'US'"
+    },
+    {
+     "id": "S029",
+     "name": "Boston Assay Supplies",
+     "score": 0.3,
+     "evidence": "location:country 'US'"
+    }
+   ],
+   "summary": "Forecasters expect temperatures well below freezing across the US Midwest next week."
+  },
+  {
+   "news_id": "N023",
+   "headline": "Osaka hosts international biotech conference",
+   "published_date": "2026-09-16",
+   "source": "Trade Press",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "More than 5,000 delegates attended a biotechnology conference in Osaka this week.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: menciona Osaka, donde está S020 Kansai PreFill Co., pero no describe nada que afecte al suministro.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N042",
+    "N058",
+    "N018",
+    "N035"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S020",
+     "name": "Kansai PreFill Co.",
+     "score": 0.8,
+     "evidence": "location:city 'Osaka'"
+    }
+   ],
+   "summary": "More than 5,000 delegates attended a biotechnology conference in Osaka this week."
+  },
+  {
+   "news_id": "N024",
+   "headline": "Celsius Bioprocess Systems warns of 12-week delays on bioreactor bags",
+   "published_date": "2026-09-17",
+   "source": "Trade Press",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S025"
+   ],
+   "event_type": "supply_shortage",
+   "event_label": "Supply shortage",
+   "severity": 4,
+   "stops_supply_soon": true,
+   "recovery_days": 84,
+   "recovery_reported": "12 weeks",
+   "evidence": "Celsius Bioprocess Systems told customers that a shortage of a specialty resin will push lead times for single-use bioreactor bags out by up to 12 weeks.",
+   "confidence": 0.95,
+   "urgency_reason": "evento grave (gravedad 4/5) que puede parar el suministro pronto",
+   "explanation": "Riesgo para S025 Celsius Bioprocess Systems (citado en la noticia). Urgente: este evento (escasez de suministro) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S025 es proveedor ÚNICO de Bioreactor bags (HX-mAb 100 mg injection): quedan ~40 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N054",
+    "N033",
+    "N014",
+    "N020"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": false,
+    "severity_rules": 4,
+    "soon_rules": true,
+    "recovery_llm": "12 weeks",
+    "recovery_anchored": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S025"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S025",
+     "score": 0.8,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "40 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S025",
+     "supplier_name": "Celsius Bioprocess Systems",
+     "inventory_days": 40.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 40.0,
+     "ttr_days": 84,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": -44.0,
+     "status": "rotura_prevista",
+     "products": [
+      "HX-mAb 100 mg injection"
+     ],
+     "monthly_requirement": "60 units",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S025",
+     "name": "Celsius Bioprocess Systems",
+     "score": 1.1,
+     "evidence": "name:full 'celsius bioprocess systems' | material:material 'bioreactor bags' | category:category 'single-use'"
+    }
+   ],
+   "summary": "Celsius Bioprocess Systems told customers that a shortage of a specialty resin will push lead times for single-use bioreactor bags out by up to 12 weeks."
+  },
+  {
+   "news_id": "N026",
+   "headline": "Brazilian real hits two-year high",
+   "published_date": "2026-09-18",
+   "source": "Financial News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Brazil's currency gained against the US dollar on strong commodity exports.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: sin relación con ningún proveedor de Helixa.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N015",
+    "N005",
+    "N054",
+    "N039"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S017",
+     "name": "Stellar Elastomers Inc.",
+     "score": 0.3,
+     "evidence": "location:country 'US'"
+    },
+    {
+     "id": "S029",
+     "name": "Boston Assay Supplies",
+     "score": 0.3,
+     "evidence": "location:country 'US'"
+    },
+    {
+     "id": "S036",
+     "name": "Aurum Gelatin Capsules",
+     "score": 0.3,
+     "evidence": "location:country 'Brazil'"
+    }
+   ],
+   "summary": "Brazil's currency gained against the US dollar on strong commodity exports."
+  },
+  {
+   "news_id": "N031",
+   "headline": "Alpine Filtration AG wins industry sustainability award",
+   "published_date": "2026-09-21",
+   "source": "Trade Press",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [
+    "S026"
+   ],
+   "event_type": "positive_news",
+   "event_label": "Positive news",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Alpine Filtration AG received an award for reducing the carbon footprint of its sterile filter production by 30 percent.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: noticia positiva sobre S026 Alpine Filtration AG.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N020",
+    "N042",
+    "N015",
+    "N054"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": [
+      "S026"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S026",
+     "score": 0.4,
+     "factors": [
+      "alternativo S027",
+      "criticidad High",
+      "45 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S026",
+     "name": "Alpine Filtration AG",
+     "score": 1.1,
+     "evidence": "name:full 'alpine filtration' | location:city 'Zurich' | material:material 'sterile filter'"
+    },
+    {
+     "id": "S027",
+     "name": "Hsinchu Membrane Tech",
+     "score": 0.4,
+     "evidence": "material:material 'sterile filter'"
+    }
+   ],
+   "summary": "Zurich-based Alpine Filtration AG received an award for reducing the carbon footprint of its sterile filter production by 30 percent."
+  },
+  {
+   "news_id": "N036",
+   "headline": "Singapore unveils plan to automate more of its port",
+   "published_date": "2026-09-23",
+   "source": "Trade Press",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S032"
+   ],
+   "event_type": "logistics_disruption",
+   "event_label": "Logistics disruption",
+   "severity": 2,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Singapore's port authority will invest in driverless vehicles and automated cranes over the next decade.",
+   "confidence": 0.95,
+   "urgency_reason": "efecto lento o limitado: puede esperar al informe semanal",
+   "explanation": "Riesgo para S032 Oceanbridge Shipping Agency (situado en la zona afectada). No urgente: interrupción logística con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S032 (Asia to Europe sea freight; sin inventario de reserva): preparar la activación del alternativo S033 Silkroute Rail Freight.",
+   "needs_review": true,
+   "review_reasons": [
+    "sin_consenso"
+   ],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N039",
+    "N018",
+    "N007",
+    "N042"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {
+     "Is_Risk": "llm",
+     "Affected_Supplier_IDs": "llm"
+    }
+   },
+   "consensus": false,
+   "disagreement": [
+    "Is_Risk",
+    "Affected_Supplier_IDs"
+   ],
+   "dependencies": [
+    {
+     "supplier_id": "S032",
+     "score": 0.25,
+     "factors": [
+      "alternativo S033",
+      "criticidad Medium",
+      "sin inventario de reserva (servicio)"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S032",
+     "supplier_name": "Oceanbridge Shipping Agency",
+     "inventory_days": null,
+     "alternate_id": "S033",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 0.0,
+     "ttr_days": 0,
+     "ttr_estimated": true,
+     "ttr_basis": "efecto lento: no interrumpe el suministro a corto plazo",
+     "margin_days": 0.0,
+     "status": "cubierto",
+     "products": [],
+     "monthly_requirement": "",
+     "note": "el alternativo S033 tarda 20 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S032",
+     "name": "Oceanbridge Shipping Agency",
+     "score": 0.8,
+     "evidence": "location:city 'Singapore' | location:country 'Singapore'"
+    }
+   ],
+   "summary": "Singapore's port authority will invest in driverless vehicles and automated cranes over the next decade."
+  },
+  {
+   "news_id": "N038",
+   "headline": "Cybersecurity start-up Stellar Shield raises Series C funding",
+   "published_date": "2026-09-24",
+   "source": "Technology",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Stellar Shield, which makes security software for small businesses, raised USD 60 million.",
+   "confidence": 1.0,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: el nombre se parece a S017 Stellar Elastomers Inc., pero la noticia trata de otra organización o tema.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N007",
+    "N005",
+    "N017",
+    "N048"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S017",
+     "name": "Stellar Elastomers Inc.",
+     "score": 0.6,
+     "evidence": "name:ambiguous 'stellar'"
+    }
+   ],
+   "summary": "Stellar Shield, which makes security software for small businesses, raised USD 60 million."
+  },
+  {
+   "news_id": "N043",
+   "headline": "Vietnam port congestion eases as new terminal opens",
+   "published_date": "2026-09-27",
+   "source": "Regional News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "logistics_disruption",
+   "event_label": "Logistics disruption",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "A new container terminal near Ho Chi Minh City has opened, cutting waiting times for ships by half.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: menciona Ho Chi Minh City, donde está S037 Biocaps Vietnam, pero no describe nada que afecte al suministro.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": true,
+   "review_reasons": [
+    "sin_consenso"
+   ],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N039",
+    "N053",
+    "N037",
+    "N054"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 2,
+    "soon_rules": false,
+    "recovery_llm": "2 weeks",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S037"
+     ]
+    },
+    "tiebreak": {
+     "Is_Risk": "llm",
+     "Affected_Supplier_IDs": "llm"
+    }
+   },
+   "consensus": false,
+   "disagreement": [
+    "Is_Risk",
+    "Affected_Supplier_IDs"
+   ],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S037",
+     "name": "Biocaps Vietnam",
+     "score": 0.8,
+     "evidence": "location:city 'Ho Chi Minh City' | location:country 'Vietnam'"
+    }
+   ],
+   "summary": "A new container terminal near Ho Chi Minh City has opened, cutting waiting times for ships by half."
+  },
+  {
+   "news_id": "N047",
+   "headline": "Boston Assay Supplies delays shipments during IT system migration",
+   "published_date": "2026-09-29",
+   "source": "Trade Press",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S029"
+   ],
+   "event_type": "logistics_disruption",
+   "event_label": "Logistics disruption",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": 14,
+   "recovery_reported": "2 weeks",
+   "evidence": "Boston Assay Supplies told customers that orders placed in the next two weeks may ship up to ten days late while it moves to a new ordering system.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 3/5 con dependencia alta (0.60): no hay margen para esperar",
+   "explanation": "Riesgo para S029 Boston Assay Supplies (citado en la noticia). Urgente: este evento (interrupción logística) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S029 es proveedor ÚNICO de Quality control assay kits: quedan ~30 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N039",
+    "N005",
+    "N014",
+    "N037"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 4,
+    "soon_rules": true,
+    "recovery_llm": "2 weeks",
+    "recovery_anchored": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S029"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S029",
+     "score": 0.6,
+     "factors": [
+      "proveedor único",
+      "criticidad Low",
+      "30 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S029",
+     "supplier_name": "Boston Assay Supplies",
+     "inventory_days": 30.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 30.0,
+     "ttr_days": 14,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": 16.0,
+     "status": "cubierto",
+     "products": [],
+     "monthly_requirement": "",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S029",
+     "name": "Boston Assay Supplies",
+     "score": 1.05,
+     "evidence": "name:full 'boston assay supplies' | location:city 'Boston'"
+    }
+   ],
+   "summary": "Boston Assay Supplies told customers that orders placed in the next two weeks may ship up to ten days late while it moves to a new ordering system."
+  },
+  {
+   "news_id": "N049",
+   "headline": "Hyderabad metro expansion approved",
+   "published_date": "2026-09-30",
+   "source": "Regional News",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S001"
+   ],
+   "event_type": "logistics_disruption",
+   "event_label": "Logistics disruption",
+   "severity": 2,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "The state government approved a new metro line in Hyderabad.",
+   "confidence": 0.9,
+   "urgency_reason": "efecto lento o limitado: puede esperar al informe semanal",
+   "explanation": "Riesgo para S001 Sunrise BioChem Ltd (situado en la zona afectada). No urgente: interrupción logística con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S001 (Amoxicillin trihydrate (Amoxira 500 mg capsules); quedan ~45 días de inventario): preparar la activación del alternativo S002 Kaveri Fine Chemicals.",
+   "needs_review": true,
+   "review_reasons": [
+    "sin_consenso"
+   ],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N048",
+    "N039",
+    "N033",
+    "N005"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {
+     "Is_Risk": "llm",
+     "Affected_Supplier_IDs": "llm"
+    }
+   },
+   "consensus": false,
+   "disagreement": [
+    "Is_Risk",
+    "Affected_Supplier_IDs"
+   ],
+   "dependencies": [
+    {
+     "supplier_id": "S001",
+     "score": 0.4,
+     "factors": [
+      "alternativo S002",
+      "criticidad High",
+      "45 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S001",
+     "supplier_name": "Sunrise BioChem Ltd",
+     "inventory_days": 45.0,
+     "alternate_id": "S002",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 45.0,
+     "ttr_days": 0,
+     "ttr_estimated": true,
+     "ttr_basis": "efecto lento: no interrumpe el suministro a corto plazo",
+     "margin_days": 45.0,
+     "status": "cubierto",
+     "products": [
+      "Amoxira 500 mg capsules"
+     ],
+     "monthly_requirement": "1200 kg",
+     "note": "el alternativo S002 tarda 60 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S001",
+     "name": "Sunrise BioChem Ltd",
+     "score": 0.8,
+     "evidence": "location:city 'Hyderabad'"
+    }
+   ],
+   "summary": "The state government approved a new metro line in Hyderabad."
+  },
+  {
+   "news_id": "N052",
+   "headline": "European inspection finds minor observations at Darmstadt Reagent Works",
+   "published_date": "2026-10-01",
+   "source": "Regulatory Notice",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [
+    "S028"
+   ],
+   "event_type": "positive_news",
+   "event_label": "Positive news",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "The European Medicines Agency (EMA) reported two minor observations after inspecting Darmstadt Reagent Works. No supply impact is expected.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: noticia positiva sobre S028 Darmstadt Reagent Works.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N033",
+    "N054",
+    "N035",
+    "N037"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": [
+      "S028"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S028",
+     "score": 0.55,
+     "factors": [
+      "proveedor único",
+      "criticidad Medium",
+      "60 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S028",
+     "name": "Darmstadt Reagent Works",
+     "score": 1.05,
+     "evidence": "name:full 'darmstadt reagent works' | location:city 'Darmstadt'"
+    }
+   ],
+   "summary": "The European Medicines Agency (EMA) reported two minor observations after inspecting Darmstadt Reagent Works. No supply impact is expected."
+  },
+  {
+   "news_id": "N055",
+   "headline": "Oceanbridge Shipping Agency to raise Asia to Europe rates by 15 percent",
+   "published_date": "2026-10-02",
+   "source": "Company Press Release",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S032"
+   ],
+   "event_type": "logistics_disruption",
+   "event_label": "Logistics disruption",
+   "severity": 2,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Oceanbridge Shipping Agency will increase freight rates on Asia to Europe routes from November.",
+   "confidence": 0.95,
+   "urgency_reason": "efecto lento o limitado: puede esperar al informe semanal",
+   "explanation": "Riesgo para S032 Oceanbridge Shipping Agency (citado en la noticia). No urgente: interrupción logística con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S032 (Asia to Europe sea freight; sin inventario de reserva): preparar la activación del alternativo S033 Silkroute Rail Freight.",
+   "needs_review": true,
+   "review_reasons": [
+    "sin_consenso"
+   ],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N039",
+    "N005",
+    "N037",
+    "N045"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": [
+      "S032"
+     ]
+    },
+    "tiebreak": {
+     "Is_Risk": "llm"
+    }
+   },
+   "consensus": false,
+   "disagreement": [
+    "Is_Risk"
+   ],
+   "dependencies": [
+    {
+     "supplier_id": "S032",
+     "score": 0.25,
+     "factors": [
+      "alternativo S033",
+      "criticidad Medium",
+      "sin inventario de reserva (servicio)"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S032",
+     "supplier_name": "Oceanbridge Shipping Agency",
+     "inventory_days": null,
+     "alternate_id": "S033",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 0.0,
+     "ttr_days": 0,
+     "ttr_estimated": true,
+     "ttr_basis": "efecto lento: no interrumpe el suministro a corto plazo",
+     "margin_days": 0.0,
+     "status": "cubierto",
+     "products": [],
+     "monthly_requirement": "",
+     "note": "el alternativo S033 tarda 20 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S032",
+     "name": "Oceanbridge Shipping Agency",
+     "score": 1.1,
+     "evidence": "name:full 'oceanbridge shipping agency' | route:route 'Asia to Europe' | category:category 'freight'"
+    }
+   ],
+   "summary": "Oceanbridge Shipping Agency will increase freight rates on Asia to Europe routes from November."
+  },
+  {
+   "news_id": "N059",
+   "headline": "Cyclone warning issued for coast of Andhra Pradesh and Telangana",
+   "published_date": "2026-10-04",
+   "source": "Weather",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S001"
+   ],
+   "event_type": "natural_disaster",
+   "event_label": "Natural disaster",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Forecasters issued a cyclone warning for the coast. Heavy rain may reach inland areas, including Hyderabad, later in the week.",
+   "confidence": 0.9,
+   "urgency_reason": "gravedad 3/5 con dependencia 0.40: impacto limitado o con alternativa",
+   "explanation": "Riesgo para S001 Sunrise BioChem Ltd (situado en la zona afectada). No urgente: desastre natural con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S001 (Amoxicillin trihydrate (Amoxira 500 mg capsules); quedan ~45 días de inventario): preparar la activación del alternativo S002 Kaveri Fine Chemicals.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N013",
+    "N006",
+    "N029",
+    "N001"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": true,
+    "severity_rules": 3,
+    "soon_rules": true,
+    "recovery_llm": "3 weeks",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S001"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S001",
+     "score": 0.4,
+     "factors": [
+      "alternativo S002",
+      "criticidad High",
+      "45 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S001",
+     "supplier_name": "Sunrise BioChem Ltd",
+     "inventory_days": 45.0,
+     "alternate_id": "S002",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 45.0,
+     "ttr_days": 30,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para desastre natural",
+     "margin_days": 15.0,
+     "status": "cubierto",
+     "products": [
+      "Amoxira 500 mg capsules"
+     ],
+     "monthly_requirement": "1200 kg",
+     "note": "el alternativo S002 tarda 60 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S001",
+     "name": "Sunrise BioChem Ltd",
+     "score": 0.8,
+     "evidence": "location:city 'Hyderabad' | location:region 'Telangana'"
+    }
+   ],
+   "summary": "Forecasters issued a cyclone warning for the coast. Heavy rain may reach inland areas, including Hyderabad, later in the week."
+  },
+  {
+   "news_id": "N060",
+   "headline": "Kansai PreFill Co. reports shortage of glass tubing",
+   "published_date": "2026-10-05",
+   "source": "Trade Press",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S020"
+   ],
+   "event_type": "supply_shortage",
+   "event_label": "Supply shortage",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Kansai PreFill Co. said a shortage of borosilicate glass tubing could reduce syringe output by around 15 percent in the fourth quarter.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 3/5 con dependencia alta (0.80): no hay margen para esperar",
+   "explanation": "Riesgo para S020 Kansai PreFill Co. (citado en la noticia). Urgente: este evento (escasez de suministro) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S020 es proveedor ÚNICO de Pre-filled syringe barrels (HX-RSV mRNA vaccine): quedan ~45 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N018",
+    "N014",
+    "N006",
+    "N054"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 3,
+    "soon_rules": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S020"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S020",
+     "score": 0.8,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "45 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S020",
+     "supplier_name": "Kansai PreFill Co.",
+     "inventory_days": 45.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 45.0,
+     "ttr_days": 30,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para escasez de suministro",
+     "margin_days": 15.0,
+     "status": "cubierto",
+     "products": [
+      "HX-RSV mRNA vaccine"
+     ],
+     "monthly_requirement": "600000 units",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S020",
+     "name": "Kansai PreFill Co.",
+     "score": 1.05,
+     "evidence": "name:full 'kansai prefill' | location:region 'Kansai'"
+    }
+   ],
+   "summary": "Kansai PreFill Co. said a shortage of borosilicate glass tubing could reduce syringe output by around 15 percent in the fourth quarter."
+  }
+ ]
+}

@@ -1,0 +1,2568 @@
+{
+ "split": "train",
+ "generated": "2026-10-18T16:56:28",
+ "mode": "llm",
+ "model": "qwen2.5:7b",
+ "results": [
+  {
+   "news_id": "N001",
+   "headline": "Fire at Taizhou chemical park forces evacuation of several API plants",
+   "published_date": "2026-09-02",
+   "source": "Regional News",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S003"
+   ],
+   "event_type": "natural_disaster",
+   "event_label": "Natural disaster",
+   "severity": 4,
+   "stops_supply_soon": true,
+   "recovery_days": 21,
+   "recovery_reported": "3 weeks",
+   "evidence": "A fire at the Taizhou Coastal Chemical Park on Tuesday forced the evacuation of several facilities, including Taizhou Hengyuan Pharma's metformin production line. Officials expect safety inspections to last at least three weeks.",
+   "confidence": 0.95,
+   "urgency_reason": "evento grave (gravedad 4/5) que puede parar el suministro pronto",
+   "explanation": "Riesgo para S003 Taizhou Hengyuan Pharma (citado en la noticia). Urgente: este evento (desastre natural) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S003 es proveedor ÚNICO de Metformin hydrochloride (Glucora 850 mg tablets): quedan ~30 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N020",
+    "N006",
+    "N014",
+    "N033"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": true,
+    "severity_rules": 5,
+    "soon_rules": true,
+    "recovery_llm": "3 weeks",
+    "recovery_anchored": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S003"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S003",
+     "score": 0.9,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "30 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S003",
+     "supplier_name": "Taizhou Hengyuan Pharma",
+     "inventory_days": 30.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 30.0,
+     "ttr_days": 21,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": 9.0,
+     "status": "margen_ajustado",
+     "products": [
+      "Glucora 850 mg tablets"
+     ],
+     "monthly_requirement": "3500 kg",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S003",
+     "name": "Taizhou Hengyuan Pharma",
+     "score": 1.15,
+     "evidence": "name:full 'taizhou hengyuan pharma' | location:city 'Taizhou' | material:material 'metformin' | category:category 'API'"
+    }
+   ],
+   "summary": "A fire at the Taizhou Coastal Chemical Park on Tuesday forced the evacuation of several facilities, including Taizhou Hengyuan Pharma's metformin production line. Officials expect safety inspections to last at least three weeks.",
+   "gold": {
+    "is_risk": true,
+    "urgent": true,
+    "affected_ids": [
+     "S003"
+    ],
+    "event_type": "Fire / plant incident",
+    "explanation": "Risk to S003 Taizhou Hengyuan Pharma (named in the article). Urgent: this fire / plant incident can stop or seriously delay supply soon."
+   }
+  },
+  {
+   "news_id": "N002",
+   "headline": "Central bank holds interest rates steady",
+   "published_date": "2026-09-02",
+   "source": "Financial News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Central bank holds interest rates steady",
+   "confidence": 0.6,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: sin relación con ningún proveedor de Helixa.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "reglas",
+   "model": "",
+   "examples": [],
+   "signals": {},
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [],
+   "summary": "The European Central Bank left interest rates unchanged and signalled no change for the rest of the year.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: no link to any Helixa supplier."
+   }
+  },
+  {
+   "news_id": "N005",
+   "headline": "Global smartphone shipments rise 4 percent in third quarter",
+   "published_date": "2026-09-04",
+   "source": "Technology",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Global smartphone shipments rise 4 percent in third quarter",
+   "confidence": 0.6,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: sin relación con ningún proveedor de Helixa.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "reglas",
+   "model": "",
+   "examples": [],
+   "signals": {},
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [],
+   "summary": "Smartphone makers shipped more devices than a year earlier, led by demand in emerging markets.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: no link to any Helixa supplier."
+   }
+  },
+  {
+   "news_id": "N006",
+   "headline": "Severe flooding in Gujarat disrupts industrial estates around Ahmedabad and Vadodara",
+   "published_date": "2026-09-05",
+   "source": "Regional News",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S002",
+    "S006",
+    "S014"
+   ],
+   "event_type": "logistics_disruption",
+   "event_label": "Logistics disruption",
+   "severity": 4,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Heavy monsoon rains have flooded several industrial estates in Gujarat. Many chemical and pharmaceutical plants around Ahmedabad and Vadodara have paused production and roads are closed.",
+   "confidence": 0.95,
+   "urgency_reason": "evento grave (gravedad 4/5) que puede parar el suministro pronto",
+   "explanation": "Riesgo para S002 Kaveri Fine Chemicals (situado en la zona afectada), S006 Narmada Lifesciences (situado en la zona afectada), S014 Gujarat Minerals & Salts (situado en la zona afectada). Urgente: este evento (interrupción logística) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S002 (Amoxicillin trihydrate (Amoxira 500 mg capsules); quedan ~45 días de inventario): preparar la activación del alternativo S001 Sunrise BioChem Ltd. S006 (Paracetamol (Fevrex 500 mg tablets); quedan ~50 días de inventario): preparar la activación del alternativo S007 Huaxin Pharmaceutical Materials. S014 (Magnesium stearate (Glucora 850 mg tablets, Lipivia 20 mg tablets); quedan ~40 días de inventario): preparar la activación del alternativo S013 Pacific Magnesium Co..",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N013",
+    "N001",
+    "N037",
+    "N020"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": true,
+    "severity_rules": 4,
+    "soon_rules": true,
+    "recovery_llm": "2 weeks",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S002",
+      "S006",
+      "S014"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S002",
+     "score": 0.4,
+     "factors": [
+      "alternativo S001",
+      "criticidad High",
+      "45 días de inventario"
+     ]
+    },
+    {
+     "supplier_id": "S006",
+     "score": 0.15,
+     "factors": [
+      "alternativo S007",
+      "criticidad Medium",
+      "50 días de inventario"
+     ]
+    },
+    {
+     "supplier_id": "S014",
+     "score": 0.25,
+     "factors": [
+      "alternativo S013",
+      "criticidad Medium",
+      "40 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S002",
+     "supplier_name": "Kaveri Fine Chemicals",
+     "inventory_days": 45.0,
+     "alternate_id": "S001",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 45.0,
+     "ttr_days": 14,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para interrupción logística",
+     "margin_days": 31.0,
+     "status": "cubierto",
+     "products": [
+      "Amoxira 500 mg capsules"
+     ],
+     "monthly_requirement": "1200 kg",
+     "note": "el alternativo S001 tarda 60 d en entregar: no llega antes de que se acabe el inventario"
+    },
+    {
+     "supplier_id": "S006",
+     "supplier_name": "Narmada Lifesciences",
+     "inventory_days": 50.0,
+     "alternate_id": "S007",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 50.0,
+     "ttr_days": 14,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para interrupción logística",
+     "margin_days": 36.0,
+     "status": "cubierto",
+     "products": [
+      "Fevrex 500 mg tablets"
+     ],
+     "monthly_requirement": "2600 kg",
+     "note": "el alternativo S007 tarda 55 d en entregar: no llega antes de que se acabe el inventario"
+    },
+    {
+     "supplier_id": "S014",
+     "supplier_name": "Gujarat Minerals & Salts",
+     "inventory_days": 40.0,
+     "alternate_id": "S013",
+     "alternate_affected": false,
+     "alternate_margin_days": 5.0,
+     "tts_days": 45.0,
+     "ttr_days": 14,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para interrupción logística",
+     "margin_days": 31.0,
+     "status": "cubierto",
+     "products": [
+      "Glucora 850 mg tablets",
+      "Lipivia 20 mg tablets"
+     ],
+     "monthly_requirement": "300 kg",
+     "note": "el alternativo S013 entrega en 35 d y asume el 50%"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S002",
+     "name": "Kaveri Fine Chemicals",
+     "score": 0.8,
+     "evidence": "location:city 'Ahmedabad' | location:region 'Gujarat'"
+    },
+    {
+     "id": "S006",
+     "name": "Narmada Lifesciences",
+     "score": 0.8,
+     "evidence": "location:city 'Ahmedabad' | location:region 'Gujarat'"
+    },
+    {
+     "id": "S014",
+     "name": "Gujarat Minerals & Salts",
+     "score": 0.8,
+     "evidence": "location:city 'Vadodara' | location:region 'Gujarat'"
+    }
+   ],
+   "summary": "Heavy monsoon rains have flooded several industrial estates in Gujarat. Many chemical and pharmaceutical plants around Ahmedabad and Vadodara have paused production and roads are closed.",
+   "gold": {
+    "is_risk": true,
+    "urgent": true,
+    "affected_ids": [
+     "S002",
+     "S006",
+     "S014"
+    ],
+    "event_type": "Natural disaster",
+    "explanation": "Risk to S002 Kaveri Fine Chemicals, S006 Narmada Lifesciences, S014 Gujarat Minerals & Salts (located in the affected area). Urgent: this natural disaster can stop or seriously delay supply soon."
+   }
+  },
+  {
+   "news_id": "N007",
+   "headline": "Orion Capital raises USD 2 billion for new technology fund",
+   "published_date": "2026-09-06",
+   "source": "Financial News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Orion Capital has closed its latest fund, which will invest in software and cloud companies.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: el nombre se parece a S004 Orion Synthesis AG, pero la noticia trata de otra organización o tema.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N048",
+    "N005",
+    "N042",
+    "N018"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S004",
+     "name": "Orion Synthesis AG",
+     "score": 0.6,
+     "evidence": "name:ambiguous 'orion'"
+    }
+   ],
+   "summary": "Private equity firm Orion Capital has closed its latest fund, which will invest in software and cloud companies.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: the name looks like S004 Orion Synthesis AG, but the article is about a different organisation or topic."
+   }
+  },
+  {
+   "news_id": "N011",
+   "headline": "Magnitude 6.8 earthquake strikes southern Taiwan",
+   "published_date": "2026-09-09",
+   "source": "Global Newswire",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S013"
+   ],
+   "event_type": "natural_disaster",
+   "event_label": "Natural disaster",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "A strong earthquake struck near Kaohsiung in southern Taiwan. Factories in the area halted production for safety checks.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 3/5 con dependencia 0.25: impacto limitado o con alternativa",
+   "explanation": "Riesgo para S013 Pacific Magnesium Co. (situado en la zona afectada). No urgente: desastre natural con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S013 (Magnesium stearate (Glucora 850 mg tablets, Lipivia 20 mg tablets); quedan ~40 días de inventario): preparar la activación del alternativo S014 Gujarat Minerals & Salts.",
+   "needs_review": true,
+   "review_reasons": [
+    "sin_consenso"
+   ],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N029",
+    "N001",
+    "N020",
+    "N057"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": true,
+    "severity_rules": 3,
+    "soon_rules": true,
+    "recovery_llm": "40 days",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S013",
+      "S027"
+     ]
+    },
+    "tiebreak": {
+     "Affected_Supplier_IDs": "llm"
+    }
+   },
+   "consensus": false,
+   "disagreement": [
+    "Affected_Supplier_IDs"
+   ],
+   "dependencies": [
+    {
+     "supplier_id": "S013",
+     "score": 0.25,
+     "factors": [
+      "alternativo S014",
+      "criticidad Medium",
+      "40 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S013",
+     "supplier_name": "Pacific Magnesium Co.",
+     "inventory_days": 40.0,
+     "alternate_id": "S014",
+     "alternate_affected": false,
+     "alternate_margin_days": 10.0,
+     "tts_days": 50.0,
+     "ttr_days": 30,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para desastre natural",
+     "margin_days": 20.0,
+     "status": "cubierto",
+     "products": [
+      "Glucora 850 mg tablets",
+      "Lipivia 20 mg tablets"
+     ],
+     "monthly_requirement": "300 kg",
+     "note": "el alternativo S014 entrega en 30 d y asume el 50%"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S013",
+     "name": "Pacific Magnesium Co.",
+     "score": 0.8,
+     "evidence": "location:city 'Kaohsiung' | location:region 'southern Taiwan' | location:country 'Taiwan'"
+    },
+    {
+     "id": "S027",
+     "name": "Hsinchu Membrane Tech",
+     "score": 0.7,
+     "evidence": "location:region 'northern Taiwan' | location:country 'Taiwan'"
+    }
+   ],
+   "summary": "A strong earthquake struck near Kaohsiung in southern Taiwan. Factories in the area halted production for safety checks. Northern Taiwan reported only light shaking.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S013"
+    ],
+    "event_type": "Natural disaster",
+    "explanation": "Risk to S013 Pacific Magnesium Co. (located in the affected area). Not urgent: natural disaster with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N013",
+   "headline": "Heavy rain expected in Mumbai this weekend",
+   "published_date": "2026-09-10",
+   "source": "Weather",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Heavy rain expected in Mumbai this weekend",
+   "confidence": 0.6,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: sin relación con ningún proveedor de Helixa.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "reglas",
+   "model": "",
+   "examples": [],
+   "signals": {},
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [],
+   "summary": "The weather service has issued a yellow alert for heavy rain in Mumbai on Saturday and Sunday.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: it mentions a place where a supplier is based, but describes nothing that affects supply."
+   }
+  },
+  {
+   "news_id": "N014",
+   "headline": "Stellar Elastomers announces voluntary recall of rubber stopper lots",
+   "published_date": "2026-09-11",
+   "source": "Company Press Release",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S017"
+   ],
+   "event_type": "quality_recall",
+   "event_label": "Quality recall",
+   "severity": 4,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Stellar Elastomers Inc. is recalling three lots of rubber stoppers after customers reported visible particles. The company is investigating a possible issue with one moulding line in Lancaster.",
+   "confidence": 0.95,
+   "urgency_reason": "evento grave (gravedad 4/5) que puede parar el suministro pronto",
+   "explanation": "Riesgo para S017 Stellar Elastomers Inc. (citado en la noticia). Urgente: este evento (retirada por calidad) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S017 es proveedor ÚNICO de Rubber stoppers (HX-mAb 100 mg injection): quedan ~40 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N020",
+    "N001",
+    "N018",
+    "N033"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": false,
+    "severity_rules": 4,
+    "soon_rules": true,
+    "recovery_llm": "2 weeks",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S017"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S017",
+     "score": 0.8,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "40 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S017",
+     "supplier_name": "Stellar Elastomers Inc.",
+     "inventory_days": 40.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 40.0,
+     "ttr_days": 30,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para retirada por calidad",
+     "margin_days": 10.0,
+     "status": "margen_ajustado",
+     "products": [
+      "HX-mAb 100 mg injection"
+     ],
+     "monthly_requirement": "450000 units",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S017",
+     "name": "Stellar Elastomers Inc.",
+     "score": 1.1,
+     "evidence": "name:full 'stellar elastomers' | location:city 'Lancaster' | material:material 'rubber stoppers'"
+    }
+   ],
+   "summary": "Stellar Elastomers Inc. is recalling three lots of rubber stoppers after customers reported visible particles. The company is investigating a possible issue with one moulding line in Lancaster.",
+   "gold": {
+    "is_risk": true,
+    "urgent": true,
+    "affected_ids": [
+     "S017"
+    ],
+    "event_type": "Quality recall",
+    "explanation": "Risk to S017 Stellar Elastomers Inc. (named in the article). Urgent: this quality recall can stop or seriously delay supply soon."
+   }
+  },
+  {
+   "news_id": "N015",
+   "headline": "Swiss franc strengthens against the euro",
+   "published_date": "2026-09-11",
+   "source": "Financial News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "The Swiss franc rose to its strongest level against the euro in six months.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: sin relación con ningún proveedor de Helixa.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N002",
+    "N054",
+    "N040",
+    "N005"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S004",
+     "name": "Orion Synthesis AG",
+     "score": 0.3,
+     "evidence": "location:country 'Swiss'"
+    },
+    {
+     "id": "S026",
+     "name": "Alpine Filtration AG",
+     "score": 0.3,
+     "evidence": "location:country 'Swiss'"
+    },
+    {
+     "id": "S031",
+     "name": "TransAlp Cold Freight",
+     "score": 0.3,
+     "evidence": "location:country 'Swiss'"
+    }
+   ],
+   "summary": "The Swiss franc rose to its strongest level against the euro in six months.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: no link to any Helixa supplier."
+   }
+  },
+  {
+   "news_id": "N017",
+   "headline": "'Lumina' tops the box office in its opening weekend",
+   "published_date": "2026-09-13",
+   "source": "Entertainment",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "The science fiction film Lumina earned USD 85 million in its first weekend in cinemas.",
+   "confidence": 1.0,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: el nombre se parece a S015 Lumina Glassworks, pero la noticia trata de otra organización o tema.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N005",
+    "N028",
+    "N013",
+    "N018"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S015",
+     "name": "Lumina Glassworks",
+     "score": 0.6,
+     "evidence": "name:ambiguous 'lumina'"
+    }
+   ],
+   "summary": "The science fiction film Lumina earned USD 85 million in its first weekend in cinemas.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: the name looks like S015 Lumina Glassworks, but the article is about a different organisation or topic."
+   }
+  },
+  {
+   "news_id": "N018",
+   "headline": "Veltrix Pharma agrees to acquire syringe maker Kansai PreFill",
+   "published_date": "2026-09-14",
+   "source": "Financial News",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S020"
+   ],
+   "event_type": "acquisition",
+   "event_label": "Acquisition by competitor",
+   "severity": 2,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Veltrix Pharma, a competitor of several large drug makers, has agreed to buy Japan's Kansai PreFill Co. for an undisclosed sum. The deal is expected to close in the first quarter of 2027.",
+   "confidence": 0.95,
+   "urgency_reason": "efecto lento o limitado: puede esperar al informe semanal",
+   "explanation": "Riesgo para S020 Kansai PreFill Co. (citado en la noticia). No urgente: adquisición por un competidor con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S020 es proveedor ÚNICO de Pre-filled syringe barrels (HX-RSV mRNA vaccine): quedan ~45 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N054",
+    "N035",
+    "N014",
+    "N001"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 2,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S020"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S020",
+     "score": 0.8,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "45 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S020",
+     "supplier_name": "Kansai PreFill Co.",
+     "inventory_days": 45.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 45.0,
+     "ttr_days": 0,
+     "ttr_estimated": true,
+     "ttr_basis": "efecto lento: no interrumpe el suministro a corto plazo",
+     "margin_days": 45.0,
+     "status": "cubierto",
+     "products": [
+      "HX-RSV mRNA vaccine"
+     ],
+     "monthly_requirement": "600000 units",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S020",
+     "name": "Kansai PreFill Co.",
+     "score": 1.05,
+     "evidence": "name:full 'kansai prefill' | location:region 'Kansai' | location:country 'Japan'"
+    }
+   ],
+   "summary": "Veltrix Pharma, a competitor of several large drug makers, has agreed to buy Japan's Kansai PreFill Co. for an undisclosed sum. The deal is expected to close in the first quarter of 2027.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S020"
+    ],
+    "event_type": "Acquisition by competitor",
+    "explanation": "Risk to S020 Kansai PreFill Co. (named in the article). Not urgent: acquisition by competitor with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N020",
+   "headline": "Authorities suspend production licence of Wuhan Lotus Chemicals pending environmental review",
+   "published_date": "2026-09-15",
+   "source": "Regional News",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S005"
+   ],
+   "event_type": "regulatory_action",
+   "event_label": "Regulatory action",
+   "severity": 4,
+   "stops_supply_soon": true,
+   "recovery_days": 60,
+   "recovery_reported": "2 months",
+   "evidence": "Authorities suspend production licence of Wuhan Lotus Chemicals pending environmental review",
+   "confidence": 0.95,
+   "urgency_reason": "evento grave (gravedad 4/5) que puede parar el suministro pronto",
+   "explanation": "Riesgo para S005 Wuhan Lotus Chemicals (citado en la noticia). Urgente: este evento (acción regulatoria) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S005 (Atorvastatin calcium (Lipivia 20 mg tablets); quedan ~60 días de inventario): preparar la activación del alternativo S004 Orion Synthesis AG.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N001",
+    "N014",
+    "N037",
+    "N033"
+   ],
+   "signals": {
+    "severity_llm": 4,
+    "soon_llm": false,
+    "severity_rules": 4,
+    "soon_rules": true,
+    "recovery_llm": "2 months",
+    "recovery_anchored": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S005"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S005",
+     "score": 0.3,
+     "factors": [
+      "alternativo S004",
+      "criticidad High",
+      "60 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S005",
+     "supplier_name": "Wuhan Lotus Chemicals",
+     "inventory_days": 60.0,
+     "alternate_id": "S004",
+     "alternate_affected": false,
+     "alternate_margin_days": 15.0,
+     "tts_days": 75.0,
+     "ttr_days": 60,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": 15.0,
+     "status": "cubierto",
+     "products": [
+      "Lipivia 20 mg tablets"
+     ],
+     "monthly_requirement": "80 kg",
+     "note": "el alternativo S004 entrega en 45 d y asume el 50%"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S005",
+     "name": "Wuhan Lotus Chemicals",
+     "score": 1.05,
+     "evidence": "name:full 'wuhan lotus chemicals' | location:city 'Wuhan'"
+    }
+   ],
+   "summary": "Local environmental authorities in Wuhan have suspended production at Wuhan Lotus Chemicals after a wastewater discharge complaint. The review could take up to two months.",
+   "gold": {
+    "is_risk": true,
+    "urgent": true,
+    "affected_ids": [
+     "S005"
+    ],
+    "event_type": "Regulatory action",
+    "explanation": "Risk to S005 Wuhan Lotus Chemicals (named in the article). Urgent: this regulatory action can stop or seriously delay supply soon."
+   }
+  },
+  {
+   "news_id": "N025",
+   "headline": "PolarChain Logistics chief executive steps down",
+   "published_date": "2026-09-18",
+   "source": "Company Press Release",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S030"
+   ],
+   "event_type": "leadership_change",
+   "event_label": "Leadership change",
+   "severity": 2,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "PolarChain Logistics announced that its chief executive has stepped down with immediate effect for personal reasons. The chief operating officer will act as interim chief executive.",
+   "confidence": 0.95,
+   "urgency_reason": "efecto lento o limitado: puede esperar al informe semanal",
+   "explanation": "Riesgo para S030 PolarChain Logistics (citado en la noticia). No urgente: cambio en la dirección con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S030 (Temperature-controlled road freight (EU); sin inventario de reserva): preparar la activación del alternativo S031 TransAlp Cold Freight.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N014",
+    "N045",
+    "N001",
+    "N020"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "recovery_llm": "2 months",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S030"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S030",
+     "score": 0.4,
+     "factors": [
+      "alternativo S031",
+      "criticidad High",
+      "sin inventario de reserva (servicio)"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S030",
+     "supplier_name": "PolarChain Logistics",
+     "inventory_days": null,
+     "alternate_id": "S031",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 0.0,
+     "ttr_days": 0,
+     "ttr_estimated": true,
+     "ttr_basis": "efecto lento: no interrumpe el suministro a corto plazo",
+     "margin_days": 0.0,
+     "status": "cubierto",
+     "products": [],
+     "monthly_requirement": "",
+     "note": "el alternativo S031 tarda 3 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S030",
+     "name": "PolarChain Logistics",
+     "score": 1.05,
+     "evidence": "name:full 'polarchain logistics' | category:category 'logistics'"
+    }
+   ],
+   "summary": "PolarChain Logistics announced that its chief executive has stepped down with immediate effect for personal reasons. The chief operating officer will act as interim chief executive.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S030"
+    ],
+    "event_type": "Leadership change",
+    "explanation": "Risk to S030 PolarChain Logistics (named in the article). Not urgent: leadership change with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N028",
+   "headline": "Cork airport passenger numbers reach record",
+   "published_date": "2026-09-19",
+   "source": "Regional News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Cork airport welcomed a record number of passengers over the summer.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: menciona Cork, donde está S008 Celtic BioLogics Ltd, pero no describe nada que afecte al suministro.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N035",
+    "N058",
+    "N030",
+    "N039"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S008",
+     "name": "Celtic BioLogics Ltd",
+     "score": 0.8,
+     "evidence": "location:city 'Cork'"
+    }
+   ],
+   "summary": "Cork airport welcomed a record number of passengers over the summer.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: it mentions Cork, where S008 Celtic BioLogics Ltd is based, but describes nothing that affects supply."
+   }
+  },
+  {
+   "news_id": "N029",
+   "headline": "Hurricane Delia makes landfall in Puerto Rico, island-wide power outages",
+   "published_date": "2026-09-20",
+   "source": "Global Newswire",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S025"
+   ],
+   "event_type": "natural_disaster",
+   "event_label": "Natural disaster",
+   "severity": 4,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Hurricane Delia hit Puerto Rico as a category 4 storm. Power is out across the island and officials say restoring it fully could take weeks. Several medical device and biotech plants near San Juan are closed.",
+   "confidence": 0.95,
+   "urgency_reason": "evento grave (gravedad 4/5) que puede parar el suministro pronto",
+   "explanation": "Riesgo para S025 Celsius Bioprocess Systems (situado en la zona afectada). Urgente: este evento (desastre natural) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S025 es proveedor ÚNICO de Bioreactor bags (HX-mAb 100 mg injection): quedan ~40 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N011",
+    "N006",
+    "N039",
+    "N046"
+   ],
+   "signals": {
+    "severity_llm": 4,
+    "soon_llm": true,
+    "severity_rules": 4,
+    "soon_rules": true,
+    "recovery_llm": "4 weeks",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S025"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S025",
+     "score": 0.8,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "40 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S025",
+     "supplier_name": "Celsius Bioprocess Systems",
+     "inventory_days": 40.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 40.0,
+     "ttr_days": 30,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para desastre natural",
+     "margin_days": 10.0,
+     "status": "margen_ajustado",
+     "products": [
+      "HX-mAb 100 mg injection"
+     ],
+     "monthly_requirement": "60 units",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S025",
+     "name": "Celsius Bioprocess Systems",
+     "score": 0.8,
+     "evidence": "location:city 'San Juan' | location:region 'Puerto Rico' | location:country 'Puerto Rico'"
+    }
+   ],
+   "summary": "Hurricane Delia hit Puerto Rico as a category 4 storm. Power is out across the island and officials say restoring it fully could take weeks. Several medical device and biotech plants near San Juan are closed.",
+   "gold": {
+    "is_risk": true,
+    "urgent": true,
+    "affected_ids": [
+     "S025"
+    ],
+    "event_type": "Natural disaster",
+    "explanation": "Risk to S025 Celsius Bioprocess Systems (located in the affected area). Urgent: this natural disaster can stop or seriously delay supply soon."
+   }
+  },
+  {
+   "news_id": "N030",
+   "headline": "Celtic beat Rangers 2-1 in Glasgow derby",
+   "published_date": "2026-09-20",
+   "source": "Sports",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Celtic beat Rangers 2-1 in Glasgow derby",
+   "confidence": 1.0,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: el nombre se parece a S008 Celtic BioLogics Ltd, pero la noticia trata de otra organización o tema.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N035",
+    "N028",
+    "N015",
+    "N053"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S008",
+     "name": "Celtic BioLogics Ltd",
+     "score": 0.6,
+     "evidence": "name:ambiguous 'celtic'"
+    }
+   ],
+   "summary": "Celtic came from behind to win the Old Firm derby in front of a sold-out crowd.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: the name looks like S008 Celtic BioLogics, but the article is about a different organisation or topic."
+   }
+  },
+  {
+   "news_id": "N033",
+   "headline": "Sunrise BioChem completes US inspection with no observations",
+   "published_date": "2026-09-22",
+   "source": "Company Press Release",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [
+    "S001"
+   ],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Sunrise BioChem Ltd said a recent inspection of its Hyderabad site by US regulators was closed with no observations.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: noticia sobre S001 Sunrise BioChem Ltd que no afecta al suministro.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N020",
+    "N001",
+    "N048",
+    "N014"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": [
+      "S001"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S001",
+     "score": 0.4,
+     "factors": [
+      "alternativo S002",
+      "criticidad High",
+      "45 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S001",
+     "name": "Sunrise BioChem Ltd",
+     "score": 1.05,
+     "evidence": "name:full 'sunrise biochem' | location:city 'Hyderabad'"
+    },
+    {
+     "id": "S017",
+     "name": "Stellar Elastomers Inc.",
+     "score": 0.3,
+     "evidence": "location:country 'US'"
+    },
+    {
+     "id": "S029",
+     "name": "Boston Assay Supplies",
+     "score": 0.3,
+     "evidence": "location:country 'US'"
+    }
+   ],
+   "summary": "Sunrise BioChem Ltd said a recent inspection of its Hyderabad site by US regulators was closed with no observations.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [
+     "S001"
+    ],
+    "event_type": "Positive news",
+    "explanation": "Not a risk: positive news about S001 Sunrise BioChem Ltd."
+   }
+  },
+  {
+   "news_id": "N035",
+   "headline": "Celtic BioLogics doubles drug substance capacity at Cork site",
+   "published_date": "2026-09-23",
+   "source": "Trade Press",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [
+    "S008"
+   ],
+   "event_type": "positive_news",
+   "event_label": "Positive news",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Celtic BioLogics Ltd has opened a second production hall in Cork, doubling its capacity for monoclonal antibody drug substance.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: noticia positiva sobre S008 Celtic BioLogics Ltd.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N054",
+    "N028",
+    "N018",
+    "N058"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": [
+      "S008"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S008",
+     "score": 0.7,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "90 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S008",
+     "name": "Celtic BioLogics Ltd",
+     "score": 1.15,
+     "evidence": "name:full 'celtic biologics' | location:city 'Cork' | material:material 'monoclonal antibody' | category:category 'drug substance'"
+    }
+   ],
+   "summary": "Celtic BioLogics Ltd has opened a second production hall in Cork, doubling its capacity for monoclonal antibody drug substance.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [
+     "S008"
+    ],
+    "event_type": "Positive news",
+    "explanation": "Not a risk: positive news about S008 Celtic BioLogics Ltd."
+   }
+  },
+  {
+   "news_id": "N037",
+   "headline": "Low water on the Rhine restricts barge traffic for chemical shippers",
+   "published_date": "2026-09-24",
+   "source": "Regional News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "logistics_disruption",
+   "event_label": "Logistics disruption",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Water levels on the Rhine have fallen after a dry summer, forcing barges to carry reduced loads. Chemical distributors along the river warn of slower deliveries.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: sin relación con ningún proveedor de Helixa.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": true,
+   "review_reasons": [
+    "sin_consenso"
+   ],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N020",
+    "N039",
+    "N006",
+    "N053"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "recovery_llm": "2 months",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S039"
+     ]
+    },
+    "tiebreak": {
+     "Is_Risk": "llm",
+     "Affected_Supplier_IDs": "llm"
+    }
+   },
+   "consensus": false,
+   "disagreement": [
+    "Is_Risk",
+    "Affected_Supplier_IDs"
+   ],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S039",
+     "name": "Rhine Valley Solvents GmbH",
+     "score": 0.65,
+     "evidence": "location:river 'Rhine' | category:category 'chemical'"
+    },
+    {
+     "id": "S004",
+     "name": "Orion Synthesis AG",
+     "score": 0.6,
+     "evidence": "location:river 'Rhine'"
+    },
+    {
+     "id": "S009",
+     "name": "Rhenvale Excipients GmbH",
+     "score": 0.6,
+     "evidence": "location:river 'Rhine'"
+    },
+    {
+     "id": "S015",
+     "name": "Lumina Glassworks",
+     "score": 0.6,
+     "evidence": "location:river 'Rhine'"
+    },
+    {
+     "id": "S031",
+     "name": "TransAlp Cold Freight",
+     "score": 0.6,
+     "evidence": "location:river 'Rhine'"
+    }
+   ],
+   "summary": "Water levels on the Rhine have fallen after a dry summer, forcing barges to carry reduced loads. Chemical distributors along the river warn of slower deliveries.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S009",
+     "S039"
+    ],
+    "event_type": "Logistics disruption",
+    "explanation": "Risk to S039 Rhine Valley Solvents GmbH, S009 Rhenvale Excipients GmbH (located in the affected area). Not urgent: logistics disruption with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N039",
+   "headline": "Shipping lines reroute around Africa as Red Sea tensions escalate",
+   "published_date": "2026-09-25",
+   "source": "Global Newswire",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S032"
+   ],
+   "event_type": "logistics_disruption",
+   "event_label": "Logistics disruption",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Major container lines are diverting Asia to Europe services around the Cape of Good Hope, adding about two weeks to journey times.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 3/5 con dependencia 0.25: impacto limitado o con alternativa",
+   "explanation": "Riesgo para S032 Oceanbridge Shipping Agency (situado en la zona afectada). No urgente: interrupción logística con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S032 (Asia to Europe sea freight; sin inventario de reserva): preparar la activación del alternativo S033 Silkroute Rail Freight.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N053",
+    "N037",
+    "N005",
+    "N054"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 3,
+    "soon_rules": true,
+    "recovery_llm": "2 months",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S032"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S032",
+     "score": 0.25,
+     "factors": [
+      "alternativo S033",
+      "criticidad Medium",
+      "sin inventario de reserva (servicio)"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S032",
+     "supplier_name": "Oceanbridge Shipping Agency",
+     "inventory_days": null,
+     "alternate_id": "S033",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 0.0,
+     "ttr_days": 14,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para interrupción logística",
+     "margin_days": -14.0,
+     "status": "sin_inventario",
+     "products": [],
+     "monthly_requirement": "",
+     "note": "el alternativo S033 tarda 20 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S032",
+     "name": "Oceanbridge Shipping Agency",
+     "score": 0.65,
+     "evidence": "route:route 'Red Sea' | category:category 'shipping'"
+    }
+   ],
+   "summary": "Major container lines are diverting Asia to Europe services around the Cape of Good Hope, adding about two weeks to journey times.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S032"
+    ],
+    "event_type": "Logistics disruption",
+    "explanation": "Risk to S032 Oceanbridge Shipping Agency (located in the affected area). Not urgent: logistics disruption with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N040",
+   "headline": "European Parliament debates reform of pharmaceutical legislation",
+   "published_date": "2026-09-25",
+   "source": "Regulatory Notice",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "European Parliament debates reform of pharmaceutical legislation",
+   "confidence": 0.6,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: sin relación con ningún proveedor de Helixa.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "reglas",
+   "model": "",
+   "examples": [],
+   "signals": {},
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [],
+   "summary": "Members of the European Parliament debated proposals to change data protection periods for new medicines.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: no link to any Helixa supplier."
+   }
+  },
+  {
+   "news_id": "N042",
+   "headline": "Shanghai hosts World AI Conference",
+   "published_date": "2026-09-26",
+   "source": "Technology",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Technology companies showcased new AI products at the annual conference in Shanghai.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: menciona Shanghai, donde está S007 Huaxin Pharmaceutical Materials, pero no describe nada que afecte al suministro.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N058",
+    "N005",
+    "N018",
+    "N007"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S007",
+     "name": "Huaxin Pharmaceutical Materials",
+     "score": 0.8,
+     "evidence": "location:city 'Shanghai'"
+    }
+   ],
+   "summary": "Technology companies showcased new AI products at the annual conference in Shanghai.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: it mentions Shanghai, where S007 Huaxin Pharmaceutical Materials is based, but describes nothing that affects supply."
+   }
+  },
+  {
+   "news_id": "N045",
+   "headline": "Lodz to host European logistics summit",
+   "published_date": "2026-09-28",
+   "source": "Trade Press",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "The Polish city of Lodz will host a logistics and warehousing summit in November.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: menciona Lodz, donde está S019 Polaris Films Sp. z o.o., pero no describe nada que afecte al suministro.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N058",
+    "N046",
+    "N025",
+    "N039"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S019",
+     "name": "Polaris Films Sp. z o.o.",
+     "score": 0.8,
+     "evidence": "location:city 'Lodz' | location:country 'Polish'"
+    }
+   ],
+   "summary": "The Polish city of Lodz will host a logistics and warehousing summit in November.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: it mentions Lodz, where S019 Polaris Films Sp. z o.o. is based, but describes nothing that affects supply."
+   }
+  },
+  {
+   "news_id": "N046",
+   "headline": "Spanish truckers' association calls nationwide strike next week",
+   "published_date": "2026-09-29",
+   "source": "Trade Press",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S011",
+    "S018"
+   ],
+   "event_type": "labour_strike",
+   "event_label": "Labour strike",
+   "severity": 2,
+   "stops_supply_soon": true,
+   "recovery_days": 3,
+   "recovery_reported": "3 days",
+   "evidence": "A major Spanish truckers' association has called a three-day nationwide strike over fuel prices, threatening road freight from industrial areas including Barcelona and Valencia.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 2/5 con dependencia 0.65: impacto limitado o con alternativa",
+   "explanation": "Riesgo para S011 Iberia Starch & Sugars (situado en la zona afectada), S018 Medipack Iberica SL (situado en la zona afectada). No urgente: huelga con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S011 es proveedor ÚNICO de Pregelatinised starch (Fevrex 500 mg tablets, Glucora 850 mg tablets): quedan ~35 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia. S018 (Aluminium blister foil (Amoxira 500 mg capsules, Fevrex 500 mg tablets, Glucora 850 mg tablets, Lipivia 20 mg tablets); quedan ~30 días de inventario): preparar la activación del alternativo S019 Polaris Films Sp. z o.o..",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N053",
+    "N045",
+    "N001",
+    "N029"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": true,
+    "severity_rules": 2,
+    "soon_rules": false,
+    "recovery_llm": "3 days",
+    "recovery_anchored": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S011",
+      "S018"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S011",
+     "score": 0.65,
+     "factors": [
+      "proveedor único",
+      "criticidad Medium",
+      "35 días de inventario"
+     ]
+    },
+    {
+     "supplier_id": "S018",
+     "score": 0.35,
+     "factors": [
+      "alternativo S019",
+      "criticidad Medium",
+      "30 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S011",
+     "supplier_name": "Iberia Starch & Sugars",
+     "inventory_days": 35.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 35.0,
+     "ttr_days": 3,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": 32.0,
+     "status": "cubierto",
+     "products": [
+      "Fevrex 500 mg tablets",
+      "Glucora 850 mg tablets"
+     ],
+     "monthly_requirement": "1800 kg",
+     "note": "proveedor único: sin alternativo aprobado"
+    },
+    {
+     "supplier_id": "S018",
+     "supplier_name": "Medipack Iberica SL",
+     "inventory_days": 30.0,
+     "alternate_id": "S019",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 30.0,
+     "ttr_days": 3,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": 27.0,
+     "status": "cubierto",
+     "products": [
+      "Amoxira 500 mg capsules",
+      "Fevrex 500 mg tablets",
+      "Glucora 850 mg tablets",
+      "Lipivia 20 mg tablets"
+     ],
+     "monthly_requirement": "9000 m2",
+     "note": "el alternativo S019 tarda 35 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S011",
+     "name": "Iberia Starch & Sugars",
+     "score": 0.8,
+     "evidence": "location:city 'Valencia' | location:country 'Spanish'"
+    },
+    {
+     "id": "S018",
+     "name": "Medipack Iberica SL",
+     "score": 0.8,
+     "evidence": "location:city 'Barcelona' | location:country 'Spanish'"
+    }
+   ],
+   "summary": "A major Spanish truckers' association has called a three-day nationwide strike over fuel prices, threatening road freight from industrial areas including Barcelona and Valencia.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S011",
+     "S018"
+    ],
+    "event_type": "Labour strike",
+    "explanation": "Risk to S018 Medipack Iberica SL, S011 Iberia Starch & Sugars (located in the affected area). Not urgent: labour strike with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N048",
+   "headline": "Sunrise Energy commissions 500 MW solar farm in Rajasthan",
+   "published_date": "2026-09-30",
+   "source": "Energy",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Renewable developer Sunrise Energy has switched on one of India's largest solar farms.",
+   "confidence": 1.0,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: el nombre se parece a S001 Sunrise BioChem Ltd, pero la noticia trata de otra organización o tema.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N033",
+    "N006",
+    "N007",
+    "N018"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S001",
+     "name": "Sunrise BioChem Ltd",
+     "score": 0.65,
+     "evidence": "name:ambiguous 'sunrise' | location:country 'India'"
+    },
+    {
+     "id": "S002",
+     "name": "Kaveri Fine Chemicals",
+     "score": 0.3,
+     "evidence": "location:country 'India'"
+    },
+    {
+     "id": "S006",
+     "name": "Narmada Lifesciences",
+     "score": 0.3,
+     "evidence": "location:country 'India'"
+    },
+    {
+     "id": "S014",
+     "name": "Gujarat Minerals & Salts",
+     "score": 0.3,
+     "evidence": "location:country 'India'"
+    },
+    {
+     "id": "S034",
+     "name": "Cyprin Analytical Services",
+     "score": 0.3,
+     "evidence": "location:country 'India'"
+    }
+   ],
+   "summary": "Renewable developer Sunrise Energy has switched on one of India's largest solar farms.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: the name looks like S001 Sunrise BioChem (also in India), but the article is about a different organisation or topic."
+   }
+  },
+  {
+   "news_id": "N050",
+   "headline": "Rating agency downgrades Iberia Starch & Sugars to B-",
+   "published_date": "2026-09-30",
+   "source": "Financial News",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S011"
+   ],
+   "event_type": "financial_distress",
+   "event_label": "Financial distress",
+   "severity": 2,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "A credit rating agency downgraded Iberia Starch & Sugars citing high debt and falling profits.",
+   "confidence": 0.95,
+   "urgency_reason": "efecto lento o limitado: puede esperar al informe semanal",
+   "explanation": "Riesgo para S011 Iberia Starch & Sugars (citado en la noticia). No urgente: dificultades financieras con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S011 es proveedor ÚNICO de Pregelatinised starch (Fevrex 500 mg tablets, Glucora 850 mg tablets): quedan ~35 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N033",
+    "N014",
+    "N046",
+    "N015"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 2,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S011"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S011",
+     "score": 0.65,
+     "factors": [
+      "proveedor único",
+      "criticidad Medium",
+      "35 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S011",
+     "supplier_name": "Iberia Starch & Sugars",
+     "inventory_days": 35.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 35.0,
+     "ttr_days": 0,
+     "ttr_estimated": true,
+     "ttr_basis": "efecto lento: no interrumpe el suministro a corto plazo",
+     "margin_days": 35.0,
+     "status": "cubierto",
+     "products": [
+      "Fevrex 500 mg tablets",
+      "Glucora 850 mg tablets"
+     ],
+     "monthly_requirement": "1800 kg",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S011",
+     "name": "Iberia Starch & Sugars",
+     "score": 1.05,
+     "evidence": "name:full 'iberia starch and sugars' | material:material 'starch'"
+    }
+   ],
+   "summary": "A credit rating agency downgraded Iberia Starch & Sugars citing high debt and falling profits.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S011"
+    ],
+    "event_type": "Financial distress",
+    "explanation": "Risk to S011 Iberia Starch & Sugars (named in the article). Not urgent: financial distress with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N053",
+   "headline": "Strike at Rotterdam container terminals enters third day",
+   "published_date": "2026-10-02",
+   "source": "Global Newswire",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S030",
+    "S038"
+   ],
+   "event_type": "labour_strike",
+   "event_label": "Labour strike",
+   "severity": 2,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "A strike by terminal workers at the port of Rotterdam has entered its third day, leaving hundreds of containers waiting on the quay.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 2/5 con dependencia 0.40: impacto limitado o con alternativa",
+   "explanation": "Riesgo para S030 PolarChain Logistics (situado en la zona afectada), S038 Rotterdam Solvent Distribution (situado en la zona afectada). No urgente: huelga con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S030 (Temperature-controlled road freight (EU); sin inventario de reserva): preparar la activación del alternativo S031 TransAlp Cold Freight. S038 (Process solvents; quedan ~20 días de inventario): preparar la activación del alternativo S039 Rhine Valley Solvents GmbH.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N046",
+    "N039",
+    "N037",
+    "N006"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": true,
+    "severity_rules": 2,
+    "soon_rules": false,
+    "recovery_llm": "3 days",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S030",
+      "S038"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S030",
+     "score": 0.4,
+     "factors": [
+      "alternativo S031",
+      "criticidad High",
+      "sin inventario de reserva (servicio)"
+     ]
+    },
+    {
+     "supplier_id": "S038",
+     "score": 0.35,
+     "factors": [
+      "alternativo S039",
+      "criticidad Medium",
+      "20 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S030",
+     "supplier_name": "PolarChain Logistics",
+     "inventory_days": null,
+     "alternate_id": "S031",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 0.0,
+     "ttr_days": 7,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para huelga",
+     "margin_days": -7.0,
+     "status": "sin_inventario",
+     "products": [],
+     "monthly_requirement": "",
+     "note": "el alternativo S031 tarda 3 d en entregar: no llega antes de que se acabe el inventario"
+    },
+    {
+     "supplier_id": "S038",
+     "supplier_name": "Rotterdam Solvent Distribution",
+     "inventory_days": 20.0,
+     "alternate_id": "S039",
+     "alternate_affected": false,
+     "alternate_margin_days": 10.0,
+     "tts_days": 30.0,
+     "ttr_days": 7,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para huelga",
+     "margin_days": 23.0,
+     "status": "cubierto",
+     "products": [],
+     "monthly_requirement": "",
+     "note": "el alternativo S039 entrega en 10 d y asume el 50%"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S030",
+     "name": "PolarChain Logistics",
+     "score": 0.8,
+     "evidence": "location:city 'Rotterdam'"
+    },
+    {
+     "id": "S038",
+     "name": "Rotterdam Solvent Distribution",
+     "score": 0.8,
+     "evidence": "location:city 'Rotterdam'"
+    }
+   ],
+   "summary": "A strike by terminal workers at the port of Rotterdam has entered its third day, leaving hundreds of containers waiting on the quay.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S030",
+     "S038"
+    ],
+    "event_type": "Labour strike",
+    "explanation": "Risk to S030 PolarChain Logistics, S038 Rotterdam Solvent Distribution (located in the affected area). Not urgent: labour strike with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N054",
+   "headline": "Biocaps Vietnam signs long-term supply deal with European pharma group",
+   "published_date": "2026-10-02",
+   "source": "Company Press Release",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [
+    "S037"
+   ],
+   "event_type": "positive_news",
+   "event_label": "Positive news",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Biocaps Vietnam has agreed a five-year supply contract for hard gelatin capsules with a European customer.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: noticia positiva sobre S037 Biocaps Vietnam.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N018",
+    "N035",
+    "N039",
+    "N001"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": [
+      "S037"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S037",
+     "score": 0.25,
+     "factors": [
+      "alternativo S036",
+      "criticidad Medium",
+      "40 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S037",
+     "name": "Biocaps Vietnam",
+     "score": 1.1,
+     "evidence": "name:full 'biocaps vietnam' | material:material 'gelatin capsules' | location:country+material 'Vietnam'"
+    },
+    {
+     "id": "S036",
+     "name": "Aurum Gelatin Capsules",
+     "score": 0.4,
+     "evidence": "material:material 'gelatin capsules'"
+    }
+   ],
+   "summary": "Biocaps Vietnam has agreed a five-year supply contract for hard gelatin capsules with a European customer.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [
+     "S037"
+    ],
+    "event_type": "Positive news",
+    "explanation": "Not a risk: positive news about S037 Biocaps Vietnam."
+   }
+  },
+  {
+   "news_id": "N057",
+   "headline": "Protests block highway near Hsinchu science park for second day",
+   "published_date": "2026-10-03",
+   "source": "Regional News",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S027"
+   ],
+   "event_type": "labour_strike",
+   "event_label": "Labour strike",
+   "severity": 2,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Protests have blocked a main highway near the Hsinchu science park, delaying deliveries in and out of the area.",
+   "confidence": 0.95,
+   "urgency_reason": "efecto lento o limitado: puede esperar al informe semanal",
+   "explanation": "Riesgo para S027 Hsinchu Membrane Tech (situado en la zona afectada). No urgente: huelga con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S027 (Sterile filters (HX-RSV mRNA vaccine, HX-mAb 100 mg injection); quedan ~45 días de inventario): preparar la activación del alternativo S026 Alpine Filtration AG.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N001",
+    "N020",
+    "N011",
+    "N053"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 2,
+    "soon_rules": false,
+    "recovery_llm": "2 days",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S027"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S027",
+     "score": 0.4,
+     "factors": [
+      "alternativo S026",
+      "criticidad High",
+      "45 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S027",
+     "supplier_name": "Hsinchu Membrane Tech",
+     "inventory_days": 45.0,
+     "alternate_id": "S026",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 45.0,
+     "ttr_days": 0,
+     "ttr_estimated": true,
+     "ttr_basis": "efecto lento: no interrumpe el suministro a corto plazo",
+     "margin_days": 45.0,
+     "status": "cubierto",
+     "products": [
+      "HX-RSV mRNA vaccine",
+      "HX-mAb 100 mg injection"
+     ],
+     "monthly_requirement": "1500 units",
+     "note": "el alternativo S026 tarda 60 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S027",
+     "name": "Hsinchu Membrane Tech",
+     "score": 0.8,
+     "evidence": "location:city 'Hsinchu'"
+    }
+   ],
+   "summary": "Demonstrators have blocked a main highway near the Hsinchu science park, delaying deliveries in and out of the area.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S027"
+    ],
+    "event_type": "Logistics disruption",
+    "explanation": "Risk to S027 Hsinchu Membrane Tech (located in the affected area). Not urgent: logistics disruption with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N058",
+   "headline": "Dublin hosts European fintech week",
+   "published_date": "2026-10-04",
+   "source": "Regional News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Around 3,000 visitors are expected at a week of financial technology events across Dublin.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: menciona Dublin, donde está S023 LabelCraft Ireland, pero no describe nada que afecte al suministro.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N028",
+    "N045",
+    "N042",
+    "N035"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S023",
+     "name": "LabelCraft Ireland",
+     "score": 0.8,
+     "evidence": "location:city 'Dublin'"
+    }
+   ],
+   "summary": "Around 3,000 visitors are expected at a week of financial technology events across Dublin.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: it mentions Dublin, where S023 LabelCraft Ireland is based, but describes nothing that affects supply."
+   }
+  }
+ ]
+}

@@ -1,0 +1,971 @@
+{
+ "split": "validation",
+ "generated": "2026-10-18T16:55:29",
+ "mode": "llm",
+ "model": "qwen2.5:7b",
+ "results": [
+  {
+   "news_id": "N008",
+   "headline": "Nordic Lipids flags going-concern doubt after missed bond payment",
+   "published_date": "2026-09-07",
+   "source": "Financial News",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S012"
+   ],
+   "event_type": "financial_distress",
+   "event_label": "Financial distress",
+   "severity": 4,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Oslo-based Nordic Lipids AS said it missed a scheduled bond coupon and its auditor has raised doubts about the company's ability to continue as a going concern. Talks with creditors are ongoing.",
+   "confidence": 0.95,
+   "urgency_reason": "evento grave (gravedad 4/5) que puede parar el suministro pronto",
+   "explanation": "Riesgo para S012 Nordic Lipids AS (citado en la noticia). Urgente: este evento (dificultades financieras) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S012 es proveedor ÚNICO de Lipid nanoparticle components (HX-RSV mRNA vaccine): quedan ~30 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N033",
+    "N014",
+    "N025",
+    "N050"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": false,
+    "severity_rules": 4,
+    "soon_rules": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S012"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S012",
+     "score": 0.9,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "30 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S012",
+     "supplier_name": "Nordic Lipids AS",
+     "inventory_days": 30.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 30.0,
+     "ttr_days": 90,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para dificultades financieras",
+     "margin_days": -60.0,
+     "status": "rotura_prevista",
+     "products": [
+      "HX-RSV mRNA vaccine"
+     ],
+     "monthly_requirement": "40 kg",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S012",
+     "name": "Nordic Lipids AS",
+     "score": 1.05,
+     "evidence": "name:full 'nordic lipids' | location:city 'Oslo'"
+    }
+   ],
+   "summary": "Oslo-based Nordic Lipids AS said it missed a scheduled bond coupon and its auditor has raised doubts about the company's ability to continue as a going concern. Talks with creditors are ongoing.",
+   "gold": {
+    "is_risk": true,
+    "urgent": true,
+    "affected_ids": [
+     "S012"
+    ],
+    "event_type": "Financial distress",
+    "explanation": "Risk to S012 Nordic Lipids AS (named in the article). Urgent: this financial distress can stop or seriously delay supply soon."
+   }
+  },
+  {
+   "news_id": "N019",
+   "headline": "German business confidence improves for second month",
+   "published_date": "2026-09-14",
+   "source": "Financial News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Germany's main business climate index rose in September, beating economists' forecasts.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: sin relación con ningún proveedor de Helixa.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N015",
+    "N005",
+    "N002",
+    "N037"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S009",
+     "name": "Rhenvale Excipients GmbH",
+     "score": 0.3,
+     "evidence": "location:country 'Germany'"
+    },
+    {
+     "id": "S015",
+     "name": "Lumina Glassworks",
+     "score": 0.3,
+     "evidence": "location:country 'Germany'"
+    },
+    {
+     "id": "S028",
+     "name": "Darmstadt Reagent Works",
+     "score": 0.3,
+     "evidence": "location:country 'Germany'"
+    },
+    {
+     "id": "S039",
+     "name": "Rhine Valley Solvents GmbH",
+     "score": 0.3,
+     "evidence": "location:country 'Germany'"
+    }
+   ],
+   "summary": "Germany's main business climate index rose in September, beating economists' forecasts.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: no link to any Helixa supplier."
+   }
+  },
+  {
+   "news_id": "N022",
+   "headline": "Explosion at Rhenvale Excipients warehouse in Ludwigshafen, no injuries reported",
+   "published_date": "2026-09-16",
+   "source": "Regional News",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S009"
+   ],
+   "event_type": "fire_plant_incident",
+   "event_label": "Fire / plant incident",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "An explosion damaged a storage building at Rhenvale Excipients GmbH on Wednesday night. Production buildings were not affected, but finished goods stock was lost.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 3/5 con dependencia 0.25: impacto limitado o con alternativa",
+   "explanation": "Riesgo para S009 Rhenvale Excipients GmbH (citado en la noticia). No urgente: incendio / incidente en planta con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S009 (Microcrystalline cellulose (Glucora 850 mg tablets, Lipivia 20 mg tablets); quedan ~40 días de inventario): preparar la activación del alternativo S010 Lombardia Polymers SpA.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N001",
+    "N011",
+    "N006",
+    "N014"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": true,
+    "severity_rules": 3,
+    "soon_rules": true,
+    "recovery_llm": "2 weeks",
+    "recovery_anchored": false,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S009"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S009",
+     "score": 0.25,
+     "factors": [
+      "alternativo S010",
+      "criticidad Medium",
+      "40 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S009",
+     "supplier_name": "Rhenvale Excipients GmbH",
+     "inventory_days": 40.0,
+     "alternate_id": "S010",
+     "alternate_affected": false,
+     "alternate_margin_days": 10.0,
+     "tts_days": 50.0,
+     "ttr_days": 30,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para incendio / incidente en planta",
+     "margin_days": 20.0,
+     "status": "cubierto",
+     "products": [
+      "Glucora 850 mg tablets",
+      "Lipivia 20 mg tablets"
+     ],
+     "monthly_requirement": "5200 kg",
+     "note": "el alternativo S010 entrega en 30 d y asume el 50%"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S009",
+     "name": "Rhenvale Excipients GmbH",
+     "score": 1.1,
+     "evidence": "name:full 'rhenvale excipients' | location:city 'Ludwigshafen' | category:category 'excipients'"
+    }
+   ],
+   "summary": "An explosion damaged a storage building at Rhenvale Excipients GmbH on Wednesday night. Production buildings were not affected, but finished goods stock was lost.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S009"
+    ],
+    "event_type": "Fire / plant incident",
+    "explanation": "Risk to S009 Rhenvale Excipients GmbH (named in the article). Not urgent: fire / plant incident with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N027",
+   "headline": "Medipack Iberica secures new financing to expand Barcelona capacity",
+   "published_date": "2026-09-19",
+   "source": "Financial News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [
+    "S018"
+   ],
+   "event_type": "financial_distress",
+   "event_label": "Financial distress",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Medipack Iberica SL has secured a EUR 20 million credit line to add a new blister foil line at its Barcelona plant.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: noticia sobre S018 Medipack Iberica SL que no afecta al suministro.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N054",
+    "N018",
+    "N035",
+    "N046"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": [
+      "S018"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S018",
+     "score": 0.35,
+     "factors": [
+      "alternativo S019",
+      "criticidad Medium",
+      "30 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S018",
+     "name": "Medipack Iberica SL",
+     "score": 1.1,
+     "evidence": "name:full 'medipack iberica' | location:city 'Barcelona' | material:material 'blister foil'"
+    },
+    {
+     "id": "S019",
+     "name": "Polaris Films Sp. z o.o.",
+     "score": 0.4,
+     "evidence": "material:material 'blister foil'"
+    }
+   ],
+   "summary": "Medipack Iberica SL has secured a EUR 20 million credit line to add a new blister foil line at its Barcelona plant.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [
+     "S018"
+    ],
+    "event_type": "Positive news",
+    "explanation": "Not a risk: positive news about S018 Medipack Iberica SL."
+   }
+  },
+  {
+   "news_id": "N032",
+   "headline": "Monterrey industrial park attracts new automotive investment",
+   "published_date": "2026-09-21",
+   "source": "Regional News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "not_relevant",
+   "event_label": "Not relevant",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "A carmaker announced a new plant at an industrial park near Monterrey.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: menciona Monterrey, donde está S021 Andes Cartonaje, pero no describe nada que afecte al suministro.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N001",
+    "N006",
+    "N046",
+    "N042"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S021",
+     "name": "Andes Cartonaje",
+     "score": 0.8,
+     "evidence": "location:city 'Monterrey'"
+    }
+   ],
+   "summary": "A carmaker announced a new plant at an industrial park near Monterrey.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: it mentions Monterrey, where S021 Andes Cartonaje is based, but describes nothing that affects supply."
+   }
+  },
+  {
+   "news_id": "N034",
+   "headline": "Atlas Air reports quarterly results ahead of expectations",
+   "published_date": "2026-09-22",
+   "source": "Financial News",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [],
+   "event_type": "financial_distress",
+   "event_label": "Financial distress",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Cargo airline Atlas Air reported higher than expected revenue for the third quarter.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: el nombre se parece a S040 Atlas Cleanroom Garments, pero la noticia trata de otra organización o tema.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N028",
+    "N005",
+    "N017",
+    "N007"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": []
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S040",
+     "name": "Atlas Cleanroom Garments",
+     "score": 0.6,
+     "evidence": "name:ambiguous 'atlas'"
+    }
+   ],
+   "summary": "Cargo airline Atlas Air reported higher than expected revenue for the third quarter.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [],
+    "event_type": "Not relevant",
+    "explanation": "Not a risk: the name looks like S040 Atlas Cleanroom Garments, but the article is about a different organisation or topic."
+   }
+  },
+  {
+   "news_id": "N041",
+   "headline": "India announces temporary export restrictions on some pharmaceutical ingredients",
+   "published_date": "2026-09-26",
+   "source": "Regulatory Notice",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S002",
+    "S006"
+   ],
+   "event_type": "export_restriction",
+   "event_label": "Export restriction",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "India's commerce ministry has introduced temporary export licensing for several active ingredients, including paracetamol and amoxicillin, to protect domestic supply.",
+   "confidence": 0.95,
+   "urgency_reason": "restricción a la exportación: puede cortar el suministro de inmediato (README)",
+   "explanation": "Riesgo para S002 Kaveri Fine Chemicals (situado en la zona afectada), S006 Narmada Lifesciences (situado en la zona afectada). Urgente: este evento (restricción a la exportación) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S002 (Amoxicillin trihydrate (Amoxira 500 mg capsules); quedan ~45 días de inventario): preparar la activación del alternativo S001 Sunrise BioChem Ltd. S006 (Paracetamol (Fevrex 500 mg tablets); quedan ~50 días de inventario): preparar la activación del alternativo S007 Huaxin Pharmaceutical Materials.",
+   "needs_review": true,
+   "review_reasons": [
+    "sin_consenso"
+   ],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N054",
+    "N018",
+    "N020",
+    "N001"
+   ],
+   "signals": {
+    "severity_llm": 3,
+    "soon_llm": false,
+    "severity_rules": 3,
+    "soon_rules": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S001",
+      "S002",
+      "S006",
+      "S007"
+     ]
+    },
+    "tiebreak": {
+     "Affected_Supplier_IDs": "llm"
+    }
+   },
+   "consensus": false,
+   "disagreement": [
+    "Affected_Supplier_IDs"
+   ],
+   "dependencies": [
+    {
+     "supplier_id": "S002",
+     "score": 0.4,
+     "factors": [
+      "alternativo S001",
+      "criticidad High",
+      "45 días de inventario"
+     ]
+    },
+    {
+     "supplier_id": "S006",
+     "score": 0.15,
+     "factors": [
+      "alternativo S007",
+      "criticidad Medium",
+      "50 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S002",
+     "supplier_name": "Kaveri Fine Chemicals",
+     "inventory_days": 45.0,
+     "alternate_id": "S001",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 45.0,
+     "ttr_days": 60,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para restricción a la exportación",
+     "margin_days": -15.0,
+     "status": "rotura_prevista",
+     "products": [
+      "Amoxira 500 mg capsules"
+     ],
+     "monthly_requirement": "1200 kg",
+     "note": "el alternativo S001 tarda 60 d en entregar: no llega antes de que se acabe el inventario"
+    },
+    {
+     "supplier_id": "S006",
+     "supplier_name": "Narmada Lifesciences",
+     "inventory_days": 50.0,
+     "alternate_id": "S007",
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 50.0,
+     "ttr_days": 60,
+     "ttr_estimated": true,
+     "ttr_basis": "valor por defecto para restricción a la exportación",
+     "margin_days": -10.0,
+     "status": "rotura_prevista",
+     "products": [
+      "Fevrex 500 mg tablets"
+     ],
+     "monthly_requirement": "2600 kg",
+     "note": "el alternativo S007 tarda 55 d en entregar: no llega antes de que se acabe el inventario"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S001",
+     "name": "Sunrise BioChem Ltd",
+     "score": 0.9,
+     "evidence": "material:material 'amoxicillin' | category:category 'active ingredients' | location:country+material 'India'"
+    },
+    {
+     "id": "S002",
+     "name": "Kaveri Fine Chemicals",
+     "score": 0.9,
+     "evidence": "material:material 'amoxicillin' | category:category 'active ingredients' | location:country+material 'India'"
+    },
+    {
+     "id": "S006",
+     "name": "Narmada Lifesciences",
+     "score": 0.9,
+     "evidence": "material:material 'paracetamol' | category:category 'active ingredients' | location:country+material 'India'"
+    },
+    {
+     "id": "S007",
+     "name": "Huaxin Pharmaceutical Materials",
+     "score": 0.45,
+     "evidence": "material:material 'paracetamol' | category:category 'active ingredients'"
+    }
+   ],
+   "summary": "India's commerce ministry has introduced temporary export licensing for several active ingredients, including paracetamol and amoxicillin, to protect domestic supply.",
+   "gold": {
+    "is_risk": true,
+    "urgent": true,
+    "affected_ids": [
+     "S001",
+     "S002",
+     "S006"
+    ],
+    "event_type": "Export restriction",
+    "explanation": "Risk to S001 Sunrise BioChem Ltd, S002 Kaveri Fine Chemicals, S006 Narmada Lifesciences (located in the affected area). Urgent: this export restriction can stop or seriously delay supply soon."
+   }
+  },
+  {
+   "news_id": "N044",
+   "headline": "Power rationing imposed on Zhejiang factories during heatwave",
+   "published_date": "2026-09-28",
+   "source": "Regional News",
+   "is_risk": true,
+   "urgent": true,
+   "affected_ids": [
+    "S003",
+    "S024"
+   ],
+   "event_type": "supply_shortage",
+   "event_label": "Supply shortage",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": 14,
+   "recovery_reported": "2 weeks",
+   "evidence": "Factories in parts of Zhejiang province must cut power use by 20 percent for two weeks as a heatwave pushes up demand for electricity.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 3/5 con dependencia alta (0.90): no hay margen para esperar",
+   "explanation": "Riesgo para S003 Taizhou Hengyuan Pharma (situado en la zona afectada), S024 Zhejiang Paper Leaflets (situado en la zona afectada). Urgente: este evento (escasez de suministro) puede parar o retrasar seriamente el suministro pronto.",
+   "action": "ACTUAR YA. S003 es proveedor ÚNICO de Metformin hydrochloride (Glucora 850 mg tablets): quedan ~30 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia. S024 es proveedor ÚNICO de Patient information leaflets (Amoxira 500 mg capsules, Glucora 850 mg tablets): quedan ~30 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N046",
+    "N001",
+    "N029",
+    "N011"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": false,
+    "severity_rules": 4,
+    "soon_rules": true,
+    "recovery_llm": "2 weeks",
+    "recovery_anchored": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": true,
+     "affected_ids": [
+      "S003",
+      "S024"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S003",
+     "score": 0.9,
+     "factors": [
+      "proveedor único",
+      "criticidad High",
+      "30 días de inventario"
+     ]
+    },
+    {
+     "supplier_id": "S024",
+     "score": 0.6,
+     "factors": [
+      "proveedor único",
+      "criticidad Low",
+      "30 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S003",
+     "supplier_name": "Taizhou Hengyuan Pharma",
+     "inventory_days": 30.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 30.0,
+     "ttr_days": 14,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": 16.0,
+     "status": "cubierto",
+     "products": [
+      "Glucora 850 mg tablets"
+     ],
+     "monthly_requirement": "3500 kg",
+     "note": "proveedor único: sin alternativo aprobado"
+    },
+    {
+     "supplier_id": "S024",
+     "supplier_name": "Zhejiang Paper Leaflets",
+     "inventory_days": 30.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 30.0,
+     "ttr_days": 14,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": 16.0,
+     "status": "cubierto",
+     "products": [
+      "Amoxira 500 mg capsules",
+      "Glucora 850 mg tablets"
+     ],
+     "monthly_requirement": "900000 units",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S003",
+     "name": "Taizhou Hengyuan Pharma",
+     "score": 0.7,
+     "evidence": "location:region 'Zhejiang'"
+    },
+    {
+     "id": "S024",
+     "name": "Zhejiang Paper Leaflets",
+     "score": 0.7,
+     "evidence": "location:region 'Zhejiang'"
+    }
+   ],
+   "summary": "Factories in parts of Zhejiang province must cut power use by 20 percent for two weeks as a heatwave pushes up demand for electricity.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S003",
+     "S024"
+    ],
+    "event_type": "Utility outage",
+    "explanation": "Risk to S003 Taizhou Hengyuan Pharma, S024 Zhejiang Paper Leaflets (located in the affected area). Not urgent: utility outage with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N051",
+   "headline": "Wildfires near Tangier industrial zone prompt temporary factory closures",
+   "published_date": "2026-10-01",
+   "source": "Regional News",
+   "is_risk": true,
+   "urgent": false,
+   "affected_ids": [
+    "S040"
+   ],
+   "event_type": "natural_disaster",
+   "event_label": "Natural disaster",
+   "severity": 3,
+   "stops_supply_soon": true,
+   "recovery_days": 2,
+   "recovery_reported": "48 hours",
+   "evidence": "Firefighters are battling wildfires near Tangier. Several factories in the free zone closed for 48 hours as a precaution.",
+   "confidence": 0.95,
+   "urgency_reason": "gravedad 3/5 con dependencia 0.50: impacto limitado o con alternativa",
+   "explanation": "Riesgo para S040 Atlas Cleanroom Garments (situado en la zona afectada). No urgente: desastre natural con impacto limitado o de corta duración; puede esperar al informe semanal.",
+   "action": "Seguimiento en el informe semanal. S040 es proveedor ÚNICO de Cleanroom garments: quedan ~45 días de inventario. Revisar el stock, priorizar pedidos y buscar un proveedor alternativo de emergencia.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N001",
+    "N046",
+    "N029",
+    "N014"
+   ],
+   "signals": {
+    "severity_llm": 2,
+    "soon_llm": true,
+    "severity_rules": 3,
+    "soon_rules": true,
+    "recovery_llm": "48 hours",
+    "recovery_anchored": true,
+    "rules_answer": {
+     "is_risk": true,
+     "urgent": false,
+     "affected_ids": [
+      "S040"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S040",
+     "score": 0.5,
+     "factors": [
+      "proveedor único",
+      "criticidad Low",
+      "45 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [
+    {
+     "supplier_id": "S040",
+     "supplier_name": "Atlas Cleanroom Garments",
+     "inventory_days": 45.0,
+     "alternate_id": null,
+     "alternate_affected": false,
+     "alternate_margin_days": 0.0,
+     "tts_days": 45.0,
+     "ttr_days": 2,
+     "ttr_estimated": false,
+     "ttr_basis": "según la noticia (juez LLM)",
+     "margin_days": 43.0,
+     "status": "cubierto",
+     "products": [],
+     "monthly_requirement": "",
+     "note": "proveedor único: sin alternativo aprobado"
+    }
+   ],
+   "candidates": [
+    {
+     "id": "S040",
+     "name": "Atlas Cleanroom Garments",
+     "score": 0.8,
+     "evidence": "location:city 'Tangier'"
+    }
+   ],
+   "summary": "Firefighters are battling wildfires near Tangier. Several factories in the free zone closed for 48 hours as a precaution.",
+   "gold": {
+    "is_risk": true,
+    "urgent": false,
+    "affected_ids": [
+     "S040"
+    ],
+    "event_type": "Natural disaster",
+    "explanation": "Risk to S040 Atlas Cleanroom Garments (located in the affected area). Not urgent: natural disaster with limited or short-lived impact, so it can wait for the regular report."
+   }
+  },
+  {
+   "news_id": "N056",
+   "headline": "Orion Synthesis AG receives approval to expand Basel site",
+   "published_date": "2026-10-03",
+   "source": "Company Press Release",
+   "is_risk": false,
+   "urgent": false,
+   "affected_ids": [
+    "S004"
+   ],
+   "event_type": "positive_news",
+   "event_label": "Positive news",
+   "severity": 1,
+   "stops_supply_soon": false,
+   "recovery_days": null,
+   "recovery_reported": "",
+   "evidence": "Orion Synthesis AG said authorities approved an expansion of its active ingredient plant in Basel.",
+   "confidence": 0.95,
+   "urgency_reason": "no es un riesgo",
+   "explanation": "Sin riesgo: noticia positiva sobre S004 Orion Synthesis AG.",
+   "action": "Ninguna acción: no afecta al suministro.",
+   "needs_review": false,
+   "review_reasons": [],
+   "mode": "llm",
+   "model": "qwen2.5:7b",
+   "examples": [
+    "N035",
+    "N007",
+    "N018",
+    "N020"
+   ],
+   "signals": {
+    "severity_llm": 1,
+    "soon_llm": false,
+    "severity_rules": 1,
+    "soon_rules": false,
+    "rules_answer": {
+     "is_risk": false,
+     "urgent": false,
+     "affected_ids": [
+      "S004"
+     ]
+    },
+    "tiebreak": {}
+   },
+   "consensus": true,
+   "disagreement": [],
+   "dependencies": [
+    {
+     "supplier_id": "S004",
+     "score": 0.3,
+     "factors": [
+      "alternativo S005",
+      "criticidad High",
+      "60 días de inventario"
+     ]
+    }
+   ],
+   "countdown": [],
+   "candidates": [
+    {
+     "id": "S004",
+     "name": "Orion Synthesis AG",
+     "score": 1.1,
+     "evidence": "name:full 'orion synthesis' | location:city 'Basel' | category:category 'active ingredient'"
+    },
+    {
+     "id": "S031",
+     "name": "TransAlp Cold Freight",
+     "score": 0.8,
+     "evidence": "location:city 'Basel'"
+    }
+   ],
+   "summary": "Orion Synthesis AG said authorities approved an expansion of its active ingredient plant in Basel.",
+   "gold": {
+    "is_risk": false,
+    "urgent": false,
+    "affected_ids": [
+     "S004"
+    ],
+    "event_type": "Positive news",
+    "explanation": "Not a risk: positive news about S004 Orion Synthesis AG."
+   }
+  }
+ ]
+}
