@@ -102,6 +102,9 @@ def print_report(metrics: dict, df: pd.DataFrame, title: str) -> None:
 
 
 def main() -> None:
+    # La consola de Windows (o una tubería) usa cp1252 por defecto y no sabe imprimir ✔/✘/✅
+    for stream in (sys.stdout, sys.stderr):
+        stream.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--split", choices=["validation", "train"], default="validation")
     ap.add_argument("--no-llm", action="store_true", help="solo reglas (sin Ollama)")

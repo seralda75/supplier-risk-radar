@@ -60,3 +60,11 @@ def test_nombre_ambiguo_con_contexto_se_mantiene():
     h = "Celtic BioLogics doubles drug substance capacity at Cork site"
     a = apply_guards(verdict(event_type="positive_news"), find_candidates(h), h)
     assert a.affected_ids == ["S008"]
+
+
+def test_restriccion_a_la_exportacion_es_urgente_aunque_sea_temporal():
+    from core.suppliers import load_suppliers
+    from core.urgency import dependency, is_urgent
+    a = verdict(is_risk=True, affected_ids=["S002"], event_type="export_restriction", severity=3,
+                stops_supply_soon=False)
+    assert is_urgent(a, [dependency(load_suppliers()["S002"])])[0]

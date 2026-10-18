@@ -73,6 +73,11 @@ def is_urgent(a: NewsAssessment, deps: list[Dependency]) -> tuple[bool, str]:
     """Decide la urgencia y devuelve también el motivo (para la explicación y la auditoría)."""
     if not a.is_risk or not a.affected_ids:
         return False, "no es un riesgo"
+    # El README pone "an export ban" como ejemplo de urgente, sin matices: una restricción a la
+    # exportación corta el suministro de golpe aunque se anuncie como temporal.
+    # Regla añadida tras un error de validación (N041), respaldada por el README (docs/evaluacion.md).
+    if a.event_type == "export_restriction":
+        return True, "restricción a la exportación: puede cortar el suministro de inmediato (README)"
     if not a.stops_supply_soon:
         return False, "efecto lento o limitado: puede esperar al informe semanal"
     max_dep = max((d.score for d in deps), default=0.0)

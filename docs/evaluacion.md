@@ -13,6 +13,10 @@ Los errores de validación se anotan, pero no se corrigen con reglas hechas a me
 | 18/10/2026 | Fase 2 v2 · LLM + gravedad combinada | **validación (10)** | **90 %** | **80 %** | **50 %** | **80 %** | **86,7 %** | **70 %** | **100 %** |
 | 18/10/2026 | Fase 2 v3 · v2 + filtro de identidad ⚠️ | entrenamiento LOO (30) | 96,7 % | 100 % | 100 % | 96,7 % | 96,7 % | 96,7 % | 100 % |
 | 18/10/2026 | Fase 2 v3 · v2 + filtro de identidad ⚠️ | **validación (10)** | **100 %** | **80 %** | **50 %** | **90 %** | **96,7 %** | **80 %** | **100 %** |
+| 18/10/2026 | Fase 2 v4 · solo reglas + regla de exportación ⚠️ | entrenamiento (30) | 100 % | 100 % | 100 % | 93,3 % | 96,7 % | 93,3 % | 100 % |
+| 18/10/2026 | Fase 2 v4 · solo reglas + regla de exportación ⚠️ | **validación (10)** | **100 %** | **90 %** | **100 %** | **90 %** | **97,5 %** | **80 %** | **100 %** |
+| 18/10/2026 | Fase 2 v4 · v3 + regla de exportación ⚠️ | entrenamiento LOO (30) | 96,7 % | 100 % | 100 % | 96,7 % | 96,7 % | 96,7 % | 100 % |
+| 18/10/2026 | Fase 2 v4 · v3 + regla de exportación ⚠️ | **validación (10)** | **100 %** | **90 %** | **100 %** | **90 %** | **96,7 %** | **80 %** | **100 %** |
 
 ⚠️ = versión con un cambio motivado por un error de validación (ver notas de la v3).
 
@@ -50,7 +54,7 @@ Notas de la fase 2 v3 (⚠️ cambio motivado por validación):
 - **Consenso reglas-LLM** (nuevo campo en `test_detalle.csv` y en la auditoría): Y si los dos jueces
   dan las mismas tres respuestas. Entrenamiento: 93,3 % de consenso; acierto 100 % con consenso y
   50 % cuando discrepan. Validación: 90 % de consenso; acierto 88,9 % con consenso y 0 % en la única
-  discrepancia (N041). Test: 12 de 20 noticias con consenso. Es una señal útil para decidir qué
+  discrepancia (N041). Test: 13 de 20 noticias con consenso. Es una señal útil para decidir qué
   revisa una persona, aunque con tan pocos datos no es concluyente.
 - Errores de urgencia que quedan en validación (anotados, no corregidos):
   - N041 (debía ser urgente): la palabra "temporary" rebaja la restricción a la exportación a
@@ -60,3 +64,20 @@ Notas de la fase 2 v3 (⚠️ cambio motivado por validación):
   - N044 (no debía ser urgente): las reglas dan gravedad 4 al racionamiento eléctrico ("two weeks")
     y el LLM 2; la media redondeada hacia arriba (3) más la dependencia alta de S003, proveedor único
     (0,90), lo convierten en urgente, cuando la etiqueta considera limitado un recorte del 20 %.
+
+Notas de la fase 2 v4 (⚠️ cambio motivado por validación y respaldado por el README):
+- **Qué cambia:** una restricción o veto a la exportación que afecta a proveedores es urgente
+  siempre, aunque sea temporal y aunque el proveedor tenga alternativo (`urgency.is_urgent()`, en
+  los dos modos). El README del reto pone "an export ban" como ejemplo explícito de urgente.
+- **Por qué se marca:** la regla sale del README, pero se añadió después de ver el error N041 de
+  validación. La validación de la v4 ya no es independiente para este caso.
+- En entrenamiento no hay ninguna restricción a la exportación: las métricas no cambian (reglas y LLM).
+- Validación: N041 ya sale urgente (recall de urgentes 50 % → 100 %), pero sigue sin ser perfecta
+  por los IDs: el LLM pierde S001 (Hyderabad) y las reglas añaden S007 (China). Noticias perfectas: 80 %.
+- La entrega del test no cambia (ninguna noticia del test es una restricción a la exportación); se
+  regenera igualmente con la v4.
+- **Límite conocido, sin corregir: N044** (racionamiento eléctrico del 20 % durante dos semanas en
+  Zhejiang). Sale urgente porque la gravedad combinada (3) coincide con un proveedor único (S003,
+  dependencia 0,90), mientras que la etiqueta lo considera un efecto limitado. Arreglarlo exigiría
+  una regla hecha a medida para ese titular; se deja como falsa alarma, el error menos costoso
+  según la prioridad del reto (recall de urgentes).
