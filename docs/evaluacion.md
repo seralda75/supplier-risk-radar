@@ -100,3 +100,18 @@ Notas de la fase 2 v5 · política de desempate entre reglas y LLM:
   las respuestas de "falsa alarma" de los compradores) se puede volver a medir y cambiar.
 - Efecto: ninguno en las métricas ni en la entrega (ya decidía el LLM). `test_detalle.csv` añade la
   columna `Tiebreak` con quién decide cada campo en discrepancia (7 noticias del test).
+
+Límite conocido · el LLM marca como riesgo noticias que solo coinciden por ubicación:
+- **Qué pasa:** cuando una noticia menciona el lugar de un proveedor pero no describe ninguna
+  interrupción del suministro, el LLM tiende a marcarla como riesgo. Se ve en las discrepancias
+  del test (observación, no se ha usado para ajustar nada): N021 (ola de frío prevista en el Medio
+  Oeste → S017), N036 (plan para automatizar el puerto de Singapur → S032) y N049 (ampliación del
+  metro de Hyderabad → S001). En las tres, las reglas dicen "sin riesgo".
+- **Por qué no se corrige ahora:** no aparece en el entrenamiento ni en la validación (el LLM
+  acierta N013, N028, N042, N045 y N058, que son de este tipo), así que cualquier regla nueva
+  estaría hecha a medida para el test.
+- **Señales que ya lo detectan:** en las tres noticias el LLM da una confianza muy baja (0,03-0,04),
+  así que salen con la marca de revisión humana (`Needs_Review`), y además no hay consenso con las reglas.
+- **Mitigación en producción:** la marca de revisión humana (una persona confirma antes de alertar)
+  y la respuesta de los compradores ("falsa alarma" en el bot), que se guarda y sirve para ajustar
+  umbrales y añadir ejemplos nuevos al few-shot.
