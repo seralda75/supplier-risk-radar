@@ -24,6 +24,7 @@ core/matching.py     candidatos por nombre, ubicación, ruta, material y categor
 core/rules.py        modo solo reglas: tipo de evento, gravedad y proveedores afectados
 core/urgency.py      dependencia del proveedor y decisión de urgencia
 core/judge.py        juez LLM: few-shot del entrenamiento (Chroma) + JSON schema + salvaguardas
+core/countdown.py    cuenta atrás: TTS (inventario + alternativo) − TTR (recuperación)
 core/pipeline.py     assess(noticia) -> veredicto + explicación + acción + auditoría
 core/audit.py        auditoría en SQLite
 core/data.py         carga de las noticias de los tres Excel
@@ -32,6 +33,7 @@ fill_test.py         rellena outputs/Supplier_Risk_3_Test_respuestas.xlsx y vali
 deliverables/        entrega final del test (copia versionada de outputs/) + detalle con consenso
 tests/               pytest con casos del entrenamiento
 docs/evaluacion.md   historial de métricas
+docs/fase3_cuenta_atras.md supuestos de la cuenta atrás
 scripts/check_env.py comprobación del entorno
 scripts/bench_models.py comparación de modelos (ver docs/fase0_modelos.md)
 ```

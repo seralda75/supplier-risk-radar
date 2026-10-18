@@ -17,6 +17,7 @@ import openpyxl
 import pandas as pd
 
 from core.config import LLM_MODEL, OUTPUT_DIR, TEST_OUTPUT_XLSX, TEST_XLSX
+from core.countdown import Countdown, worst
 from core.data import load_news
 from core.pipeline import assess
 from core.suppliers import load_suppliers
@@ -85,6 +86,8 @@ def main() -> None:
     for n in news:
         r = assess(n, use_llm=use_llm, model=args.model, log=True)
         answers[n["News_ID"]] = r.to_row()
+        cds = [Countdown(**c) for c in r.countdown]
+        tight = worst(cds)
         detail.append({"News_ID": r.news_id, "Headline": r.headline, **r.to_row(), "Event_Type": r.event_label,
                        "Severity": r.severity, "Recovery_Days": r.recovery_days, "Confidence": r.confidence,
                        "Needs_Review": r.needs_review, "Review_Reason": "; ".join(r.review_reasons),
@@ -94,7 +97,13 @@ def main() -> None:
                        "Consensus": "" if r.consensus is None else ("Y" if r.consensus else "N"),
                        "Disagreement": ", ".join(r.disagreement),
                        # Quién decide cada campo en discrepancia (core/pipeline.py: TIEBREAK)
-                       "Tiebreak": ", ".join(f"{f}: {w}" for f, w in r.signals.get("tiebreak", {}).items())})
+                       "Tiebreak": ", ".join(f"{f}: {w}" for f, w in r.signals.get("tiebreak", {}).items()),
+                       # Cuenta atrás (fase 3): productos afectados, TTS − TTR por proveedor y el peor margen
+                       "Affected_Products": "; ".join(sorted({p for c in cds for p in c.products})),
+                       "Countdown": " | ".join(c.summary() for c in cds),
+                       "Min_Margin_Days": "" if tight is None or tight.inventory_days is None
+                                          else tight.margin_days,
+                       "Countdown_Status": "" if tight is None else tight.status})
         print(f"  {r.news_id} risk={answers[r.news_id]['Is_Risk']} urg={answers[r.news_id]['Urgent']} "
               f"ids=[{answers[r.news_id]['Affected_Supplier_IDs']}] {r.event_type}", flush=True)
 

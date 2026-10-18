@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from . import audit
 from .config import CONFIDENCE_THRESHOLD, LLM_MODEL
+from .countdown import as_dicts, countdown
 from .matching import Candidate, find_candidates
 from .rules import assess_rules, severity_signal, verified_named
 from .schemas import EVENT_LABELS, EVENT_LABELS_ES, NewsAssessment
@@ -47,6 +48,7 @@ class AssessmentResult(BaseModel):
     consensus: bool | None = None
     disagreement: list[str] = Field(default_factory=list)  # campos en los que discrepan
     dependencies: list[dict] = Field(default_factory=list)
+    countdown: list[dict] = Field(default_factory=list)   # TTS, TTR y margen por proveedor (core/countdown.py)
     candidates: list[dict] = Field(default_factory=list)
 
     def to_row(self) -> dict:
@@ -206,6 +208,7 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
         action=recommend_action(a, urgent), needs_review=needs_review, review_reasons=review_reasons, mode=mode,
         model=model, examples=examples, signals=signals, consensus=consensus, disagreement=disagreement,
         dependencies=[d.__dict__ for d in deps],
+        countdown=as_dicts(countdown(a)),
         candidates=[{"id": c.id, "name": c.supplier.name, "score": c.score, "evidence": c.evidence()}
                     for c in cands],
     )
