@@ -91,7 +91,9 @@ def main() -> None:
                        "Evidence": r.evidence, "Mode": r.mode,
                        # Consenso: Y si reglas y LLM dan las mismas tres respuestas; vacío en modo reglas
                        "Consensus": "" if r.consensus is None else ("Y" if r.consensus else "N"),
-                       "Disagreement": ", ".join(r.disagreement)})
+                       "Disagreement": ", ".join(r.disagreement),
+                       # Quién decide cada campo en discrepancia (core/pipeline.py: TIEBREAK)
+                       "Tiebreak": ", ".join(f"{f}: {w}" for f, w in r.signals.get("tiebreak", {}).items())})
         print(f"  {r.news_id} risk={answers[r.news_id]['Is_Risk']} urg={answers[r.news_id]['Urgent']} "
               f"ids=[{answers[r.news_id]['Affected_Supplier_IDs']}] {r.event_type}", flush=True)
 

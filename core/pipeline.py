@@ -124,6 +124,17 @@ def recommend_action(a: NewsAssessment, urgent: bool) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Desempate cuando las reglas y el LLM discrepan
+# ---------------------------------------------------------------------------
+
+# Quién decide cada campo si los dos jueces no coinciden ("llm" o "reglas"). Decidido con el
+# entrenamiento (leave-one-out) y la validación, nunca con el test: en 40 noticias solo hay 4
+# discrepancias y ningún juez gana con claridad, así que manda el LLM (docs/evaluacion.md, v5).
+# El cliente puede cambiarlo cuando tenga más histórico (por ejemplo, con la respuesta de los compradores).
+TIEBREAK = {"Is_Risk": "llm", "Urgent": "llm", "Affected_Supplier_IDs": "llm"}
+
+
+# ---------------------------------------------------------------------------
 # Punto de entrada
 # ---------------------------------------------------------------------------
 
@@ -156,13 +167,25 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
     urgent, why = is_urgent(a, deps)
     consensus, disagreement = None, []
     if mode == "llm":
-        rules_urgent, _ = is_urgent(rules_a, [dependency(sup[i]) for i in rules_a.affected_ids])
+        rules_urgent, rules_why = is_urgent(rules_a, [dependency(sup[i]) for i in rules_a.affected_ids])
         disagreement = [field for field, llm_v, rules_v in (
             ("Is_Risk", a.is_risk, rules_a.is_risk), ("Urgent", urgent, rules_urgent),
             ("Affected_Supplier_IDs", sorted(a.affected_ids), sorted(rules_a.affected_ids))) if llm_v != rules_v]
         consensus = not disagreement
         signals["rules_answer"] = {"is_risk": rules_a.is_risk, "urgent": rules_urgent,
                                    "affected_ids": sorted(rules_a.affected_ids)}
+        # Desempate campo a campo según TIEBREAK (con la política actual, el LLM en todos)
+        winners = {f: TIEBREAK[f] for f in disagreement}
+        signals["tiebreak"] = winners
+        if winners.get("Is_Risk") == "reglas":
+            a = a.model_copy(update={"is_risk": rules_a.is_risk})
+        if winners.get("Affected_Supplier_IDs") == "reglas":
+            a = a.model_copy(update={"affected_ids": rules_a.affected_ids})
+        if winners.get("Urgent") == "reglas":
+            urgent, why = rules_urgent, rules_why
+        if not a.is_risk:
+            urgent, why = False, "no es un riesgo"            # solo un riesgo puede ser urgente
+        deps = [dependency(sup[i]) for i in a.affected_ids]
     elif use_llm:
         consensus = True     # sin candidatos el LLM no puede dar otra respuesta: sin riesgo y sin IDs
     needs_review = a.confidence < CONFIDENCE_THRESHOLD and a.is_risk

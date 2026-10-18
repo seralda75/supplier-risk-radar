@@ -68,3 +68,9 @@ def test_restriccion_a_la_exportacion_es_urgente_aunque_sea_temporal():
     a = verdict(is_risk=True, affected_ids=["S002"], event_type="export_restriction", severity=3,
                 stops_supply_soon=False)
     assert is_urgent(a, [dependency(load_suppliers()["S002"])])[0]
+
+
+def test_politica_de_desempate_es_explicita():
+    from core.pipeline import TIEBREAK
+    assert set(TIEBREAK) == {"Is_Risk", "Urgent", "Affected_Supplier_IDs"}
+    assert set(TIEBREAK.values()) <= {"llm", "reglas"}

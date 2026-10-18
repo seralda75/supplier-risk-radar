@@ -81,3 +81,22 @@ Notas de la fase 2 v4 (⚠️ cambio motivado por validación y respaldado por e
   dependencia 0,90), mientras que la etiqueta lo considera un efecto limitado. Arreglarlo exigiría
   una regla hecha a medida para ese titular; se deja como falsa alarma, el error menos costoso
   según la prioridad del reto (recall de urgentes).
+
+Notas de la fase 2 v5 · política de desempate entre reglas y LLM:
+- **Cómo se decidió:** solo con el entrenamiento (leave-one-out) y la validación; el test no se usó.
+  En cada campo en el que los dos jueces discrepan, se cuenta quién coincide con la etiqueta:
+
+  | Campo | Discrepancias (30 entrenamiento + 10 validación) | Acierta el LLM | Aciertan las reglas | Ninguno |
+  |---|---|---|---|---|
+  | Is_Risk | 1 (N037) | 0 | 1 | 0 |
+  | Urgent | 0 | — | — | — |
+  | Affected_Supplier_IDs | 3 (N011, N037, N041) | 1 (N011) | 0 | 2 (N037, N041) |
+
+- **Política:** manda el LLM en los tres campos (`TIEBREAK` en `core/pipeline.py`). Ninguna diferencia
+  es clara: 1 a 0 no es evidencia, y además las reglas se diseñaron con el entrenamiento, así que su
+  acierto allí es optimista. El criterio acordado era mantener el LLM si la diferencia no es clara.
+- Solo un riesgo puede ser urgente: si el desempate dejara Is_Risk = N, Urgent pasa a N.
+- La política es configurable ("llm" o "reglas" por campo): cuando haya más histórico (por ejemplo,
+  las respuestas de "falsa alarma" de los compradores) se puede volver a medir y cambiar.
+- Efecto: ninguno en las métricas ni en la entrega (ya decidía el LLM). `test_detalle.csv` añade la
+  columna `Tiebreak` con quién decide cada campo en discrepancia (7 noticias del test).
