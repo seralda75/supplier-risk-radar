@@ -85,7 +85,10 @@ def main() -> None:
         detail.append({"News_ID": r.news_id, "Headline": r.headline, **r.to_row(), "Event_Type": r.event_label,
                        "Severity": r.severity, "Recovery_Days": r.recovery_days, "Confidence": r.confidence,
                        "Needs_Review": r.needs_review, "Explanation": r.explanation, "Action": r.action,
-                       "Evidence": r.evidence, "Mode": r.mode})
+                       "Evidence": r.evidence, "Mode": r.mode,
+                       # Consenso: Y si reglas y LLM dan las mismas tres respuestas; vacío en modo reglas
+                       "Consensus": "" if r.consensus is None else ("Y" if r.consensus else "N"),
+                       "Disagreement": ", ".join(r.disagreement)})
         print(f"  {r.news_id} risk={answers[r.news_id]['Is_Risk']} urg={answers[r.news_id]['Urgent']} "
               f"ids=[{answers[r.news_id]['Affected_Supplier_IDs']}] {r.event_type}", flush=True)
 

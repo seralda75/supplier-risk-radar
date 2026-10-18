@@ -46,3 +46,17 @@ def test_huelga_de_transporte_no_afecta_al_software():
 def test_gravedad_combinada_redondea_hacia_arriba():
     a = combine_with_rules(verdict(is_risk=True, affected_ids=["S017"], severity=3), 4, True)
     assert a.severity == math.ceil(3.5) and a.stops_supply_soon
+
+
+def test_nombre_ambiguo_sin_contexto_se_descarta():
+    # trampa del entrenamiento (N030): aunque el LLM aceptara el nombre, la salvaguarda lo quita
+    h = "Celtic beat Rangers 2-1 in Glasgow derby"
+    a = apply_guards(verdict(affected_ids=["S008"], event_type="other_risk", is_risk=True, severity=2),
+                     find_candidates(h), h)
+    assert a.affected_ids == [] and not a.is_risk
+
+
+def test_nombre_ambiguo_con_contexto_se_mantiene():
+    h = "Celtic BioLogics doubles drug substance capacity at Cork site"
+    a = apply_guards(verdict(event_type="positive_news"), find_candidates(h), h)
+    assert a.affected_ids == ["S008"]

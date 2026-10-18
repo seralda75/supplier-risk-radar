@@ -41,6 +41,10 @@ class AssessmentResult(BaseModel):
     model: str = ""
     examples: list[str] = Field(default_factory=list)   # noticias de entrenamiento usadas como ejemplo
     signals: dict = Field(default_factory=dict)          # gravedad según el LLM y según las reglas
+    # ¿Coinciden las reglas y el LLM en las tres respuestas (Is_Risk, Urgent, IDs)? None en modo reglas.
+    # Son dos jueces independientes: si discrepan, la decisión es menos segura.
+    consensus: bool | None = None
+    disagreement: list[str] = Field(default_factory=list)  # campos en los que discrepan
     dependencies: list[dict] = Field(default_factory=list)
     candidates: list[dict] = Field(default_factory=list)
 
@@ -143,12 +147,24 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
         signals = {"severity_llm": a.severity, "soon_llm": a.stops_supply_soon,
                    "severity_rules": rules_sev, "soon_rules": rules_soon}
         a = combine_with_rules(a, rules_sev, rules_soon)
+        rules_a = assess_rules(headline, summary, cands)
     else:
         a, model = assess_rules(headline, summary, cands), ""
 
     sup = load_suppliers()
     deps = [dependency(sup[i]) for i in a.affected_ids]
     urgent, why = is_urgent(a, deps)
+    consensus, disagreement = None, []
+    if mode == "llm":
+        rules_urgent, _ = is_urgent(rules_a, [dependency(sup[i]) for i in rules_a.affected_ids])
+        disagreement = [field for field, llm_v, rules_v in (
+            ("Is_Risk", a.is_risk, rules_a.is_risk), ("Urgent", urgent, rules_urgent),
+            ("Affected_Supplier_IDs", sorted(a.affected_ids), sorted(rules_a.affected_ids))) if llm_v != rules_v]
+        consensus = not disagreement
+        signals["rules_answer"] = {"is_risk": rules_a.is_risk, "urgent": rules_urgent,
+                                   "affected_ids": sorted(rules_a.affected_ids)}
+    elif use_llm:
+        consensus = True     # sin candidatos el LLM no puede dar otra respuesta: sin riesgo y sin IDs
     needs_review = a.confidence < CONFIDENCE_THRESHOLD and a.is_risk
     result = AssessmentResult(
         news_id=news["News_ID"], headline=headline, published_date=str(news.get("Published_Date", "")),
@@ -157,7 +173,8 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
         stops_supply_soon=a.stops_supply_soon, recovery_days=a.recovery_days, evidence=a.evidence,
         confidence=a.confidence, urgency_reason=why, explanation=explain(a, urgent, cands, headline, summary),
         action=recommend_action(a, urgent), needs_review=needs_review, mode=mode,
-        model=model, examples=examples, signals=signals, dependencies=[d.__dict__ for d in deps],
+        model=model, examples=examples, signals=signals, consensus=consensus, disagreement=disagreement,
+        dependencies=[d.__dict__ for d in deps],
         candidates=[{"id": c.id, "name": c.supplier.name, "score": c.score, "evidence": c.evidence()}
                     for c in cands],
     )

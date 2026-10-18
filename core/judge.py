@@ -5,15 +5,16 @@
 - Few-shot dinámico: las noticias de ENTRENAMIENTO más parecidas (Chroma + nomic-embed-text), con
   su etiqueta y su Explanation, que es el razonamiento que el README pide copiar.
 - Salida estructurada: JSON schema de NewsAssessment en `format` de Ollama + validación Pydantic.
-- Salvaguardas deterministas después del LLM: no puede inventar IDs, una noticia sin riesgo solo
-  lleva IDs de proveedores citados por su nombre, y un evento de transporte no afecta a servicios.
+- Salvaguardas deterministas después del LLM: no puede inventar IDs, un nombre ambiguo necesita
+  contexto que lo respalde, una noticia sin riesgo solo lleva IDs de proveedores citados por su
+  nombre, y un evento de transporte no afecta a servicios.
 """
 from __future__ import annotations
 
 from . import llm, rag
 from .config import LLM_MODEL
 from .data import format_ids, load_news
-from .matching import Candidate
+from .matching import Candidate, has_context_support
 from .rules import TRANSPORT_EVENTS
 from .schemas import NewsAssessment
 
@@ -110,10 +111,16 @@ def build_prompt(headline: str, summary: str, cands: list[Candidate],
 # Juez
 # ---------------------------------------------------------------------------
 
-def apply_guards(a: NewsAssessment, cands: list[Candidate]) -> NewsAssessment:
+def apply_guards(a: NewsAssessment, cands: list[Candidate], headline: str = "",
+                 summary: str = "") -> NewsAssessment:
     """Reglas de negocio que el LLM no puede saltarse."""
     by_id = {c.id: c for c in cands}
     ids = [i for i in a.affected_ids if i in by_id]                       # no se inventan IDs
+    # Identidad: un nombre ambiguo (parcial) solo cuenta si algo más de la noticia apunta a ese
+    # proveedor (material, ciudad, vocabulario farmacéutico). Es la misma comprobación del modo reglas.
+    # Cambio motivado por un error de validación (ver docs/evaluacion.md, fase 2 v3).
+    ids = [i for i in ids if not (by_id[i].ambiguous_name and not by_id[i].named
+                                  and not has_context_support(by_id[i], headline, summary))]
     if a.event_type in TRANSPORT_EVENTS:                                  # el transporte no afecta al software
         ids = [i for i in ids if by_id[i].supplier.physical or by_id[i].named]
     is_risk = a.is_risk and bool(ids) and a.event_type not in {"positive_news", "not_relevant"}
@@ -135,4 +142,4 @@ def judge(headline: str, summary: str, cands: list[Candidate], model: str = LLM_
     """Devuelve el veredicto del LLM (ya con salvaguardas) y los IDs de los ejemplos usados."""
     prompt, used = build_prompt(headline, summary, cands, exclude_ids)
     raw = llm.extract(prompt, NewsAssessment, model=model, system=SYSTEM)
-    return apply_guards(raw, cands), used
+    return apply_guards(raw, cands, headline, summary), used

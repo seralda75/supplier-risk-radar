@@ -50,6 +50,7 @@ def evaluate(split: str, use_llm: bool, model: str = LLM_MODEL, verbose: bool = 
             "gold_event": label_to_event.get(str(n["Event_Type"]).lower(), n["Event_Type"]),
             "pred_event": r.event_type, "severity": r.severity, "soon": r.stops_supply_soon,
             "recovery_days": r.recovery_days, "urgency_reason": r.urgency_reason,
+            "consensus": r.consensus, "disagreement": ", ".join(r.disagreement),
         })
         if verbose:
             mark = "✔" if (rows[-1]["gold_risk"] == rows[-1]["pred_risk"] and rows[-1]["ids_exact"]
@@ -73,6 +74,13 @@ def evaluate(split: str, use_llm: bool, model: str = LLM_MODEL, verbose: bool = 
         "acierto Event_Type": (df.gold_event == df.pred_event).mean(),
         "segundos por noticia": (time.perf_counter() - t0) / max(len(df), 1),
     }
+    if use_llm:
+        # ¿Sirve el consenso como señal de confianza? Acierto cuando reglas y LLM coinciden y cuando no
+        perfect = ((df.gold_risk == df.pred_risk) & (df.gold_urgent == df.pred_urgent) & df.ids_exact)
+        agree = df.consensus.astype(bool)
+        metrics["consenso reglas-LLM"] = agree.mean()
+        metrics["perfecta si hay consenso"] = perfect[agree].mean() if agree.any() else float("nan")
+        metrics["perfecta si discrepan"] = perfect[~agree].mean() if (~agree).any() else float("nan")
     return metrics, df
 
 
@@ -89,7 +97,7 @@ def print_report(metrics: dict, df: pd.DataFrame, title: str) -> None:
     if len(errors):
         print(f"\n  Errores ({len(errors)}):")
         cols = ["News_ID", "Headline", "gold_risk", "pred_risk", "gold_urgent", "pred_urgent", "gold_ids",
-                "pred_ids", "pred_event", "severity", "soon"]
+                "pred_ids", "pred_event", "severity", "soon", "consensus"]
         print(errors[cols].to_string(index=False))
 
 

@@ -29,6 +29,7 @@ core/audit.py        auditoría en SQLite
 core/data.py         carga de las noticias de los tres Excel
 evaluate.py          métricas (python evaluate.py [--no-llm] [--split train])
 fill_test.py         rellena outputs/Supplier_Risk_3_Test_respuestas.xlsx y valida el formato
+deliverables/        entrega final del test (copia versionada de outputs/) + detalle con consenso
 tests/               pytest con casos del entrenamiento
 docs/evaluacion.md   historial de métricas
 scripts/check_env.py comprobación del entorno
