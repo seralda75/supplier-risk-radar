@@ -17,6 +17,15 @@ def test_confidence_en_porcentaje_se_normaliza():
     assert verdict(confidence=80).confidence == 0.8
 
 
+def test_confidence_ambigua_entre_1_y_5_se_rechaza():
+    # qwen2.5 devolvía 4 (nota de 1 a 5) y el validador lo convertía en 0.04
+    import pytest
+    from pydantic import ValidationError
+    with pytest.raises(ValidationError):
+        verdict(confidence=4)
+    assert verdict(confidence=1).confidence == 1.0
+
+
 def test_no_se_inventan_ids():
     cands = find_candidates("Strike at Rotterdam container terminals enters third day")
     a = apply_guards(verdict(affected_ids=["S030", "S038", "S019"], event_type="labour_strike", is_risk=True,

@@ -88,14 +88,25 @@ class NewsAssessment(BaseModel):
     recovery_days: Optional[int] = Field(..., ge=0, description="Días estimados hasta que el proveedor "
                                                                 "se recupere según la noticia; null si "
                                                                 "no se puede estimar o no aplica")
-    confidence: float = Field(..., ge=0, le=1, description="Seguridad global, número decimal entre 0.0 y 1.0")
+    # En inglés, como el prompt: el modelo lee esta descripción en el JSON schema de `format`.
+    # Antes decía solo "Seguridad global" y qwen2.5 mezclaba escalas (80, pero también 3 o 4 como si
+    # fuera una nota de 1 a 5); ver docs/evaluacion.md, v6.
+    confidence: float = Field(..., ge=0, le=1, description=(
+        "How sure you are that YOUR ANSWER (is_risk and affected_ids) is correct, as a decimal between "
+        "0.0 and 1.0, e.g. 0.9. It is not the probability of a risk and not a 1-5 score: a clear "
+        "non-risk answer also gets a high confidence."))
 
     @field_validator("confidence", mode="before")
     @classmethod
     def _percent_to_unit(cls, v):
-        # Ollama no impone rangos numéricos: algunos modelos devuelven 80 en vez de 0.8
-        if isinstance(v, (int, float)) and 1 < v <= 100:
-            return v / 100
+        # Ollama no impone rangos numéricos. 80 es claramente un porcentaje (-> 0.8); un valor entre
+        # 1 y 5 es ambiguo (¿3 %? ¿3 sobre 5?): se rechaza y extract() reintenta con este mensaje
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            if 5 < v <= 100:
+                return v / 100
+            if 1 < v <= 5:
+                raise ValueError("confidence must be a decimal between 0.0 and 1.0 (e.g. 0.85), "
+                                 "not a 1-5 score or a percentage")
         return v
 
     @field_validator("affected_ids")

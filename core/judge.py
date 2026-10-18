@@ -53,6 +53,7 @@ or weeks. False for slow-moving effects (ownership or leadership change, credit 
 "two months" -> 60, "48 hours" -> 2); null if the article gives no basis to estimate it.
 9. evidence: copy the sentence of the article that supports your decision.
 10. Use only IDs from the CANDIDATES list. Follow the style of the labelled examples.
+11. confidence: a decimal from 0.0 to 1.0 with how sure you are that your own answer is correct. It is not the probability of a risk and not a 1-5 score.
 Answer with JSON only."""
 
 

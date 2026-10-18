@@ -17,6 +17,8 @@ Los errores de validación se anotan, pero no se corrigen con reglas hechas a me
 | 18/10/2026 | Fase 2 v4 · solo reglas + regla de exportación ⚠️ | **validación (10)** | **100 %** | **90 %** | **100 %** | **90 %** | **97,5 %** | **80 %** | **100 %** |
 | 18/10/2026 | Fase 2 v4 · v3 + regla de exportación ⚠️ | entrenamiento LOO (30) | 96,7 % | 100 % | 100 % | 96,7 % | 96,7 % | 96,7 % | 100 % |
 | 18/10/2026 | Fase 2 v4 · v3 + regla de exportación ⚠️ | **validación (10)** | **100 %** | **90 %** | **100 %** | **90 %** | **96,7 %** | **80 %** | **100 %** |
+| 18/10/2026 | Fase 2 v6 · v5 + corrección de `confidence` | entrenamiento LOO (30) | 96,7 % | 100 % | 100 % | 96,7 % | 96,7 % | 96,7 % | 100 % |
+| 18/10/2026 | Fase 2 v6 · v5 + corrección de `confidence` | **validación (10)** | **100 %** | **90 %** | **100 %** | **90 %** | **96,7 %** | **80 %** | **100 %** |
 
 ⚠️ = versión con un cambio motivado por un error de validación (ver notas de la v3).
 
@@ -110,8 +112,36 @@ Límite conocido · el LLM marca como riesgo noticias que solo coinciden por ubi
 - **Por qué no se corrige ahora:** no aparece en el entrenamiento ni en la validación (el LLM
   acierta N013, N028, N042, N045 y N058, que son de este tipo), así que cualquier regla nueva
   estaría hecha a medida para el test.
-- **Señales que ya lo detectan:** en las tres noticias el LLM da una confianza muy baja (0,03-0,04),
-  así que salen con la marca de revisión humana (`Needs_Review`), y además no hay consenso con las reglas.
+- **Señales que ya lo detectan:** las tres noticias no tienen consenso con las reglas.
+  ~~En las tres el LLM da una confianza muy baja (0,03-0,04) y salen con revisión humana.~~ Corregido
+  en la v6: esa confianza baja era un fallo del campo `confidence`, no una señal real.
 - **Mitigación en producción:** la marca de revisión humana (una persona confirma antes de alertar)
   y la respuesta de los compradores ("falsa alarma" en el bot), que se guarda y sirve para ajustar
   umbrales y añadir ejemplos nuevos al few-shot.
+
+Notas de la fase 2 v6 · corrección de un fallo detectado al revisar las discrepancias:
+- **Síntoma:** en el test, N021, N036 y N049 salían con is_risk = true y confianza 0,03-0,04, algo
+  incoherente. En entrenamiento y validación pasaba lo mismo en riesgos BIEN clasificados (N037,
+  N053, N041, N044), mientras que las noticias sin riesgo tenían confianza 1,0: no era el error lo
+  que bajaba la confianza.
+- **Causa (comprobada con la salida cruda de Ollama, sin caché ni validador):** el modelo NO
+  interpretaba `confidence` como probabilidad de riesgo, sino que mezclaba escalas: unas veces un
+  porcentaje (80) y otras una nota parecida a la de 1 a 5 de `severity` (3 o 4). Nuestro validador
+  dividía entre 100 todo valor entre 1 y 100, así que un 4 se convertía en 0,04. El campo estaba
+  mal definido (descripción en español, ambigua, y sin mención en el prompt de sistema).
+- **Corrección:** (1) descripción precisa del campo en el esquema, en inglés como el prompt;
+  (2) regla 11 del prompt: un decimal de 0,0 a 1,0 con la seguridad en la propia respuesta, ni
+  probabilidad de riesgo ni nota de 1 a 5; (3) el validador solo convierte porcentajes claros
+  (> 5) y rechaza los valores ambiguos entre 1 y 5, de modo que `extract()` reintenta. No se añade un
+  campo `risk_probability`: el problema era de escala, no de significado.
+- **Iteración (solo con el entrenamiento):** una primera redacción de la regla 11 con ejemplos
+  ("0.9 = very sure… a clearly irrelevant article gets is_risk = false") empeoraba el
+  entrenamiento (N025, cambio de CEO, pasaba a "sin riesgo": 96,7 % → 93,3 % en Is_Risk). Se
+  descartó por una redacción neutra y sin anclas, que deja entrenamiento y validación igual que la v5.
+- **Resultado:** las métricas no cambian y la entrega del test se regenera con las mismas 20 respuestas.
+- **Hallazgo:** con la escala corregida, la confianza del LLM es casi constante (0,95 en 31 de 36
+  noticias con candidatos de entrenamiento y validación, 1,0 en el resto), también en el único
+  error de Is_Risk (N034). La confianza que el modelo declara sobre sí mismo **no separa aciertos de
+  errores**, así que `Needs_Review` (confianza < 0,75) ya no se activa en ninguna noticia del test.
+  La señal útil para la revisión humana es la falta de consenso entre reglas y LLM (acierto del
+  100 % con consenso frente a 0-50 % sin consenso).
