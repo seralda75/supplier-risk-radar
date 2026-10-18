@@ -14,7 +14,7 @@ ollama pull qwen2.5:7b; ollama pull nomic-embed-text
 
 ## Panel (Streamlit)
 ```powershell
-.venv\Scripts\python scriptsuild_results.py     # guarda los resultados de los 3 conjuntos (usa la caché del LLM)
+.venv\Scripts\python scripts\build_results.py     # guarda los resultados de los 3 conjuntos (usa la caché del LLM)
 .venv\Scripts\streamlit run app.py                 # http://localhost:8501
 ```
 La app solo lee `data/results/*.json` (incluidos en el repo): abre en segundos, sin llamar al LLM y
