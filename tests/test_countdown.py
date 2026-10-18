@@ -5,9 +5,10 @@ from core.pipeline import assess
 from core.schemas import NewsAssessment
 
 
-def risk(ids, event="fire_plant_incident", recovery=None, soon=True, **kw):
+def risk(ids, event="fire_plant_incident", recovery=None, soon=True, unit="days", **kw):
     base = dict(evidence="x", affected_ids=ids, event_type=event, is_risk=True, severity=4,
-                stops_supply_soon=soon, recovery_days=recovery, confidence=0.9)
+                stops_supply_soon=soon, recovery_value=recovery,
+                recovery_unit=unit if recovery is not None else None, confidence=0.9)
     return NewsAssessment(**{**base, **kw})
 
 
@@ -30,6 +31,23 @@ def test_alternativo_que_no_llega_a_tiempo_no_da_margen():
     # S001: 45 días de inventario; su alternativo S002 tarda 60 en entregar
     [c] = countdown(risk(["S001"], recovery=60))
     assert c.alternate_margin_days == 0 and c.margin_days == -15 and c.status == "rotura_prevista"
+
+
+def test_margen_negativo_sin_urgencia_es_riesgo_latente():
+    [c] = countdown(risk(["S001"], recovery=2, unit="months"), urgent=False)
+    assert c.ttr_days == 60 and c.status == "riesgo_latente" and "TTR según la noticia" in c.summary()
+    [c] = countdown(risk(["S002"], event="regulatory_action"), urgent=False)
+    assert c.status == "riesgo_latente" and c.ttr_estimated and "TTR estimado" in c.summary()
+
+
+def test_margen_positivo_sin_urgencia_no_es_riesgo_latente():
+    [c] = countdown(risk(["S003"], recovery=21), urgent=False)
+    assert c.status == "margen_ajustado"
+
+
+def test_huelga_de_48_horas_no_son_48_dias():
+    [c] = countdown(risk(["S022"], event="labour_strike", recovery=48, unit="hours"), urgent=False)
+    assert c.ttr_days == 2 and c.status == "cubierto"
 
 
 def test_alternativo_afectado_por_el_mismo_evento():

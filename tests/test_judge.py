@@ -9,7 +9,8 @@ from core.urgency import combine_with_rules
 
 def verdict(**kw):
     base = dict(evidence="x", affected_ids=[], event_type="not_relevant", is_risk=False, severity=1,
-                stops_supply_soon=False, recovery_days=None, confidence=0.9)
+                stops_supply_soon=False, recovery_value=None, recovery_unit=None,
+                confidence=0.9)
     return NewsAssessment(**{**base, **kw})
 
 
@@ -83,3 +84,38 @@ def test_politica_de_desempate_es_explicita():
     from core.pipeline import TIEBREAK
     assert set(TIEBREAK) == {"Is_Risk", "Urgent", "Affected_Supplier_IDs"}
     assert set(TIEBREAK.values()) <= {"llm", "reglas"}
+
+
+def test_duracion_de_la_noticia_se_convierte_a_dias():
+    from core.schemas import to_days
+    assert to_days(48, "hours") == 2           # "48-hour strike": antes salían 48 días
+    assert to_days(36, "hours") == 2           # se redondea hacia arriba
+    assert to_days(3, "weeks") == 21
+    assert to_days(2, "months") == 60
+    assert to_days(10, "days") == 10 and to_days(10, None) == 10
+    assert to_days(None, None) is None
+    assert verdict(recovery_value=12, recovery_unit="weeks").recovery_days == 84
+
+
+def test_unidad_desconocida_se_rechaza():
+    import pytest
+    from pydantic import ValidationError
+    with pytest.raises(ValidationError):
+        verdict(recovery_value=3, recovery_unit="fortnights")
+
+
+def test_duracion_escrita_en_la_noticia():
+    from core.judge import duration_in_text
+    assert duration_in_text(48, "hours", "Port unions have called a 48-hour strike for next week")
+    assert duration_in_text(3, "weeks", "inspections expected to take three weeks")
+    assert duration_in_text(12, "weeks", "warns of 12-week delays")
+    assert duration_in_text(1, "weeks", "the plant will close for a week")
+    assert not duration_in_text(1, "weeks", "temperatures well below freezing next week")
+    assert not duration_in_text(2, "weeks", "inspectors found incomplete laboratory records")
+
+
+def test_duracion_inventada_se_descarta():
+    h = "Fire at Taizhou chemical park forces evacuation of several API plants"
+    a = apply_guards(verdict(affected_ids=["S003"], event_type="fire_plant_incident", is_risk=True, severity=4,
+                             recovery_value=3, recovery_unit="weeks"), find_candidates(h), h, "")
+    assert a.recovery_value is None and a.recovery_days is None

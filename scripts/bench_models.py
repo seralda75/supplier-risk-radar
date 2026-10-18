@@ -103,7 +103,7 @@ def main() -> None:
                 valid, risk_ok = True, a.is_risk == (n.Is_Risk == "Y")
                 ids_ok = set(a.affected_ids) == gold_ids
                 urg_ok = (a.is_risk and a.stops_supply_soon) == (n.Urgent == "Y")
-                detail = f"risk={a.is_risk} ids={a.affected_ids} soon={a.stops_supply_soon} sev={a.severity} rec={a.recovery_days} {a.event_type}"
+                detail = f"risk={a.is_risk} ids={a.affected_ids} soon={a.stops_supply_soon} sev={a.severity} rec={a.recovery_value} {a.recovery_unit} {a.event_type}"
             except (json.JSONDecodeError, ValidationError) as e:
                 valid = risk_ok = ids_ok = urg_ok = False
                 detail = f"JSON NO VÁLIDO: {str(e)[:120]}"

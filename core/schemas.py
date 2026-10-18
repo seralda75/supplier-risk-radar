@@ -6,6 +6,7 @@ ya llega con la forma correcta; Pydantic valida rangos y formato de los IDs.
 """
 from __future__ import annotations
 
+import math
 import re
 from typing import Literal, Optional
 
@@ -67,6 +68,18 @@ EVENT_LABELS_ES: dict[str, str] = {
 _ID_RE = re.compile(r"^S\d{3}$")
 
 
+RecoveryUnit = Literal["hours", "days", "weeks", "months"]
+DAYS_PER_UNIT = {"hours": 1 / 24, "days": 1, "weeks": 7, "months": 30}
+
+
+def to_days(value: float | None, unit: str | None) -> int | None:
+    """Convierte la duración de la noticia a días enteros, redondeando hacia arriba (48 horas -> 2).
+    Sin unidad se asume días (lo más habitual en las noticias)."""
+    if value is None:
+        return None
+    return math.ceil(round(value * DAYS_PER_UNIT.get(unit or "days", 1), 6))
+
+
 class NewsAssessment(BaseModel):
     """Veredicto del juez LLM sobre una noticia.
 
@@ -85,9 +98,13 @@ class NewsAssessment(BaseModel):
                                                        "5 = para la producción del proveedor")
     stops_supply_soon: bool = Field(..., description="True si puede parar o retrasar seriamente el "
                                                      "suministro en los próximos días o semanas")
-    recovery_days: Optional[int] = Field(..., ge=0, description="Días estimados hasta que el proveedor "
-                                                                "se recupere según la noticia; null si "
-                                                                "no se puede estimar o no aplica")
+    # Duración tal como la dice la noticia; el código la pasa a días (recovery_days). Antes se pedían
+    # días directamente y el LLM copiaba el número sin convertir ("48-hour strike" -> 48 días).
+    recovery_value: Optional[float] = Field(..., ge=0, description=(
+        "Number in the article for how long until the supplier is back to normal, exactly as written "
+        "('48-hour strike' -> 48, 'three weeks' -> 3); null if the article gives no duration"))
+    recovery_unit: Optional[RecoveryUnit] = Field(..., description=(
+        "Unit of recovery_value exactly as written in the article; null if recovery_value is null"))
     # En inglés, como el prompt: el modelo lee esta descripción en el JSON schema de `format`.
     # Antes decía solo "Seguridad global" y qwen2.5 mezclaba escalas (80, pero también 3 o 4 como si
     # fuera una nota de 1 a 5); ver docs/evaluacion.md, v6.
@@ -95,6 +112,11 @@ class NewsAssessment(BaseModel):
         "How sure you are that YOUR ANSWER (is_risk and affected_ids) is correct, as a decimal between "
         "0.0 and 1.0, e.g. 0.9. It is not the probability of a risk and not a 1-5 score: a clear "
         "non-risk answer also gets a high confidence."))
+
+    @property
+    def recovery_days(self) -> int | None:
+        """Días hasta la recuperación, convertidos por código (el LLM no hace la cuenta)."""
+        return to_days(self.recovery_value, self.recovery_unit)
 
     @field_validator("confidence", mode="before")
     @classmethod

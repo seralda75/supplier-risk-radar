@@ -168,3 +168,25 @@ Notas de la fase 2 v7 · revisión humana basada en el consenso:
   marcan 7 de 20 (todas por `sin_consenso`): N003, N009, N021, N036, N043, N049 y N055.
 - **Límite:** cuando los dos jueces se equivocan igual (N044), la marca no salta. Con 40 noticias
   etiquetadas, los porcentajes de esta tabla son orientativos.
+
+Notas de la fase 2 v8 · duración de la recuperación (corrección de robustez detectada en el test):
+- **Síntoma:** en el test, N016 ("48-hour strike") salía con `recovery_days = 48`: el LLM copiaba el
+  número sin pasar las horas a días, aunque el prompt daba ese mismo ejemplo. La cuenta atrás
+  (fase 3) mostraba una rotura de stock de −18 días que no existe.
+- **Corrección de unidades:** el esquema ya no pide días. El LLM devuelve `recovery_value` y
+  `recovery_unit` (`hours`, `days`, `weeks` o `months`) tal como aparecen en la noticia, y el código
+  convierte a días (`schemas.to_days`, redondeando hacia arriba: 48 horas -> 2 días).
+- **Comprobación de que la duración está escrita:** al revisar el resultado apareció un segundo
+  problema, que ya existía con el campo anterior: el modelo rellena duraciones que la noticia no
+  dice. Ejemplos: N004 "2 weeks" en una warning letter sin plazos; N021 "1 week" por "next week";
+  N059 "3 weeks" en un aviso de ciclón. En entrenamiento pasa en 9 de 12 noticias con duración (por
+  ejemplo, N029 "4 weeks" cuando la noticia dice "could take weeks", o N053 "3 days" por "third
+  day"). `judge.duration_in_text()` exige que la cantidad y la unidad estén escritas en la noticia
+  ("48-hour", "three weeks", "12-week"); si no, se descarta y la cuenta atrás usa un valor por
+  defecto, marcado como **estimado**. Es una regla genérica que hace cumplir la definición del campo
+  ("tal como aparece en la noticia"); no hay ningún ajuste por titular.
+- **No afecta a las respuestas Y/N:** la duración solo alimenta la cuenta atrás, no la urgencia.
+  Entrenamiento y validación quedan igual (96,7 % y 80 % de noticias perfectas) y el Excel del test
+  es idéntico celda a celda. Consenso y marcas de revisión tampoco cambian.
+- Efecto en la cuenta atrás del test: N016 pasa de −18 d a +28 d (cubierto); N003 usa los "three
+  days" de cierre del puerto; N004, sin plazo en la noticia, pasa a TTR estimado de 90 días.

@@ -5,8 +5,8 @@
 | Concepto | Definición | Fuente |
 |---|---|---|
 | **TTS** (time to survive) | Días que Helixa puede seguir produciendo sin el proveedor | `Inventory_Cover_Days` + margen del alternativo |
-| **TTR** (time to recover) | Días hasta que el proveedor vuelve a la normalidad | `recovery_days` del juez LLM, o un valor por defecto (estimado) |
-| **Margen** | TTS − TTR | < 0: rotura de stock prevista · 0-13 d: margen ajustado · ≥ 14 d: cubierto |
+| **TTR** (time to recover) | Días hasta que el proveedor vuelve a la normalidad | Duración escrita en la noticia (`recovery_value` + `recovery_unit` del juez, convertida a días por código), o un valor por defecto (estimado) |
+| **Margen** | TTS − TTR | < 0: rotura de stock prevista (urgente) o **riesgo latente** (no urgente) · 0-13 d: margen ajustado · ≥ 14 d: cubierto |
 
 Código: `core/countdown.py`. Tests: `tests/test_countdown.py`. **No cambia ninguna respuesta Y/N**:
 la urgencia sigue saliendo de gravedad × dependencia (`core/urgency.py`); la cuenta atrás es
@@ -45,6 +45,21 @@ información para el comprador (detalle del test, panel y bot).
 5. **Umbral de margen ajustado (`MARGIN_TIGHT_DAYS = 14`):** unas dos semanas para gestionar un
    pedido urgente o un transporte alternativo.
 
+## Riesgo latente
+
+La cuenta atrás **no influye en la urgencia** (decisión del 18/10/2026): `Urgent` sigue siendo
+gravedad × dependencia. Cuando una noticia **no es urgente pero el margen es negativo**, el estado
+es `riesgo_latente`: no salta la alerta inmediata, pero el comprador ve que, si la recuperación dura
+lo previsto, se acabaría el inventario. El resumen indica si el TTR viene de la noticia o es un
+valor por defecto ("TTR estimado"), porque en el segundo caso la señal es mucho más débil.
+
+## Duración de la recuperación
+
+- El LLM devuelve la duración **tal como aparece en la noticia** (valor + unidad: horas, días,
+  semanas o meses) y el código la convierte a días, redondeando hacia arriba (48 horas -> 2 días).
+- Si la duración no está escrita en la noticia (`judge.duration_in_text`), se descarta y se usa el
+  valor por defecto, marcado como estimado. Ver `docs/evaluacion.md`, v8.
+
 ## Salida
 
 - `AssessmentResult.countdown`: por proveedor, inventario, alternativo (¿afectado?, días que suma),
@@ -53,12 +68,12 @@ información para el comprador (detalle del test, panel y bot).
 - `test_detalle.csv`: columnas `Affected_Products`, `Countdown` (una línea por proveedor),
   `Min_Margin_Days` y `Countdown_Status` (el proveedor con menos margen).
 
-## Observaciones en la entrega del test (anotadas, sin corregir)
+## Observaciones en la entrega del test
 
-- **N016** (huelga de 48 horas en Antwerp-Bruges): el LLM devuelve `recovery_days = 48`, es decir,
-  confunde horas con días aunque el prompt da ese mismo ejemplo ("48 hours" -> 2). El margen sale
-  −18 d ("rotura prevista") cuando debería ser holgado. Es un fallo de unidades del LLM; corregirlo
-  ahora sería ajustar con una noticia del test.
-- **N004** (warning letter a Kaveri): `Urgent = N`, pero la cuenta atrás da rotura prevista
-  (−45 d) con un TTR por defecto de 90 días (estimado). Las dos señales miden cosas distintas; si
-  la cuenta atrás debe influir en la urgencia es una decisión pendiente.
+- **N016** (huelga de 48 horas en Antwerp-Bruges): antes el LLM devolvía 48 días y salía una rotura
+  de −18 d. **Resuelto** en la v8: 48 horas -> 2 días, margen +28 d (cubierto).
+- **N004** (warning letter a Kaveri): `Urgent = N` y margen −45 d con TTR estimado de 90 días ->
+  `riesgo_latente · TTR estimado`. La noticia no da plazo; el valor por defecto de una acción
+  regulatoria es pesimista a propósito y el cliente puede ajustarlo.
+- **N024** (Celsius, retrasos de 12 semanas): urgente y rotura prevista (−44 d) con un TTR que sí
+  viene de la noticia: es el caso más claro para el comprador.

@@ -89,7 +89,7 @@ def main() -> None:
         cds = [Countdown(**c) for c in r.countdown]
         tight = worst(cds)
         detail.append({"News_ID": r.news_id, "Headline": r.headline, **r.to_row(), "Event_Type": r.event_label,
-                       "Severity": r.severity, "Recovery_Days": r.recovery_days, "Confidence": r.confidence,
+                       "Severity": r.severity, "Recovery_Reported": r.recovery_reported, "Recovery_Days": r.recovery_days, "Confidence": r.confidence,
                        "Needs_Review": r.needs_review, "Review_Reason": "; ".join(r.review_reasons),
                        "Explanation": r.explanation, "Action": r.action,
                        "Evidence": r.evidence, "Mode": r.mode,
@@ -103,7 +103,8 @@ def main() -> None:
                        "Countdown": " | ".join(c.summary() for c in cds),
                        "Min_Margin_Days": "" if tight is None or tight.inventory_days is None
                                           else tight.margin_days,
-                       "Countdown_Status": "" if tight is None else tight.status})
+                       "Countdown_Status": "" if tight is None else tight.status,
+                       "TTR_Estimated": "" if tight is None else ("Y" if tight.ttr_estimated else "N")})
         print(f"  {r.news_id} risk={answers[r.news_id]['Is_Risk']} urg={answers[r.news_id]['Urgent']} "
               f"ids=[{answers[r.news_id]['Affected_Supplier_IDs']}] {r.event_type}", flush=True)
 

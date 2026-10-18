@@ -184,6 +184,7 @@ def assess_rules(headline: str, summary: str, cands: list[Candidate]) -> NewsAss
         is_risk=is_risk,
         severity=severity,
         stops_supply_soon=is_risk and severity >= 3 and event not in SLOW_EVENTS,
-        recovery_days=None,
+        recovery_value=None,
+        recovery_unit=None,
         confidence=0.6,
     )

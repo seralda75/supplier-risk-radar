@@ -11,10 +11,12 @@
 """
 from __future__ import annotations
 
+import re
+
 from . import llm, rag
 from .config import LLM_MODEL
 from .data import format_ids, load_news
-from .matching import Candidate, has_context_support
+from .matching import Candidate, has_context_support, normalize
 from .rules import TRANSPORT_EVENTS
 from .schemas import NewsAssessment
 
@@ -49,11 +51,13 @@ disaster closing factories, an export ban, a supplier close to bankruptcy, a pro
    5 = catastrophic: long shutdown (months) or the supplier may disappear.
 7. stops_supply_soon = true only if the event itself can stop or seriously delay deliveries within days \
 or weeks. False for slow-moving effects (ownership or leadership change, credit downgrade, price changes).
-8. recovery_days: days until the supplier is back to normal according to the article ("three weeks" -> 21, \
-"two months" -> 60, "48 hours" -> 2); null if the article gives no basis to estimate it.
+8. recovery_value and recovery_unit: how long until the supplier is back to normal, copied as the article \
+says it, without converting ("48-hour strike" -> 48 and "hours", "three weeks" -> 3 and "weeks", "two \
+months" -> 2 and "months"); both null if the article gives no duration.
 9. evidence: copy the sentence of the article that supports your decision.
 10. Use only IDs from the CANDIDATES list. Follow the style of the labelled examples.
-11. confidence: a decimal from 0.0 to 1.0 with how sure you are that your own answer is correct. It is not the probability of a risk and not a 1-5 score.
+11. confidence: a decimal from 0.0 to 1.0 with how sure you are that your own answer is correct. It is \
+not the probability of a risk and not a 1-5 score.
 Answer with JSON only."""
 
 
@@ -112,6 +116,21 @@ def build_prompt(headline: str, summary: str, cands: list[Candidate],
 # Juez
 # ---------------------------------------------------------------------------
 
+NUMBER_WORDS = {"a": 1, "an": 1, "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
+                "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12, "fifteen": 15, "twenty": 20,
+                "thirty": 30, "forty": 40, "forty eight": 48, "sixty": 60, "seventy two": 72, "ninety": 90}
+UNIT_STEMS = {"hours": "hour", "days": "day", "weeks": "week", "months": "month"}
+
+
+def duration_in_text(value: float, unit: str | None, text: str) -> bool:
+    """¿Aparece en la noticia la duración que ha devuelto el LLM? ("48-hour", "three weeks", "12 weeks").
+    La duración se pide tal como la dice la noticia: si no está escrita, es una suposición del modelo."""
+    stem = UNIT_STEMS.get(unit or "days", "day")
+    norm = normalize(text)                              # minúsculas, sin guiones: "48 hour strike"
+    numbers = [f"{value:g}"] + [w for w, n in NUMBER_WORDS.items() if n == value]
+    return any(re.search(rf"(?<![a-z0-9]){re.escape(n)} {stem}s?(?![a-z])", norm) for n in numbers)
+
+
 def apply_guards(a: NewsAssessment, cands: list[Candidate], headline: str = "",
                  summary: str = "") -> NewsAssessment:
     """Reglas de negocio que el LLM no puede saltarse."""
@@ -131,7 +150,14 @@ def apply_guards(a: NewsAssessment, cands: list[Candidate], headline: str = "",
         # "Sunrise BioChem completes US inspection" -> Is_Risk = N, IDs = S001)
         ids = sorted({i for i in ids if by_id[i].named or by_id[i].ambiguous_name}
                      | {c.id for c in cands if c.named})
+    # Duración: solo cuenta si está escrita en la noticia (si no, la cuenta atrás usa un valor por
+    # defecto marcado como estimado). Corrección de robustez detectada en el test (docs/evaluacion.md, v8)
+    recovery = {}
+    if a.recovery_value is not None and not duration_in_text(a.recovery_value, a.recovery_unit,
+                                                             f"{headline}. {summary}"):
+        recovery = {"recovery_value": None, "recovery_unit": None}
     return a.model_copy(update={
+        **recovery,
         "affected_ids": sorted(ids), "is_risk": is_risk,
         "stops_supply_soon": a.stops_supply_soon and is_risk,
         "severity": a.severity if is_risk else 1,

@@ -3,8 +3,12 @@
     countdown(assessment) -> [Countdown por proveedor afectado]
 
 - TTS (time to survive): días que Helixa puede seguir produciendo sin ese proveedor.
-- TTR (time to recover): días hasta que el proveedor vuelve a la normalidad (recovery_days del juez).
+- TTR (time to recover): días hasta que el proveedor vuelve a la normalidad (duración que da la
+  noticia, recovery_value + recovery_unit del juez, convertida a días por código).
 - Margen = TTS − TTR. Negativo -> rotura de stock prevista: hay que actuar ya.
+  Si la noticia NO es urgente pero el margen es negativo -> riesgo latente: no salta la alerta
+  (la urgencia es gravedad × dependencia y no depende de esta cuenta), pero el comprador lo ve,
+  junto con si el TTR viene de la noticia o es un valor por defecto.
 
 Supuestos (visibles y ajustables por el cliente):
 1. Sin alternativo, TTS = Inventory_Cover_Days (el inventario se consume al ritmo habitual).
@@ -52,6 +56,7 @@ DEFAULT_RECOVERY_DAYS = {
 
 STATUS_LABELS = {
     "rotura_prevista": "rotura de stock prevista",
+    "riesgo_latente": "riesgo latente (no urgente, pero el margen es negativo)",
     "margen_ajustado": "margen ajustado",
     "cubierto": "cubierto",
     "sin_inventario": "sin inventario de reserva",
@@ -85,8 +90,11 @@ class Countdown:
                 why = "efecto lento" if self.ttr_estimated else "según la noticia"
                 return f"{self.supplier_id}: sin interrupción a corto plazo ({why}) · {prods}"
             return f"{self.supplier_id}: sin inventario de reserva, impacto inmediato durante {ttr} · {prods}"
+        status = STATUS_LABELS[self.status]
+        if self.status == "riesgo_latente":
+            status += " · TTR estimado" if self.ttr_estimated else " · TTR según la noticia"
         return (f"{self.supplier_id}: TTS {self.tts_days:.0f} d − TTR {ttr} = {self.margin_days:+.0f} d · "
-                f"{STATUS_LABELS[self.status]} · {prods}")
+                f"{status} · {prods}")
 
 
 def time_to_recover(a: NewsAssessment) -> tuple[int, bool, str]:
@@ -117,7 +125,7 @@ def alternate_margin(s: Supplier, affected: set[str]) -> tuple[float, bool, str]
     return extra, False, f"el alternativo {s.alternate_id} entrega en {lead:.0f} d y asume el {ALTERNATE_SHARE:.0%}"
 
 
-def supplier_countdown(s: Supplier, a: NewsAssessment, affected: set[str]) -> Countdown:
+def supplier_countdown(s: Supplier, a: NewsAssessment, affected: set[str], urgent: bool = True) -> Countdown:
     ttr, estimated, basis = time_to_recover(a)
     extra, alt_affected, note = alternate_margin(s, affected)
     inv = s.inventory_cover_days
@@ -126,7 +134,7 @@ def supplier_countdown(s: Supplier, a: NewsAssessment, affected: set[str]) -> Co
     if inv is None:
         status = "cubierto" if ttr == 0 else "sin_inventario"     # sin interrupción no hace falta colchón
     elif margin < 0:
-        status = "rotura_prevista"
+        status = "rotura_prevista" if urgent else "riesgo_latente"
     elif margin < MARGIN_TIGHT_DAYS:
         status = "margen_ajustado"
     else:
@@ -139,13 +147,14 @@ def supplier_countdown(s: Supplier, a: NewsAssessment, affected: set[str]) -> Co
     )
 
 
-def countdown(a: NewsAssessment) -> list[Countdown]:
-    """Cuenta atrás de cada proveedor afectado (vacía si la noticia no es un riesgo)."""
+def countdown(a: NewsAssessment, urgent: bool = True) -> list[Countdown]:
+    """Cuenta atrás de cada proveedor afectado (vacía si la noticia no es un riesgo).
+    `urgent` solo cambia la etiqueta de un margen negativo (rotura prevista o riesgo latente)."""
     if not a.is_risk:
         return []
     sup = load_suppliers()
     affected = set(a.affected_ids)
-    return [supplier_countdown(sup[i], a, affected) for i in sorted(affected) if i in sup]
+    return [supplier_countdown(sup[i], a, affected, urgent) for i in sorted(affected) if i in sup]
 
 
 def worst(cds: list[Countdown]) -> Countdown | None:

@@ -32,6 +32,7 @@ class AssessmentResult(BaseModel):
     severity: int
     stops_supply_soon: bool
     recovery_days: int | None
+    recovery_reported: str = ""                  # la duración tal como la da la noticia ("48 hours")
     evidence: str
     confidence: float
     urgency_reason: str
@@ -203,12 +204,14 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
         news_id=news["News_ID"], headline=headline, published_date=str(news.get("Published_Date", "")),
         source=news.get("Source", "") or "", is_risk=a.is_risk, urgent=urgent, affected_ids=sorted(a.affected_ids),
         event_type=a.event_type, event_label=EVENT_LABELS.get(a.event_type, a.event_type), severity=a.severity,
-        stops_supply_soon=a.stops_supply_soon, recovery_days=a.recovery_days, evidence=a.evidence,
+        stops_supply_soon=a.stops_supply_soon, recovery_days=a.recovery_days,
+        recovery_reported="" if a.recovery_value is None else f"{a.recovery_value:g} {a.recovery_unit or 'days'}",
+        evidence=a.evidence,
         confidence=a.confidence, urgency_reason=why, explanation=explain(a, urgent, cands, headline, summary),
         action=recommend_action(a, urgent), needs_review=needs_review, review_reasons=review_reasons, mode=mode,
         model=model, examples=examples, signals=signals, consensus=consensus, disagreement=disagreement,
         dependencies=[d.__dict__ for d in deps],
-        countdown=as_dicts(countdown(a)),
+        countdown=as_dicts(countdown(a, urgent)),
         candidates=[{"id": c.id, "name": c.supplier.name, "score": c.score, "evidence": c.evidence()}
                     for c in cands],
     )
