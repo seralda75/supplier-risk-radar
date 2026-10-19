@@ -6,7 +6,8 @@ Lee los resultados guardados (data/results/*.json, generados con scripts/build_r
 la app no se llama al LLM, así que arranca en segundos y funciona sin GPU. Las respuestas de los
 compradores (confirmar / falsa alarma) se guardan en SQLite (core/feedback.py).
 
-Pestañas: Alertas · Mapa · Proveedor · Transparencia.
+Pestañas: Alertas · Mapa · Proveedor · ¿Y si…? · Transparencia. El simulador «¿Y si…?» es lo único
+que puede llamar al LLM, y solo cuando el usuario pulsa «Interpretar» (los ejemplos ya están interpretados).
 """
 from __future__ import annotations
 
@@ -19,12 +20,12 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from core import feedback, results
+from core import feedback, llm, results, scenario
 from core.config import ROOT
 from core.countdown import MARGIN_TIGHT_DAYS
 from core.geo import coords
 from core.schemas import EVENT_LABELS_ES
-from core.suppliers import load_suppliers
+from core.suppliers import CITY_GEO, COUNTRY_ALIASES, MATERIAL_ALIASES, SUPPLIER_ROUTES, load_suppliers
 from core.urgency import dependency
 
 st.set_page_config(page_title="Supplier Risk Radar · Helixa", page_icon="📡", layout="wide")
@@ -159,7 +160,8 @@ res = data["results"]
 risks = [r for r in res if r["is_risk"]]
 verdicts = feedback.latest(split)
 
-tab_alerts, tab_map, tab_sup, tab_transp = st.tabs(["🚨 Alertas", "🗺️ Mapa", "🏭 Proveedor", "🔍 Transparencia"])
+tab_alerts, tab_map, tab_sup, tab_whatif, tab_transp = st.tabs(
+    ["🚨 Alertas", "🗺️ Mapa", "🏭 Proveedor", "🧪 ¿Y si…?", "🔍 Transparencia"])
 
 
 # ---------------------------------------------------------------------------
@@ -292,15 +294,9 @@ with tab_alerts:
 # ---------------------------------------------------------------------------
 # Mapa
 # ---------------------------------------------------------------------------
-with tab_map:
-    exposure: dict[str, dict] = {}
-    for r in risks:
-        for c in r["countdown"]:
-            prev = exposure.get(c["supplier_id"])
-            if prev is None or c["margin_days"] < prev["margin"]:
-                exposure[c["supplier_id"]] = {"margin": c["margin_days"], "status": c["status"],
-                                              "news": r["news_id"], "headline": r["headline"],
-                                              "urgent": r["urgent"]}
+def exposure_map(exposure: dict[str, dict], calm_hover: str) -> go.Figure:
+    """Mapa de proveedores: los expuestos coloreados por margen y todos con tamaño según el gasto.
+    exposure: {supplier_id: {"margin": días, "status": estado, "hover": texto extra}}."""
     rows, per_city = [], defaultdict(int)
     max_spend = max(s.annual_spend_eur or 0 for s in SUP.values()) or 1
     for s in SUP.values():
@@ -310,20 +306,18 @@ with tab_map:
         k = per_city[s.city]
         per_city[s.city] += 1
         e = exposure.get(s.id)
-        rows.append({"id": s.id, "name": s.name, "city": s.city, "country": s.country, "category": s.category,
-                     "lat": ll[0] + 0.35 * k, "lon": ll[1] + 0.45 * k, "spend": s.annual_spend_eur or 0,
+        rows.append({"id": s.id, "name": s.name, "city": s.city, "category": s.category,
+                     "lat": ll[0] + 0.35 * k, "lon": ll[1] + 0.45 * k,
                      "size": 7 + 26 * math.sqrt((s.annual_spend_eur or 0) / max_spend),
                      "exposed": e is not None, "margin": e["margin"] if e else None,
-                     "status": STATUS[e["status"]][0] if e else "", "news": e["news"] if e else "",
-                     "urgent": "Sí" if e and e["urgent"] else "No"})
+                     "status": STATUS[e["status"]][0] if e else "", "hover": e["hover"] if e else ""})
     df = pd.DataFrame(rows)
     exp, calm = df[df.exposed], df[~df.exposed]
-
     fig = go.Figure()
     fig.add_trace(go.Scattergeo(
         lat=calm.lat, lon=calm.lon, mode="markers", name="Sin exposición",
         marker=dict(size=calm["size"], color="#CFC8D8", opacity=.55, line=dict(width=.5, color="#FFFFFF")),
-        text=calm.name + " · " + calm.city, hovertemplate="%{text}<br>Sin eventos en este conjunto<extra></extra>"))
+        text=calm.name + " · " + calm.city, hovertemplate=f"%{{text}}<br>{calm_hover}<extra></extra>"))
     lo, hi = -60, 60
     scale = [[0, "#8E0C24"], [.42, "#E35205"], [.5, "#D99A00"],
              [(MARGIN_TIGHT_DAYS - lo) / (hi - lo), "#7BB662"], [1, "#2E8540"]]
@@ -332,26 +326,42 @@ with tab_map:
         marker=dict(size=exp["size"], color=exp.margin.clip(lo, hi), cmin=lo, cmax=hi, colorscale=scale,
                     line=dict(width=1.2, color=PURPLE_DARK), opacity=.92,
                     colorbar=dict(title="Margen<br>(días)", thickness=12, len=.6)),
-        customdata=exp[["id", "city", "category", "margin", "status", "news", "urgent"]].values,
+        customdata=exp[["id", "city", "category", "margin", "status", "hover"]].values,
         text=exp.name,
         hovertemplate=("<b>%{text}</b> (%{customdata[0]})<br>%{customdata[1]} · %{customdata[2]}<br>"
-                       "Margen: %{customdata[3]:+.0f} d · %{customdata[4]}<br>"
-                       "Noticia %{customdata[5]} · urgente: %{customdata[6]}<extra></extra>")))
+                       "Margen: %{customdata[3]:+.0f} d · %{customdata[4]}<br>%{customdata[5]}<extra></extra>")))
     fig.update_geos(projection_type="natural earth", showland=True, landcolor="#F4F1F7", showocean=True,
                     oceancolor="#FFFFFF", countrycolor="#DDD5E6", coastlinecolor="#CFC6DA", showframe=False,
                     lataxis_range=[-35, 70], lonaxis_range=[-115, 150])
     fig.update_layout(height=540, margin=dict(l=0, r=0, t=10, b=0), legend=dict(orientation="h", y=-.02),
                       paper_bgcolor="#FFFFFF", font=dict(color=INK))
-    st.markdown(f"**{len(exp)} proveedores expuestos** en «{results.SPLITS[split]}». "
-                "Color: margen de días (rojo = rotura, verde = cubierto). Tamaño: gasto anual.")
+    return fig
+
+
+def show_map(fig: go.Figure) -> None:
     # El contorno del mundo se sirve desde static/ (no desde cdn.plot.ly): funciona sin internet
     st.plotly_chart(fig, width="stretch", config={"topojsonURL": "app/static/topojson/", "displaylogo": False})
-    if len(exp):
-        st.dataframe(exp.sort_values("margin")[["id", "name", "city", "category", "margin", "status", "news",
-                                                "urgent", "spend"]]
-                     .rename(columns={"id": "ID", "name": "Proveedor", "city": "Ciudad", "category": "Categoría",
-                                      "margin": "Margen (d)", "status": "Estado", "news": "Noticia",
-                                      "urgent": "Urgente", "spend": "Gasto anual (€)"}),
+
+
+with tab_map:
+    exposure: dict[str, dict] = {}
+    for r in risks:
+        for c in r["countdown"]:
+            prev = exposure.get(c["supplier_id"])
+            if prev is None or c["margin_days"] < prev["margin"]:
+                exposure[c["supplier_id"]] = {"margin": c["margin_days"], "status": c["status"],
+                                              "news": r["news_id"], "urgent": "Sí" if r["urgent"] else "No",
+                                              "hover": f"Noticia {r['news_id']} · urgente: "
+                                                       f"{'Sí' if r['urgent'] else 'No'}"}
+    st.markdown(f"**{len(exposure)} proveedores expuestos** en «{results.SPLITS[split]}». "
+                "Color: margen de días (rojo = rotura, verde = cubierto). Tamaño: gasto anual.")
+    show_map(exposure_map(exposure, "Sin eventos en este conjunto"))
+    if exposure:
+        st.dataframe(pd.DataFrame([{"ID": i, "Proveedor": SUP[i].name, "Ciudad": SUP[i].city,
+                                    "Categoría": SUP[i].category, "Margen (d)": e["margin"],
+                                    "Estado": STATUS[e["status"]][0], "Noticia": e["news"], "Urgente": e["urgent"],
+                                    "Gasto anual (€)": SUP[i].annual_spend_eur or 0}
+                                   for i, e in exposure.items()]).sort_values("Margen (d)"),
                      hide_index=True, width="stretch",
                      column_config={"Gasto anual (€)": st.column_config.NumberColumn(format="%.0f"),
                                     "Margen (d)": st.column_config.NumberColumn(format="%+.0f")})
@@ -436,6 +446,183 @@ with tab_sup:
                      column_config={"Margen (d)": st.column_config.NumberColumn(format="%+.0f")})
     else:
         st.caption("Ninguna noticia de los tres conjuntos afecta a este proveedor.")
+
+
+# ---------------------------------------------------------------------------
+# Simulador «¿Y si…?»
+# ---------------------------------------------------------------------------
+SC_REGIONS = sorted({x for g in CITY_GEO.values() for x in g.get("regions", []) + g.get("rivers", [])}
+                    | {x for routes in SUPPLIER_ROUTES.values() for x in routes})
+SC_CITIES = sorted(CITY_GEO)
+SC_COUNTRIES = sorted(COUNTRY_ALIASES)
+
+
+def load_scenario(sc: scenario.Scenario, source: str, dropped: list[str]) -> None:
+    """Carga un escenario en el formulario (sustituye al anterior y borra el cálculo previo)."""
+    st.session_state["sc_loaded"] = {"scenario": sc.model_dump(), "source": source, "dropped": dropped}
+    st.session_state["sc_ver"] = st.session_state.get("sc_ver", 0) + 1
+    st.session_state.pop("sc_calc", None)
+    st.session_state.pop("sc_error", None)
+
+
+def use_example() -> None:
+    ex = EXAMPLES_SC[st.session_state["sc_example"]]
+    load_scenario(ex["scenario"], f"Ejemplo precalculado: «{ex['text']}»", ex["dropped"])
+
+
+def run_interpret() -> None:
+    text = st.session_state.get("sc_text", "").strip()
+    try:
+        sc, dropped = scenario.interpret(text)
+    except Exception as e:                      # Ollama caído, tiempo de espera, JSON no válido...
+        st.session_state["sc_error"] = f"No se pudo interpretar el escenario: {e}"
+        return
+    load_scenario(sc, f"Interpretado por el LLM a partir de: «{text}»", dropped)
+
+
+def with_extra(options: list[str], current: list[str]) -> list[str]:
+    return options + [x for x in current if x not in options]
+
+
+EXAMPLES_SC = scenario.load_examples()
+
+with tab_whatif:
+    st.markdown("#### ¿Qué pasaría si…?")
+    st.caption("El LLM solo traduce tu pregunta a un escenario estructurado (lugares, categorías, materiales y "
+               "duración). Los proveedores afectados, la cuenta atrás y las acciones los calcula el código con el "
+               "mismo diccionario geográfico y la misma cuenta atrás que las alertas. Revisa el escenario antes "
+               "de calcular.")
+    ollama_up = llm.is_up()
+    left, right = st.columns([1.3, 1])
+    with left:
+        st.text_area("Escribe un escenario", key="sc_text", height=90, disabled=not ollama_up,
+                     placeholder="¿Y si se inunda Gujarat 3 semanas?")
+        st.button("Interpretar con el LLM", on_click=run_interpret, disabled=not ollama_up, type="primary",
+                  key="sc_interpret")
+        if not ollama_up:
+            st.info("Ollama no está disponible: usa los escenarios de ejemplo (ya interpretados). "
+                    "Puedes corregirlos a mano; el cálculo no necesita el LLM.")
+    with right:
+        if EXAMPLES_SC:
+            st.selectbox("…o elige un ejemplo", range(len(EXAMPLES_SC)), key="sc_example",
+                         format_func=lambda i: EXAMPLES_SC[i]["text"])
+            st.button("Usar este ejemplo", on_click=use_example, key="sc_use_example")
+        else:
+            st.caption("No hay ejemplos precalculados: `python scripts/build_scenarios.py`.")
+    if st.session_state.get("sc_error"):
+        st.error(st.session_state["sc_error"])
+
+    loaded = st.session_state.get("sc_loaded")
+    if loaded:
+        sc0 = scenario.Scenario.model_validate(loaded["scenario"])
+        v = st.session_state.get("sc_ver", 0)
+        with st.form(f"sc_form_{v}"):
+            st.markdown("**Escenario interpretado** · revísalo y corrígelo antes de calcular")
+            st.caption(loaded["source"])
+            if loaded["dropped"]:
+                st.caption("Descartado porque no aparece en el texto: " + ", ".join(loaded["dropped"]) + ".")
+            c1, c2, c3 = st.columns([1.6, 1.2, .8])
+            title = c1.text_input("Título", sc0.title)
+            events = list(scenario.SCENARIO_EVENTS)
+            event = c2.selectbox("Tipo de evento", events, index=events.index(sc0.event_type),
+                                 format_func=lambda e: EVENT_LABELS_ES.get(e, e))
+            dur = c3.number_input("Duración (días)", min_value=0, max_value=730, step=1,
+                                  value=int(sc0.duration_days or 0),
+                                  help="0 = sin indicar: se usa el valor por defecto del tipo de evento (estimado)")
+            c1, c2, c3 = st.columns(3)
+            countries = c1.multiselect("Países", with_extra(SC_COUNTRIES, sc0.countries), sc0.countries,
+                                       accept_new_options=True, placeholder="Elige o escribe…")
+            regions = c2.multiselect("Regiones, ríos y rutas", with_extra(SC_REGIONS, sc0.regions), sc0.regions,
+                                     accept_new_options=True, placeholder="Elige o escribe…")
+            cities = c3.multiselect("Ciudades y puertos", with_extra(SC_CITIES, sc0.cities), sc0.cities,
+                                    accept_new_options=True, placeholder="Elige o escribe…")
+            c1, c2 = st.columns(2)
+            categories = c1.multiselect("Solo estas categorías (vacío = todas)", list(scenario.CATEGORIES),
+                                        sc0.categories, placeholder="Elige…")
+            materials = c2.multiselect("Solo estos materiales (vacío = todos)", list(MATERIAL_ALIASES),
+                                       sc0.materials, placeholder="Elige…")
+            if st.form_submit_button("Calcular impacto", type="primary"):
+                st.session_state["sc_calc"] = scenario.Scenario(
+                    title=title, event_type=event, countries=countries, regions=regions, cities=cities,
+                    categories=categories, materials=materials, duration_value=dur or None,
+                    duration_unit="days" if dur else None).model_dump()
+
+    calc = st.session_state.get("sc_calc")
+    if calc:
+        imp = scenario.simulate(scenario.Scenario.model_validate(calc))
+        sc = imp.scenario
+        st.markdown(f"##### {html.escape(sc.title)}")
+        dur_txt = (f"{sc.duration_days} días (del escenario)" if sc.duration_days is not None else
+                   "sin indicar: TTR por defecto del tipo de evento (estimado)")
+        st.caption(f"{EVENT_LABELS_ES.get(sc.event_type, sc.event_type)} · duración {dur_txt} · lugares: "
+                   f"{', '.join(sc.places) or 'todos'} · categorías: {', '.join(sc.categories) or 'todas'} · "
+                   f"materiales: {', '.join(sc.materials) or 'todos'}")
+        if imp.note:
+            st.warning(imp.note)
+        if imp.unmatched_places:
+            st.warning("Sin proveedores de Helixa (o nombre no reconocido): " + ", ".join(imp.unmatched_places))
+        if imp.excluded:
+            st.caption("En la zona pero fuera del escenario (categoría, material o servicio no afectado por "
+                       "transporte): " + ", ".join(f"{i} {SUP[i].name}" for i in imp.excluded))
+        if not imp.hits:
+            st.info("Ningún proveedor de Helixa queda afectado por este escenario.")
+        else:
+            mats, prods = imp.materials_table(), imp.products_table()
+            worst_m = min(c.margin_days for c in imp.countdowns)
+            stats = [(str(len(imp.hits)), "proveedores afectados"), (str(len(mats)), "materiales"),
+                     (str(len(prods)), "productos"),
+                     (f"{imp.spend_exposed / 1e6:.1f} M€".replace(".", ","), "gasto anual expuesto"),
+                     (f"{imp.spend_at_risk / 1e6:.1f} M€".replace(".", ","), "gasto con déficit previsto"),
+                     (f"{worst_m:+.0f} d", "peor margen")]
+            for col, (n, lab) in zip(st.columns(len(stats)), stats):
+                col.markdown(f'<div class="stat"><div class="n">{n}</div><div class="l">{lab}</div></div>',
+                             unsafe_allow_html=True)
+            st.write("")
+            cd_by = {c.supplier_id: c for c in imp.countdowns}
+            sim_exposure = {h.supplier.id: {"margin": cd_by[h.supplier.id].margin_days,
+                                            "status": cd_by[h.supplier.id].status,
+                                            "hover": "Motivo: " + "; ".join(h.reasons)} for h in imp.hits}
+            show_map(exposure_map(sim_exposure, "Fuera del escenario"))
+
+            st.markdown("**Proveedores afectados** (margen = TTS − TTR)")
+            st.dataframe(pd.DataFrame([{
+                "ID": h.supplier.id, "Proveedor": h.supplier.name, "Ciudad": h.supplier.city,
+                "Categoría": h.supplier.category, "Motivo": "; ".join(h.reasons),
+                "TTS (d)": c.tts_days if c.inventory_days is not None else None,
+                "TTR (d)": c.ttr_days, "TTR": "estimado" if c.ttr_estimated else "del escenario",
+                "Margen (d)": c.margin_days if c.inventory_days is not None else None,
+                "Déficit (d)": c.deficit_days, "Estado": STATUS[c.status][0],
+                "Gasto anual (€)": h.supplier.annual_spend_eur or 0}
+                for h in imp.hits for c in [cd_by[h.supplier.id]]]).sort_values("Déficit (d)", ascending=False),
+                hide_index=True, width="stretch",
+                column_config={"Gasto anual (€)": st.column_config.NumberColumn(format="%.0f"),
+                               "Margen (d)": st.column_config.NumberColumn(format="%+.0f")})
+            c1, c2 = st.columns(2)
+            with c1:
+                st.markdown("**Materiales**")
+                st.dataframe(pd.DataFrame([{
+                    "Material": m["material"],
+                    "Principal": m["primary"] + (" ⚠" if m["primary_hit"] else ""),
+                    "Alternativo": (m["alternate"] + (" ⚠" if m["alternate_hit"] else "")) or "—",
+                    "Peor margen (d)": m["margin"], "Estado": STATUS[m["status"]][0],
+                    "Necesidad mensual": m["monthly"]} for m in mats]),
+                    hide_index=True, width="stretch",
+                    column_config={"Peor margen (d)": st.column_config.NumberColumn(format="%+.0f")})
+                st.caption("⚠ = afectado por el escenario. Un material sin fila no depende de ningún "
+                           "proveedor afectado.")
+            with c2:
+                st.markdown("**Productos**")
+                st.dataframe(pd.DataFrame([{
+                    "Producto": p["product"], "Materiales afectados": ", ".join(p["materials"]),
+                    "Peor margen (d)": p["margin"], "Estado": STATUS[p["status"]][0]} for p in prods]),
+                    hide_index=True, width="stretch",
+                    column_config={"Peor margen (d)": st.column_config.NumberColumn(format="%+.0f")})
+            st.markdown("**Acciones recomendadas** (del menor margen al mayor)")
+            for sid, text in imp.actions():
+                st.markdown(f"- {html.escape(text)}")
+            st.caption("Logística y servicios no tienen inventario: el impacto es inmediato durante toda la "
+                       "duración y cuenta como déficit, aunque exista un alternativo. Supuestos de la cuenta "
+                       "atrás: docs/fase3_cuenta_atras.md.")
 
 
 # ---------------------------------------------------------------------------

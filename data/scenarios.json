@@ -1,0 +1,134 @@
+{
+  "model": "qwen2.5:7b",
+  "generated": "2026-10-18T23:18:09",
+  "examples": [
+    {
+      "text": "¿Y si China restringe la exportación de API?",
+      "scenario": {
+        "title": "Y si China restringe la exportación de API",
+        "event_type": "export_restriction",
+        "countries": [
+          "China"
+        ],
+        "regions": [],
+        "cities": [],
+        "categories": [
+          "API"
+        ],
+        "materials": [],
+        "duration_value": null,
+        "duration_unit": null
+      },
+      "dropped": []
+    },
+    {
+      "text": "¿Y si se inunda Gujarat 3 semanas?",
+      "scenario": {
+        "title": "¿Y si se inunda Gujarat 3 semanas?",
+        "event_type": "natural_disaster",
+        "countries": [
+          "India"
+        ],
+        "regions": [
+          "Gujarat"
+        ],
+        "cities": [],
+        "categories": [],
+        "materials": [],
+        "duration_value": 3.0,
+        "duration_unit": "weeks"
+      },
+      "dropped": []
+    },
+    {
+      "text": "¿Y si cierra el puerto de Rotterdam 10 días?",
+      "scenario": {
+        "title": "Y si cierra el puerto de Rotterdam 10 días?",
+        "event_type": "logistics_disruption",
+        "countries": [],
+        "regions": [],
+        "cities": [
+          "Rotterdam"
+        ],
+        "categories": [],
+        "materials": [],
+        "duration_value": 10.0,
+        "duration_unit": "days"
+      },
+      "dropped": [
+        "categoría Logistics"
+      ]
+    },
+    {
+      "text": "¿Y si el Rin queda sin navegación durante un mes?",
+      "scenario": {
+        "title": "¿Y si el Rin queda sin navegación durante un mes?",
+        "event_type": "logistics_disruption",
+        "countries": [],
+        "regions": [
+          "Rhine"
+        ],
+        "cities": [],
+        "categories": [],
+        "materials": [],
+        "duration_value": 1.0,
+        "duration_unit": "months"
+      },
+      "dropped": []
+    },
+    {
+      "text": "¿Y si un tifón paraliza Shanghái y el este de China dos semanas?",
+      "scenario": {
+        "title": "Y si un tifón paraliza Shanghái y el este de China dos semanas?",
+        "event_type": "natural_disaster",
+        "countries": [],
+        "regions": [
+          "Shanghai",
+          "eastern China"
+        ],
+        "cities": [],
+        "categories": [],
+        "materials": [],
+        "duration_value": 2.0,
+        "duration_unit": "weeks"
+      },
+      "dropped": []
+    },
+    {
+      "text": "¿Y si hay una huelga de transportistas en España de 5 días?",
+      "scenario": {
+        "title": "Y si hay una huelga de transportistas en España de 5 días?",
+        "event_type": "labour_strike",
+        "countries": [
+          "Spain"
+        ],
+        "regions": [],
+        "cities": [],
+        "categories": [],
+        "materials": [],
+        "duration_value": 5.0,
+        "duration_unit": "days"
+      },
+      "dropped": [
+        "categoría Logistics"
+      ]
+    },
+    {
+      "text": "¿Y si un terremoto en Taiwán para la producción 6 semanas?",
+      "scenario": {
+        "title": "Y si un terremoto en Taiwán para la producción 6 semanas?",
+        "event_type": "natural_disaster",
+        "countries": [
+          "Taiwan"
+        ],
+        "regions": [],
+        "cities": [],
+        "categories": [],
+        "materials": [],
+        "duration_value": 6.0,
+        "duration_unit": "weeks"
+      },
+      "dropped": []
+    }
+  ]
+}

@@ -19,7 +19,13 @@ ollama pull qwen2.5:7b; ollama pull nomic-embed-text
 ```
 La app solo lee `data/results/*.json` (incluidos en el repo): abre en segundos, sin llamar al LLM y
 sin internet (el contorno del mapa se sirve desde `static/`). Pestañas: Alertas (ordenadas por
-margen de días, con confirmar / falsa alarma guardados en SQLite), Mapa, Proveedor y Transparencia.
+margen de días, con confirmar / falsa alarma guardados en SQLite), Mapa, Proveedor, ¿Y si…? y
+Transparencia.
+
+**Simulador «¿Y si…?»** (fase 5): el LLM convierte la pregunta en un escenario estructurado que el usuario
+revisa; el código calcula proveedores, materiales, productos, margen, gasto expuesto y acciones. Sin Ollama
+funciona con los ejemplos precalculados (`python scripts/build_scenarios.py` los regenera). Ver
+`docs/fase5_simulador.md`.
 
 ## Estructura
 ```
@@ -38,17 +44,20 @@ core/feedback.py     respuestas de los compradores (confirmar / falsa alarma) en
 core/results.py      resultados guardados para el panel y métricas
 core/countdown.py    cuenta atrás: TTS (inventario + alternativo) − TTR (recuperación)
 core/actions.py      acción recomendada a partir de la cuenta atrás (déficit, alternativo a tiempo o no)
+core/scenario.py     simulador «¿Y si…?»: escenario estructurado (LLM) + impacto calculado por código
 core/pipeline.py     assess(noticia) -> veredicto + explicación + acción + auditoría
 core/audit.py        auditoría en SQLite
 core/data.py         carga de las noticias de los tres Excel
 evaluate.py          métricas (python evaluate.py [--no-llm] [--split train])
 app.py               panel Streamlit (fase 4)
 scripts/build_results.py  genera data/results/{train,validation,test}.json
+scripts/build_scenarios.py interpreta los ejemplos del simulador -> data/scenarios.json
 fill_test.py         rellena outputs/Supplier_Risk_3_Test_respuestas.xlsx y valida el formato
 deliverables/        entrega final del test (copia versionada de outputs/) + detalle con consenso
 tests/               pytest con casos del entrenamiento
 docs/evaluacion.md   historial de métricas
 docs/fase3_cuenta_atras.md supuestos de la cuenta atrás
+docs/fase5_simulador.md    simulador «¿Y si…?»
 scripts/check_env.py comprobación del entorno
 scripts/bench_models.py comparación de modelos (ver docs/fase0_modelos.md)
 ```
