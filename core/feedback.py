@@ -1,4 +1,4 @@
-"""Respuesta de los compradores a cada alerta: confirmar o falsa alarma (SQLite).
+"""Respuesta de los compradores a cada alerta: aprobar el plan o falsa alarma (SQLite).
 
 La IA prepara la decisión y una persona la toma: cada respuesta queda registrada (quién, cuándo,
 desde qué canal) y sirve para medir el sistema y añadir ejemplos nuevos en el futuro. La usan el
@@ -11,7 +11,9 @@ from datetime import datetime
 
 from .config import DB_PATH
 
-VERDICTS = {"confirmada": "Alerta confirmada", "falsa_alarma": "Falsa alarma"}
+# "plan_aprobado" lo registra el botón «Aprobar plan» del centro de control; "confirmada" se mantiene
+# para las respuestas guardadas por versiones anteriores del panel.
+VERDICTS = {"plan_aprobado": "Plan aprobado", "confirmada": "Alerta confirmada", "falsa_alarma": "Falsa alarma"}
 
 
 def _db() -> sqlite3.Connection:

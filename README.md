@@ -17,10 +17,23 @@ ollama pull qwen2.5:7b; ollama pull nomic-embed-text
 .venv\Scripts\python scripts\build_results.py     # guarda los resultados de los 3 conjuntos (usa la caché del LLM)
 .venv\Scripts\streamlit run app.py                 # http://localhost:8501
 ```
-La app solo lee `data/results/*.json` (incluidos en el repo): abre en segundos, sin llamar al LLM y
-sin internet (el contorno del mapa se sirve desde `static/`). Pestañas: Alertas (ordenadas por
-margen de días, con confirmar / falsa alarma guardados en SQLite), Mapa, Proveedor, ¿Y si…? y
-Transparencia.
+Diseño de `docs/mockup_centro_control.html`, pensado para el director de compras: en 5 segundos, si hay
+riesgo, dónde, cuánto tiempo queda y qué hacer. Navegación lateral con cuatro vistas:
+
+- **Centro de control**: banner de estado, 5 indicadores (alertas críticas, proveedores expuestos,
+  medicamentos en riesgo, gasto anual expuesto en € y % del total, menor margen), la cola «Requiere tu
+  decisión» (CRÍTICA = urgente; VIGILAR · RIESGO LATENTE = no urgente con margen negativo) ordenada por días
+  de margen, el detalle de la alerta (qué pasa, cita con la duración resaltada, impacto, plan en pasos con
+  responsable y plazo de `core/actions.py`, fiabilidad, botones Falsa alarma / Aprobar plan guardados en
+  SQLite), «¿Cuánto aguantamos?» y el mapa. Por defecto, las noticias de test; un selector discreto cambia
+  a entrenamiento o validación.
+- **Proveedores**: ranking de vulnerabilidad, % del gasto en proveedores únicos, concentración por país y por
+  zona, alternativos que no llegan a tiempo y ficha por proveedor con su historial.
+- **Simulador «¿Y si…?»** y **Transparencia** (métricas, cambios, límites, duraciones ancladas).
+
+Las vistas de negocio no usan jerga: proveedores por nombre y ciudad, «días de margen» en lugar de TTS/TTR.
+La app solo lee `data/results/*.json` (incluidos en el repo): abre en segundos, sin llamar al LLM y sin
+internet (fuentes IBM Plex y contorno del mapa servidos desde `static/`).
 
 **Simulador «¿Y si…?»** (fase 5): el LLM convierte la pregunta en un escenario estructurado que el usuario
 revisa; el código calcula proveedores, materiales, productos, margen, gasto expuesto y acciones. Sin Ollama
@@ -49,7 +62,10 @@ core/pipeline.py     assess(noticia) -> veredicto + explicación + acción + aud
 core/audit.py        auditoría en SQLite
 core/data.py         carga de las noticias de los tres Excel
 evaluate.py          métricas (python evaluate.py [--no-llm] [--split train])
-app.py               panel Streamlit (fase 4)
+app.py               panel Streamlit: navegación y vistas (diseño de docs/mockup_centro_control.html)
+ui/                  vistas del panel (control, proveedores, simulador, transparencia), estilo y datos
+core/labels.py       nombres en español para las vistas de negocio
+static/              fuentes IBM Plex (licencia OFL) y contorno del mapa: el panel funciona sin internet
 scripts/build_results.py  genera data/results/{train,validation,test}.json
 scripts/build_scenarios.py interpreta los ejemplos del simulador -> data/scenarios.json
 fill_test.py         rellena outputs/Supplier_Risk_3_Test_respuestas.xlsx y valida el formato

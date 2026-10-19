@@ -1,15 +1,79 @@
-# Tema del panel: blanco y limpio, con el morado de Accenture como color de acento
+# Tema del panel (docs/mockup_centro_control.html): fondo gris lila, tarjetas blancas, navegación oscura,
+# IBM Plex Sans/Mono servidas desde static/fonts (sin Google Fonts: funciona sin internet).
 [theme]
 base = "light"
 primaryColor = "#A100FF"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F6F2FA"
-textColor = "#1C1A22"
-font = "sans serif"
+backgroundColor = "#F4F3F7"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#17151C"
+linkColor = "#5A0091"
+borderColor = "#D5D1DD"
+baseRadius = "8px"
+font = "IBM Plex Sans"
+codeFont = "IBM Plex Mono"
+showSidebarBorder = false
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/fonts/ibm-plex-sans-400.woff2"
+weight = "400"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/fonts/ibm-plex-sans-400-italic.woff2"
+weight = "400"
+style = "italic"
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/fonts/ibm-plex-sans-500.woff2"
+weight = "500"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/fonts/ibm-plex-sans-600.woff2"
+weight = "600"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "IBM Plex Sans"
+url = "app/static/fonts/ibm-plex-sans-700.woff2"
+weight = "700"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "IBM Plex Mono"
+url = "app/static/fonts/ibm-plex-mono-400.woff2"
+weight = "400"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "IBM Plex Mono"
+url = "app/static/fonts/ibm-plex-mono-500.woff2"
+weight = "500"
+style = "normal"
+
+[[theme.fontFaces]]
+family = "IBM Plex Mono"
+url = "app/static/fonts/ibm-plex-mono-600.woff2"
+weight = "600"
+style = "normal"
+
+[theme.sidebar]
+backgroundColor = "#17151C"
+secondaryBackgroundColor = "#2A2631"
+textColor = "#E9E6EF"
+borderColor = "#2E2A35"
+
+[client]
+toolbarMode = "minimal"
+showSidebarNavigation = false
 
 [server]
 headless = true
-# Sirve static/ (contorno del mapa del mundo): el mapa funciona sin internet durante la demo
+# Sirve static/ (fuentes y contorno del mapa del mundo): el panel funciona sin internet durante la demo
 enableStaticServing = true
 
 [browser]

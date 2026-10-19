@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Centro de control de suministro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F4F3F7}
+a{color:#5A0091}a:hover{color:#3D0063}
+.num{font-family:'IBM Plex Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div style="font-family: 'IBM Plex Sans', system-ui, sans-serif; color: #17151C; background: #F4F3F7; min-height: 1360px; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="Navegación principal" style="flex: 1 1 220px; max-width: 248px; min-width: 200px; background: #17151C; color: #E9E6EF; padding: 28px 20px; box-sizing: border-box; display: flex; flex-direction: column; gap: 32px">
+<div style="display: flex; align-items: center; gap: 12px">
+<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="#A100FF" stroke-width="2"><circle cx="16" cy="16" r="13"></circle><circle cx="16" cy="16" r="7"></circle><path d="M16 16 L26 8" stroke-linecap="round"></path><circle cx="16" cy="16" r="2" fill="#A100FF"></circle></svg>
+<div style="display: flex; flex-direction: column">
+<span style="font-weight: 700; font-size: 16px; letter-spacing: 0.2px">Supplier Risk Radar</span>
+<span style="font-size: 12px; color: #A9A3B6">Helixa Pharmaceuticals</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<a href="#" aria-current="page" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; background: #2A2631; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 15px; box-shadow: inset 3px 0 0 #A100FF">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1"></rect><rect x="14" y="3" width="7" height="5" rx="1"></rect><rect x="14" y="12" width="7" height="9" rx="1"></rect><rect x="3" y="16" width="7" height="5" rx="1"></rect></svg>Centro de control</a>
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; color: #CFC9DA; text-decoration: none; font-size: 15px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 21h18"></path><path d="M5 21V9l7-5 7 5v12"></path><path d="M9 21v-6h6v6"></path></svg>Proveedores</a>
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; color: #CFC9DA; text-decoration: none; font-size: 15px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 19l5-6 4 3 7-9"></path><circle cx="20" cy="7" r="1.5"></circle></svg>Simulador «¿Y si…?»</a>
+<a href="#" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 8px; color: #CFC9DA; text-decoration: none; font-size: 15px">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>Transparencia</a>
+</div>
+<div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: #A9A3B6; border-top: 1px solid #2E2A35; padding-top: 18px">
+<span style="display: flex; align-items: center; gap: 8px"><span style="width: 8px; height: 8px; border-radius: 50%; background: #4CAF7A"></span>Sistema operativo · local</span>
+<span>Datos a 18 oct 2026, 21:00</span>
+<span>60 noticias analizadas</span>
+</div>
+</nav>
+
+<main style="flex: 999 1 640px; min-width: 0; padding: 32px 40px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 24px">
+
+<header style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #6B6577">Riesgo de suministro</span>
+<h1 style="margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -0.3px">Centro de control</h1>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center">
+<span style="font-size: 14px; color: #5B5766">Actualizado hace 5 min</span>
+<button type="button" style="font-family: inherit; font-size: 15px; font-weight: 600; padding: 12px 18px; min-height: 44px; border-radius: 8px; border: 1px solid #D5D1DD; background: #FFFFFF; color: #17151C; cursor: pointer">Simular escenario</button>
+</div>
+</header>
+
+<section aria-label="Estado general" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; border-radius: 12px; background: #FDECEC; border: 1px solid #F3C4C4">
+<div style="display: flex; align-items: center; gap: 14px">
+<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#B3261E" stroke-width="2.2" aria-hidden="true"><path d="M12 3l10 18H2z"></path><path d="M12 10v5"></path><path d="M12 18h.01"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-weight: 700; font-size: 17px; color: #8C1D18">3 situaciones críticas requieren tu decisión hoy</span>
+<span style="font-size: 14px; color: #6E1A16">Rotura de stock prevista en HX-mAb 100 mg inyectable dentro de 40 días si no se actúa.</span>
+</div>
+</div>
+<button type="button" style="font-family: inherit; font-size: 15px; font-weight: 600; padding: 12px 18px; min-height: 44px; border-radius: 8px; border: none; background: #B3261E; color: #FFFFFF; cursor: pointer">Revisar ahora</button>
+</section>
+
+<section aria-label="Indicadores clave" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px">
+<div style="background: #FFFFFF; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #E6E3EC">
+<span style="font-size: 13px; font-weight: 600; color: #5B5766; text-transform: uppercase; letter-spacing: 0.8px">Alertas críticas</span>
+<span class="num" style="font-size: 40px; font-weight: 600; color: #B3261E; line-height: 1">3</span>
+<span style="font-size: 14px; color: #5B5766">de 4 alertas activas · 1 en vigilancia</span>
+</div>
+<div style="background: #FFFFFF; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #E6E3EC">
+<span style="font-size: 13px; font-weight: 600; color: #5B5766; text-transform: uppercase; letter-spacing: 0.8px">Proveedores expuestos</span>
+<span style="display: flex; align-items: baseline; gap: 6px"><span class="num" style="font-size: 40px; font-weight: 600; line-height: 1">4</span><span style="font-size: 16px; color: #5B5766">de 40</span></span>
+<span style="font-size: 14px; color: #5B5766">2 son proveedor único</span>
+</div>
+<div style="background: #FFFFFF; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #E6E3EC">
+<span style="font-size: 13px; font-weight: 600; color: #5B5766; text-transform: uppercase; letter-spacing: 0.8px">Medicamentos en riesgo</span>
+<span class="num" style="font-size: 40px; font-weight: 600; line-height: 1">3</span>
+<span style="font-size: 14px; color: #5B5766">HX-mAb · Glucora · Amoxira</span>
+</div>
+<div style="background: #FFFFFF; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #E6E3EC">
+<span style="font-size: 13px; font-weight: 600; color: #5B5766; text-transform: uppercase; letter-spacing: 0.8px">Gasto anual expuesto</span>
+<span style="display: flex; align-items: baseline; gap: 6px"><span class="num" style="font-size: 40px; font-weight: 600; line-height: 1">10,3</span><span style="font-size: 16px; color: #5B5766">M€</span></span>
+<span style="font-size: 14px; color: #5B5766">16 % del gasto total (62,5 M€)</span>
+</div>
+<div style="background: #FFFFFF; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #F3C4C4; box-shadow: 0 0 0 3px #FDECEC">
+<span style="font-size: 13px; font-weight: 600; color: #5B5766; text-transform: uppercase; letter-spacing: 0.8px">Menor margen</span>
+<span style="display: flex; align-items: baseline; gap: 6px"><span class="num" style="font-size: 40px; font-weight: 600; color: #B3261E; line-height: 1">−44</span><span style="font-size: 16px; color: #5B5766">días</span></span>
+<span style="font-size: 14px; color: #5B5766">Celsius Bioprocess · bolsas de biorreactor</span>
+</div>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+
+<section aria-labelledby="cola-t" style="flex: 5 1 380px; min-width: 0; background: #FFFFFF; border-radius: 12px; border: 1px solid #E6E3EC; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+<h2 id="cola-t" style="margin: 0; font-size: 19px; font-weight: 700">Requiere tu decisión</h2>
+<span style="font-size: 13px; color: #5B5766">Ordenado por días de margen</span>
+</div>
+
+<button type="button" style="font-family: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 10px; background: #FBF7FF; border: 2px solid #A100FF; color: inherit">
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%">
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #8C1D18; background: #FDECEC; padding: 4px 8px; border-radius: 999px">● CRÍTICA</span>
+<span class="num" style="font-size: 22px; font-weight: 600; color: #B3261E">−44 d</span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 16px; font-weight: 700">Celsius Bioprocess Systems</span>
+<span style="font-size: 14px; color: #5B5766">San Juan, Puerto Rico · retrasos de 12 semanas</span>
+</span>
+<span style="font-size: 13px; color: #3E3A45">Afecta a <strong>HX-mAb 100 mg inyectable</strong> · proveedor único</span>
+</button>
+
+<button type="button" style="font-family: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E6E3EC; color: inherit">
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%">
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #8C1D18; background: #FDECEC; padding: 4px 8px; border-radius: 999px">● CRÍTICA</span>
+<span class="num" style="font-size: 22px; font-weight: 600; color: #8A5A00">+9 d</span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 16px; font-weight: 700">Taizhou Hengyuan Pharma</span>
+<span style="font-size: 14px; color: #5B5766">Taizhou, China · incendio en el parque químico</span>
+</span>
+<span style="font-size: 13px; color: #3E3A45">Afecta a <strong>Glucora 850 mg</strong> · proveedor único</span>
+</button>
+
+<button type="button" style="font-family: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E6E3EC; color: inherit">
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%">
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #8C1D18; background: #FDECEC; padding: 4px 8px; border-radius: 999px">● CRÍTICA</span>
+<span class="num" style="font-size: 22px; font-weight: 600; color: #8A5A00">+5 d <span style="font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; color: #5B5766; font-weight: 500">estimado</span></span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 16px; font-weight: 700">Lumina Glassworks</span>
+<span style="font-size: 14px; color: #5B5766">Mainz, Alemania · huelga indefinida</span>
+</span>
+<span style="font-size: 13px; color: #3E3A45">Afecta a <strong>HX-mAb 100 mg inyectable</strong> · alternativo no llega a tiempo</span>
+</button>
+
+<button type="button" style="font-family: inherit; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 10px; background: #FFFFFF; border: 1px solid #E6E3EC; color: inherit">
+<span style="display: flex; justify-content: space-between; align-items: center; gap: 10px; width: 100%">
+<span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #6B4500; background: #FFF3DC; padding: 4px 8px; border-radius: 999px">▲ VIGILAR · RIESGO LATENTE</span>
+<span class="num" style="font-size: 22px; font-weight: 600; color: #5B5766">−45 d <span style="font-size: 13px; font-family: 'IBM Plex Sans', sans-serif; font-weight: 500">estimado</span></span>
+</span>
+<span style="display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 16px; font-weight: 700">Kaveri Fine Chemicals</span>
+<span style="font-size: 14px; color: #5B5766">Ahmedabad, India · carta de advertencia de la FDA</span>
+</span>
+<span style="font-size: 13px; color: #3E3A45">Afecta a <strong>Amoxira 500 mg</strong> · requiere revisión humana</span>
+</button>
+</section>
+
+<section aria-labelledby="det-t" style="flex: 7 1 480px; min-width: 0; background: #FFFFFF; border-radius: 12px; border: 1px solid #E6E3EC; padding: 26px; display: flex; flex-direction: column; gap: 22px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: flex-start">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="display: inline-flex; align-self: flex-start; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: #8C1D18; background: #FDECEC; padding: 4px 8px; border-radius: 999px">● CRÍTICA · ROTURA PREVISTA</span>
+<h2 id="det-t" style="margin: 0; font-size: 24px; font-weight: 700">Celsius Bioprocess Systems</h2>
+<span style="font-size: 15px; color: #5B5766">San Juan, Puerto Rico · bolsas de biorreactor de un solo uso</span>
+</div>
+<a href="#" style="font-size: 14px; font-weight: 600; padding: 10px 0">Ver noticia original</a>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #5B5766">Qué pasa</h3>
+<p style="margin: 0; font-size: 17px; line-height: 1.5">El proveedor anuncia retrasos en sus envíos y no hay ningún alternativo aprobado para este material.</p>
+<blockquote style="margin: 0; padding: 12px 16px; background: #F4F3F7; border-radius: 8px; font-size: 15px; color: #3E3A45; font-style: italic">«…deliveries will be delayed by up to <mark style="background: #F1DDFF; color: inherit; padding: 0 2px">12 weeks</mark>…»</blockquote>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+<div style="padding: 14px; border-radius: 10px; background: #FDECEC; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; color: #6E1A16">Margen</span>
+<span class="num" style="font-size: 26px; font-weight: 600; color: #8C1D18">−44 días</span>
+<span style="font-size: 13px; color: #6E1A16">40 d de stock frente a 84 d de retraso</span>
+</div>
+<div style="padding: 14px; border-radius: 10px; background: #F4F3F7; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; color: #5B5766">Medicamento afectado</span>
+<span style="font-size: 18px; font-weight: 700">HX-mAb 100 mg</span>
+<span style="font-size: 13px; color: #5B5766">inyectable</span>
+</div>
+<div style="padding: 14px; border-radius: 10px; background: #F4F3F7; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; color: #5B5766">Gasto anual</span>
+<span class="num" style="font-size: 26px; font-weight: 600">2,6 M€</span>
+<span style="font-size: 13px; color: #5B5766">proveedor único · criticidad alta</span>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px">
+<h3 style="margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: #5B5766">Plan recomendado</h3>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px">
+<li style="display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px; border: 1px solid #E6E3EC; border-radius: 10px"><span class="num" style="flex: 0 0 26px; height: 26px; border-radius: 50%; background: #17151C; color: #FFFFFF; font-size: 13px; display: flex; align-items: center; justify-content: center">1</span><span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 600">Confirmar con Celsius la fecha real y pedir una asignación parcial</span><span style="font-size: 13px; color: #5B5766">Compras · hoy</span></span></li>
+<li style="display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px; border: 1px solid #E6E3EC; border-radius: 10px"><span class="num" style="flex: 0 0 26px; height: 26px; border-radius: 50%; background: #17151C; color: #FFFFFF; font-size: 13px; display: flex; align-items: center; justify-content: center">2</span><span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 600">Reservar el stock disponible para los lotes prioritarios de HX-mAb</span><span style="font-size: 13px; color: #5B5766">Planificación · 48 h</span></span></li>
+<li style="display: flex; gap: 14px; align-items: flex-start; padding: 12px 14px; border: 1px solid #E6E3EC; border-radius: 10px"><span class="num" style="flex: 0 0 26px; height: 26px; border-radius: 50%; background: #17151C; color: #FFFFFF; font-size: 13px; display: flex; align-items: center; justify-content: center">3</span><span style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 15px; font-weight: 600">Iniciar la cualificación de emergencia de un proveedor alternativo</span><span style="font-size: 13px; color: #5B5766">Calidad · 1 semana</span></span></li>
+</ol>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px; padding-top: 18px; border-top: 1px solid #E6E3EC">
+<div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #3E3A45">
+<span style="display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E7D4F" stroke-width="2.5" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Reglas e IA coinciden en el diagnóstico</span>
+<span style="display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2E7D4F" stroke-width="2.5" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>Duración «12 weeks» citada en la noticia</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 10px">
+<button type="button" style="font-family: inherit; font-size: 15px; font-weight: 600; padding: 12px 18px; min-height: 44px; border-radius: 8px; border: 1px solid #D5D1DD; background: #FFFFFF; color: #17151C; cursor: pointer">Falsa alarma</button>
+<button type="button" style="font-family: inherit; font-size: 15px; font-weight: 600; padding: 12px 20px; min-height: 44px; border-radius: 8px; border: none; background: #A100FF; color: #FFFFFF; cursor: pointer">Aprobar plan</button>
+</div>
+</div>
+</section>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: stretch">
+
+<section aria-labelledby="ag-t" style="flex: 7 1 480px; min-width: 0; background: #FFFFFF; border-radius: 12px; border: 1px solid #E6E3EC; padding: 22px; display: flex; flex-direction: column; gap: 18px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px">
+<h2 id="ag-t" style="margin: 0; font-size: 19px; font-weight: 700">¿Cuánto aguantamos?</h2>
+<span style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: #5B5766">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; border-radius: 2px; background: #3E3A45"></span>Stock disponible</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 14px; height: 10px; border-radius: 2px; border: 2px dashed #B3261E; box-sizing: border-box"></span>Tiempo de recuperación</span>
+</span>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: grid; grid-template-columns: 170px minmax(0, 1fr) 84px; gap: 14px; align-items: center">
+<span style="font-size: 14px; font-weight: 600">Celsius Bioprocess</span>
+<span style="display: flex; flex-direction: column; gap: 4px"><span style="height: 12px; width: 40%; background: #3E3A45; border-radius: 3px"></span><span style="height: 12px; width: 84%; border: 2px dashed #B3261E; border-radius: 3px; box-sizing: border-box"></span></span>
+<span class="num" style="font-size: 16px; font-weight: 600; color: #B3261E; text-align: right">−44 d</span>
+</div>
+<div style="display: grid; grid-template-columns: 170px minmax(0, 1fr) 84px; gap: 14px; align-items: center">
+<span style="font-size: 14px; font-weight: 600">Kaveri Fine Chem.</span>
+<span style="display: flex; flex-direction: column; gap: 4px"><span style="height: 12px; width: 45%; background: #3E3A45; border-radius: 3px"></span><span style="height: 12px; width: 90%; border: 2px dashed #8A5A00; border-radius: 3px; box-sizing: border-box; opacity: 0.7"></span></span>
+<span class="num" style="font-size: 16px; font-weight: 600; color: #6B4500; text-align: right">−45 d*</span>
+</div>
+<div style="display: grid; grid-template-columns: 170px minmax(0, 1fr) 84px; gap: 14px; align-items: center">
+<span style="font-size: 14px; font-weight: 600">Lumina Glassworks</span>
+<span style="display: flex; flex-direction: column; gap: 4px"><span style="height: 12px; width: 35%; background: #3E3A45; border-radius: 3px"></span><span style="height: 12px; width: 30%; border: 2px dashed #8A5A00; border-radius: 3px; box-sizing: border-box"></span></span>
+<span class="num" style="font-size: 16px; font-weight: 600; color: #8A5A00; text-align: right">+5 d*</span>
+</div>
+<div style="display: grid; grid-template-columns: 170px minmax(0, 1fr) 84px; gap: 14px; align-items: center">
+<span style="font-size: 14px; font-weight: 600">Taizhou Hengyuan</span>
+<span style="display: flex; flex-direction: column; gap: 4px"><span style="height: 12px; width: 30%; background: #3E3A45; border-radius: 3px"></span><span style="height: 12px; width: 21%; border: 2px dashed #8A5A00; border-radius: 3px; box-sizing: border-box"></span></span>
+<span class="num" style="font-size: 16px; font-weight: 600; color: #8A5A00; text-align: right">+9 d</span>
+</div>
+<div style="display: grid; grid-template-columns: 170px minmax(0, 1fr) 84px; gap: 14px; align-items: center">
+<span></span>
+<span class="num" style="display: flex; justify-content: space-between; font-size: 12px; color: #6B6577; border-top: 1px solid #E6E3EC; padding-top: 6px"><span>0</span><span>25</span><span>50</span><span>75</span><span>100 días</span></span>
+<span></span>
+</div>
+</div>
+<span style="font-size: 13px; color: #5B5766">* Tiempo de recuperación estimado: la noticia no indica plazo.</span>
+</section>
+
+<section aria-labelledby="map-t" style="flex: 5 1 380px; min-width: 0; background: #FFFFFF; border-radius: 12px; border: 1px solid #E6E3EC; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+<h2 id="map-t" style="margin: 0; font-size: 19px; font-weight: 700">Dónde está el riesgo</h2>
+<span style="font-size: 13px; color: #5B5766">Tamaño = gasto anual</span>
+</div>
+<svg viewBox="0 0 520 290" width="100%" role="img" aria-label="Mapa de proveedores: cuatro expuestos en Puerto Rico, Alemania, India y China" style="background: #F4F3F7; border-radius: 10px">
+<g stroke="#E2DEE8" stroke-width="1"><line x1="0" y1="70" x2="520" y2="70"></line><line x1="0" y1="140" x2="520" y2="140"></line><line x1="0" y1="210" x2="520" y2="210"></line><line x1="130" y1="0" x2="130" y2="290"></line><line x1="260" y1="0" x2="260" y2="290"></line><line x1="390" y1="0" x2="390" y2="290"></line></g>
+<g font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#8E889B" letter-spacing="1"><text x="22" y="26">AMÉRICA</text><text x="196" y="26">EUROPA</text><text x="420" y="26">ASIA</text></g>
+<g fill="#C9C4D3"><circle cx="63" cy="83" r="4"></circle><circle cx="198" cy="38" r="5"></circle><circle cx="226" cy="38" r="5"></circle><circle cx="232" cy="58" r="6"></circle><circle cx="216" cy="96" r="4"></circle><circle cx="387" cy="199" r="7"></circle><circle cx="477" cy="176" r="4"></circle><circle cx="508" cy="118" r="5"></circle><circle cx="440" cy="274" r="4"></circle><circle cx="470" cy="120" r="4"></circle></g>
+<circle cx="74" cy="194" r="13" fill="#B3261E" fill-opacity="0.85" stroke="#FFFFFF" stroke-width="2"></circle>
+<circle cx="234" cy="47" r="13" fill="#D48A00" fill-opacity="0.9" stroke="#FFFFFF" stroke-width="2"></circle>
+<circle cx="374" cy="174" r="10" fill="#D48A00" fill-opacity="0.55" stroke="#8A5A00" stroke-width="2" stroke-dasharray="3 2"></circle>
+<circle cx="480" cy="147" r="14" fill="#D48A00" fill-opacity="0.9" stroke="#FFFFFF" stroke-width="2"></circle>
+<g font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="600" fill="#17151C"><text x="92" y="198">Celsius · −44 d</text><text x="252" y="51">Lumina · +5 d</text><text x="300" y="160">Kaveri</text><text x="420" y="122">Taizhou · +9 d</text></g>
+</svg>
+<span style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: #5B5766">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: #B3261E"></span>Rotura prevista</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: #D48A00"></span>Margen ajustado</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: #C9C4D3"></span>Sin exposición</span>
+</span>
+</section>
+</div>
+
+<footer style="font-size: 13px; color: #6B6577">Mockup con datos ilustrativos del reto (Helixa Pharmaceuticals, empresa ficticia). Toda decisión requiere aprobación humana y queda registrada.</footer>
+</main>
+</div>
+</body>
+</html>

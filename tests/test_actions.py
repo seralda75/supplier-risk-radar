@@ -59,3 +59,44 @@ def test_logistica_sin_inventario_deriva_al_alternativo():
 def test_sin_riesgo_no_hay_accion():
     a = risk(["S001"]).model_copy(update={"is_risk": False})
     assert recommend_action(a, urgent=False).startswith("Ninguna acción")
+
+
+# ---------------------------------------------------------------------------
+# Plan en pasos (centro de control): misma lógica que el texto, con responsable y plazo
+# ---------------------------------------------------------------------------
+from core.actions import plan_steps, situation          # noqa: E402
+from core.countdown import countdown                      # noqa: E402
+from core.suppliers import load_suppliers                 # noqa: E402
+
+
+def plan(ids, urgent=True, **kw):
+    [c] = countdown(risk(ids, **kw), urgent)
+    s = load_suppliers()[c.supplier_id]
+    return situation(c, s), plan_steps(c, s, urgent)
+
+
+def test_plan_si_el_alternativo_no_llega_a_tiempo():
+    case, steps = plan(["S001"], recovery=60)
+    assert case == "alt_tarde"
+    assert "envío urgente" in steps[0].text and "Kaveri Fine Chemicals" in steps[0].text
+    assert not any(x.text.startswith("Activar el pedido") for x in steps)
+    assert any("faltan 15 días" in x.text for x in steps)
+    assert [x.owner for x in steps] == ["Compras", "Planificación", "Logística", "Calidad"]
+
+
+def test_plan_de_proveedor_unico_con_deficit_como_el_mockup():
+    case, steps = plan(["S025"], event="supply_shortage", recovery=12, unit="weeks")
+    assert case == "unico_deficit" and len(steps) == 3
+    assert steps[0].when == "hoy" and "asignación parcial" in steps[0].text
+    assert "HX-mAb 100 mg inyectable" in steps[1].text and "faltan 44 días" in steps[1].text
+    assert steps[2].owner == "Calidad"
+
+
+def test_plan_con_alternativo_a_tiempo_lo_activa():
+    case, steps = plan(["S009"], recovery=45)
+    assert case == "alt_a_tiempo" and steps[0].text.startswith("Activar el pedido a Lombardia Polymers SpA")
+
+
+def test_plan_no_urgente_relaja_los_plazos():
+    _, steps = plan(["S002"], urgent=False, event="regulatory_action")
+    assert {x.when for x in steps} <= {"esta semana", "2 semanas"}
