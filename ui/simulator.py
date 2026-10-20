@@ -13,8 +13,9 @@ from core.labels import CATEGORY_ES, material_es, place_es, product_es, short_su
 from core.schemas import EVENT_LABELS_ES
 from core.suppliers import CITY_GEO, COUNTRY_ALIASES, MATERIAL_ALIASES, SUPPLIER_ROUTES, load_suppliers
 
+from . import cache, sheet
 from . import theme as T
-from .components import STATUS_DOT, dot_legend, esc, kpi, kpis, map_label, md, risk_map, show_map, table
+from .components import STATUS_DOT, dot_legend, esc, kpi, kpis, map_label, md, risk_map, table
 from .data import meur, pct, signed
 
 SC_REGIONS = sorted({x for g in CITY_GEO.values() for x in g.get("regions", []) + g.get("rivers", [])}
@@ -155,9 +156,9 @@ def _result(imp: scenario.ScenarioImpact) -> None:
                                                      no_stock=cds[h.supplier.id].inventory_days is None),
                                     "hover": "; ".join(h.reasons)} for h in imp.hits}
         with st.container(key="panel-simmap"):
-            md('<div class="card-head"><h2 class="h2">Dónde golpea</h2><span class="sub">Tamaño = gasto anual</span>'
-               '</div>')
-            show_map(risk_map(exposure, fit=True), key="map-sim")
+            md('<div class="card-head"><h2 class="h2">Dónde golpea</h2><span class="sub">Tamaño = gasto anual · '
+               'pulsa un proveedor</span></div>')
+            sheet.clickable_chart(risk_map(exposure, fit=True), key="map-sim")
             present = [s for s in STATUS_DOT if any(e["status"] == s for e in exposure.values())]
             md(dot_legend([STATUS_DOT[s] for s in present] + [("Fuera del escenario", T.GREY_DOT)]))
 
@@ -169,8 +170,8 @@ def _result(imp: scenario.ScenarioImpact) -> None:
                  if m["alternate"] else "—",
                  f'<span class="num" style="color:{STATUS_DOT[m["status"]][1]};font-weight:600">'
                  f'{signed(m["margin"])} d</span>'] for m in mats]
-        md(f'<section class="card"><div class="card-head"><h2 class="h2">Materiales</h2>'
-           f'<span class="sub">⚠ = afectado</span></div>'
+        md('<section class="card"><div class="card-head"><h2 class="h2">Materiales</h2>'
+           '<span class="sub">⚠ = afectado</span></div>'
            + table(["Material", "Principal", "Alternativo", "Peor margen"], rows, right={3}) + "</section>")
     with right:
         rows = [[f"<strong>{esc(product_es(p['product']))}</strong>",
@@ -197,8 +198,9 @@ def _result(imp: scenario.ScenarioImpact) -> None:
          'duración, aunque exista un alternativo.</span></section>')
 
 
-def render(llm_up: bool) -> None:
-    examples = scenario.load_examples()
+def render() -> None:
+    llm_up = cache.llm_up()
+    examples = cache.examples()
     md('<div style="display:flex;flex-direction:column;gap:4px"><span class="overline">Escenarios</span>'
        '<h1 class="h1">Simulador «¿Y si…?»</h1></div>')
     with st.container(key="panel-siminput"):
@@ -234,3 +236,4 @@ def render(llm_up: bool) -> None:
     calc = st.session_state.get("sc_calc")
     if calc:
         _result(scenario.simulate(scenario.Scenario.model_validate(calc)))
+    sheet.open_requested()

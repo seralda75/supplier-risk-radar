@@ -25,7 +25,9 @@ VALIDATION_XLSX = _find_excel("*Validation*.xlsx")
 TEST_XLSX = _find_excel("*Test*.xlsx")
 TEST_OUTPUT_XLSX = OUTPUT_DIR / "Supplier_Risk_3_Test_respuestas.xlsx"
 
-OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434")
+# 127.0.0.1 y no "localhost": en Windows, localhost prueba antes IPv6 (::1), donde Ollama no escucha,
+# y cada llamada pierde ~2 s hasta caer a IPv4 (medido: 2,1 s frente a 0,08 s).
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 LLM_MODEL = os.getenv("LLM_MODEL", "qwen2.5:7b")             # se fija tras medir en scripts/bench_models.py
 LLM_FAST_MODEL = os.getenv("LLM_FAST_MODEL", "llama3.2:3b")  # por si el portátil va justo
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")

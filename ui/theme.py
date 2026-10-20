@@ -2,7 +2,8 @@
 
 Las fuentes IBM Plex se sirven desde static/fonts (ver .streamlit/config.toml): sin Google Fonts.
 Los widgets de Streamlit que hacen falta (navegación, botones, formularios) se visten con su clase
-`st-key-<key>`, que Streamlit añade a cada elemento con `key`.
+`st-key-<key>`, que Streamlit añade a cada elemento con `key`. Todo el CSS es una constante que app.py
+inyecta en una sola llamada; la entrada activa del menú se marca con su clave (navon-<vista>).
 """
 from __future__ import annotations
 
@@ -33,6 +34,13 @@ def _icon_url(view: str, color: str) -> str:
     return "data:image/svg+xml," + quote(svg)
 
 
+def _nav_icons() -> str:
+    """Icono de cada entrada del menú: gris claro y, en la activa (navon-), blanco."""
+    return "".join(f'.st-key-nav-{v} a {{ background-image: url("{_icon_url(v, NAV_TEXT)}"); }}'
+                   f'.st-key-navon-{v} a {{ background-image: url("{_icon_url(v, "#FFFFFF")}"); }}'
+                   for v in _NAV_ICONS)
+
+
 BASE_CSS = f"""
 <style>
 /* ---- Fuera el «cromo» de Streamlit: cabecera, menú, barra de herramientas y pie ---- */
@@ -57,19 +65,24 @@ section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {{ gap: 4px; }}
 .nav-brand {{ display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }}
 .nav-brand .t {{ font-weight: 700; font-size: 16px; letter-spacing: .2px; color: #FFFFFF; display: block; }}
 .nav-brand .s {{ font-size: 12px; color: {NAV_MUTED}; display: block; }}
-section[data-testid="stSidebar"] [class*="st-key-nav-"] button {{ width: 100%; justify-content: flex-start;
-  gap: 12px; padding: 12px 14px 12px 44px; min-height: 46px; border: none !important; border-radius: 8px;
-  background-color: transparent; background-repeat: no-repeat; background-position: 14px center;
-  color: {NAV_TEXT} !important; font-size: 15px; font-weight: 400; box-shadow: none; }}
-section[data-testid="stSidebar"] [class*="st-key-nav-"] button > div {{ justify-content: flex-start; width: 100%; }}
-section[data-testid="stSidebar"] [class*="st-key-nav-"] button p {{ text-align: left; color: inherit; }}
+/* Menú: st.page_link reales (un enlace por página de st.navigation) */
+section[data-testid="stSidebar"] :is([class*="st-key-nav-"], [class*="st-key-navon-"]) a {{ display: flex;
+  justify-content: flex-start; align-items: center; gap: 12px; padding: 12px 14px 12px 44px; min-height: 46px;
+  border: none; border-radius: 8px; background-color: transparent !important; background-repeat: no-repeat;
+  background-position: 14px center; color: {NAV_TEXT} !important; text-decoration: none; box-shadow: none; }}
+section[data-testid="stSidebar"] :is([class*="st-key-nav-"], [class*="st-key-navon-"]) a :is(p, span) {{
+  color: inherit !important; font-size: 15px; font-weight: 400; text-align: left; }}
+section[data-testid="stSidebar"] [class*="st-key-nav-"] a:hover {{ background-color: #221F28 !important;
+  color: #FFFFFF !important; }}
+section[data-testid="stSidebar"] [class*="st-key-navon-"] a {{ background-color: {NAV_ACTIVE} !important;
+  color: #FFFFFF !important; box-shadow: inset 3px 0 0 {PURPLE}; }}
+section[data-testid="stSidebar"] [class*="st-key-navon-"] a :is(p, span) {{ font-weight: 600; }}
+:is([class*="st-key-nav-"], [class*="st-key-navon-"]) a:focus-visible {{ outline: 2px solid {PURPLE};
+  outline-offset: 2px; }}
+{_nav_icons()}
 section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] {{
   min-height: calc(100vh - 56px); }}
 section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-navfoot) {{ margin-top: auto; }}
-section[data-testid="stSidebar"] [class*="st-key-nav-"] button:hover {{ background-color: #221F28;
-  color: #FFFFFF !important; }}
-[class*="st-key-nav-"] button:focus-visible {{ outline: 2px solid {PURPLE}; outline-offset: 2px; }}
-[class*="st-key-nav-"] button p {{ font-size: 15px; }}
 .nav-foot {{ display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: {NAV_MUTED};
   border-top: 1px solid {NAV_LINE}; padding-top: 18px; }}
 .nav-foot .dot {{ display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }}
@@ -125,16 +138,24 @@ section[data-testid="stSidebar"] [class*="st-key-nav-"] button:hover {{ backgrou
 .st-key-panel-queue [data-testid="stVerticalBlock"] {{ gap: 14px; }}
 .st-key-panel-detail > div > [data-testid="stVerticalBlock"] {{ gap: 22px; }}
 
-/* Cola «Requiere tu decisión»: tarjeta HTML + botón invisible encima (toda la tarjeta es clicable) */
-[class*="st-key-qcard-"] {{ position: relative; }}
-[class*="st-key-qbtn-"] {{ position: absolute !important; inset: 0; z-index: 2; margin: 0 !important; }}
-[class*="st-key-qbtn-"] button {{ width: 100%; height: 100%; opacity: 0; cursor: pointer; }}
-[class*="st-key-qcard-"]:has(button:focus-visible) .qitem {{ outline: 2px solid {PURPLE}; outline-offset: 2px; }}
+/* Tarjetas y filas clicables: HTML propio + st.button real e invisible encima (cola y ranking) */
+:is([class*="st-key-qcard-"], [class*="st-key-rk-"]) {{ position: relative; }}
+:is([class*="st-key-qbtn-"], [class*="st-key-rkbtn-"]) {{ position: absolute !important; inset: 0; z-index: 2;
+  margin: 0 !important; }}
+:is([class*="st-key-qbtn-"], [class*="st-key-rkbtn-"]) button {{ width: 100%; height: 100%; opacity: 0;
+  cursor: pointer; }}
+[class*="st-key-qcard-"]:has(button:focus-visible) :is(.qitem, .qrow) {{ outline: 2px solid {PURPLE};
+  outline-offset: 2px; }}
+[class*="st-key-qcard-"]:hover .qrow {{ border-color: #C9B3DD; }}
 .qitem {{ display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 10px; background: {CARD};
   border: 1px solid {LINE}; color: {INK}; }}
 [class*="st-key-qcard-"]:hover .qitem {{ border-color: #C9B3DD; }}
 .qitem.sel {{ background: {PURPLE_SOFT}; border: 2px solid {PURPLE}; padding: 15px; }}
 .qitem .top {{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }}
+.qitem .chips {{ display: flex; flex-wrap: wrap; gap: 6px; }}
+.qitem.done {{ border-left: 4px solid {GREEN}; padding-left: 13px; }}
+.qitem.off {{ opacity: .62; }}
+.qitem.off .m {{ text-decoration: line-through; }}
 .qitem .m {{ font-size: 22px; font-weight: 600; }}
 .qrows {{ display: flex; flex-direction: column; gap: 8px; }}
 .st-key-panel-queue [data-testid="stExpander"] details {{ border: none; background: transparent; }}
@@ -174,10 +195,18 @@ section[data-testid="stSidebar"] [class*="st-key-nav-"] button:hover {{ backgrou
 .trust span {{ display: flex; align-items: center; gap: 8px; }}
 .st-key-decision {{ border-top: 1px solid {LINE}; padding-top: 18px; }}
 .st-key-decision [data-testid="stHorizontalBlock"] {{ align-items: center; gap: 10px; }}
-details.news summary {{ cursor: pointer; color: {LINK}; font-size: 14px; font-weight: 600; list-style: none; }}
-details.news summary::-webkit-details-marker {{ display: none; }}
-details.news[open] .body {{ margin-top: 10px; padding: 12px 14px; border-radius: 8px; background: {BG}; font-size: 14px;
-  color: {INK_2}; max-width: 520px; }}
+.decided {{ display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px;
+  font-size: 14px; font-weight: 600; }}
+.decided.ok {{ background: {GREEN_BG}; color: #1D5A37; }}
+.decided.fa {{ background: {BG}; color: {INK_2}; }}
+.decided .w {{ font-weight: 400; color: {MUTED}; }}
+/* «Ver noticia original»: un st.popover con aspecto de enlace */
+[class*="st-key-news-"] button {{ border: none !important; background: transparent !important; padding: 2px 0 !important;
+  min-height: 0 !important; color: {LINK} !important; box-shadow: none !important; }}
+[class*="st-key-news-"] button p {{ font-size: 14px; font-weight: 600; color: {LINK}; }}
+[class*="st-key-news-"] button:hover p {{ text-decoration: underline; }}
+.news-body {{ display: flex; flex-direction: column; gap: 8px; max-width: 560px; font-size: 14px; color: {INK_2}; }}
+.news-body .hl {{ font-size: 16px; font-weight: 700; color: {INK}; }}
 
 /* Botones (mockup: 44 px de alto, radio 8, primario morado, secundario blanco con borde) */
 .stButton button, .stFormSubmitButton button {{ font-family: inherit; font-size: 15px; font-weight: 600;
@@ -191,17 +220,49 @@ details.news[open] .body {{ margin-top: 10px; padding: 12px 14px; border-radius:
 .stButton button[kind="primary"]:hover, .stFormSubmitButton button[kind="primary"]:hover {{ background: #8A00DB; }}
 .st-key-review-now button {{ background: {RED} !important; }}
 .st-key-review-now button:hover {{ background: #951F18 !important; }}
+/* «Simular escenario»: st.page_link con aspecto de botón secundario */
+.st-key-go-sim a {{ display: flex; justify-content: center; align-items: center; min-height: 44px; padding: 0 18px;
+  border: 1px solid {LINE_2}; border-radius: 8px; background: #FFFFFF; color: {INK} !important;
+  text-decoration: none; }}
+.st-key-go-sim a:hover {{ border-color: {PURPLE}; background: {PURPLE_SOFT}; }}
+.st-key-go-sim a :is(p, span) {{ font-size: 15px; font-weight: 600; color: inherit !important; white-space: nowrap; }}
 
-/* ¿Cuánto aguantamos? */
-.hold {{ display: flex; flex-direction: column; gap: 16px; }}
-.hold .row {{ display: grid; grid-template-columns: 170px minmax(0, 1fr) 84px; gap: 14px; align-items: center; }}
-.hold .lbl {{ font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }}
-.hold .bars {{ display: flex; flex-direction: column; gap: 4px; }}
-.hold .stock {{ height: 12px; background: {INK_2}; border-radius: 3px; }}
-.hold .rec {{ height: 12px; border: 2px dashed {RED}; border-radius: 3px; box-sizing: border-box; }}
-.hold .v {{ font-size: 16px; font-weight: 600; text-align: right; }}
-.hold .axis {{ display: flex; justify-content: space-between; font-size: 12px; color: {MUTED_2};
-  border-top: 1px solid {LINE}; padding-top: 6px; }}
+/* Calendario de roturas: una fila por medicamento sobre los próximos 90 días */
+.cal {{ display: grid; grid-template-columns: 150px minmax(0, 1fr) 104px; column-gap: 14px; row-gap: 16px;
+  align-items: center; margin-top: 18px; }}
+.cal .lbl {{ min-width: 0; }}
+.cal .lbl strong {{ display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+.cal .lbl .w {{ display: block; font-size: 13px; color: {MUTED}; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; }}
+.cal .track {{ position: relative; height: 24px; background: {BG}; border-radius: 4px; }}
+.cal .seg {{ position: absolute; top: 4px; bottom: 4px; }}
+.cal .seg.ok {{ background: {GREEN}; }}
+.cal .seg.out {{ background: {RED}; }}
+.cal .seg.out.est {{ background: repeating-linear-gradient(135deg, {RED} 0 5px, #EBA9A4 5px 9px); }}
+.cal .seg.back {{ background: #BFE3CC; }}
+.cal .seg.back.est {{ background: repeating-linear-gradient(135deg, #BFE3CC 0 5px, #EEF8F2 5px 9px); }}
+.cal .mk {{ position: absolute; top: 50%; z-index: 2; }}
+.cal .mk.rec {{ width: 11px; height: 11px; background: {INK}; border: 2px solid #FFFFFF;
+  transform: translate(-50%, -50%) rotate(45deg); }}
+.cal .mk.rec.est {{ background: #FFFFFF; border: 2px solid {INK}; }}
+.cal .mk.alt {{ width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent;
+  border-bottom: 12px solid {PURPLE}; transform: translate(-50%, -50%); }}
+.cal .more {{ position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 12px; font-weight: 700;
+  color: #FFFFFF; z-index: 2; }}
+.cal .today {{ position: relative; align-self: stretch; pointer-events: none; z-index: 3; }}
+.cal .today::before {{ content: ""; position: absolute; top: -6px; bottom: 20px; left: var(--x); width: 2px;
+  background: {PURPLE}; }}
+.cal .today span {{ position: absolute; top: -24px; left: var(--x); transform: translateX(-50%); font-size: 12px;
+  font-weight: 700; color: {PURPLE_DEEP}; }}
+.cal .axis {{ position: relative; height: 16px; font-size: 12px; color: {MUTED_2}; }}
+.cal .axis span {{ position: absolute; transform: translateX(-50%); white-space: nowrap; }}
+.cal .val {{ display: flex; flex-direction: column; align-items: flex-end; text-align: right; }}
+.cal .val .num {{ font-size: 16px; font-weight: 600; }}
+.cal .val .st {{ font-size: 12px; font-weight: 700; letter-spacing: .3px; }}
+.legend .sw.hatch {{ background: repeating-linear-gradient(135deg, {RED} 0 3px, #EBA9A4 3px 6px); }}
+.legend .mk-rec {{ width: 9px; height: 9px; background: {INK}; transform: rotate(45deg); }}
+.legend .mk-alt {{ width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent;
+  border-bottom: 10px solid {PURPLE}; }}
 .legend {{ display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: {MUTED}; }}
 .legend span {{ display: inline-flex; align-items: center; gap: 6px; }}
 .legend .sw {{ width: 14px; height: 10px; border-radius: 2px; }}
@@ -222,6 +283,20 @@ details.news[open] .body {{ margin-top: 10px; padding: 12px 14px; border-radius:
 .tbl .w {{ display: block; font-size: 13px; color: {MUTED}; }}
 .tbl-wrap {{ overflow-x: auto; }}
 .bar {{ height: 8px; border-radius: 4px; background: {PURPLE}; }}
+/* Ranking de vulnerabilidad: filas clicables que abren la ficha */
+.st-key-panel-ranking [data-testid="stVerticalBlock"] {{ gap: 0; }}
+.st-key-panel-ranking .card-head {{ margin-bottom: 12px; }}
+.rk {{ display: grid; grid-template-columns: 26px minmax(0, 2.3fr) minmax(0, 1.5fr) 74px minmax(0, 2fr) 84px 150px 14px;
+  gap: 12px; align-items: center; padding: 10px; border-bottom: 1px solid {LINE}; font-size: 14px; color: {INK};
+  border-radius: 6px; }}
+.rk.head {{ font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: {MUTED};
+  padding: 8px 10px; border-radius: 0; }}
+.rk .w {{ display: block; font-size: 13px; color: {MUTED}; }}
+.rk .r {{ text-align: right; }}
+.rk .go {{ color: {MUTED}; font-size: 18px; line-height: 1; }}
+[class*="st-key-rk-"]:hover .rk {{ background: {PURPLE_SOFT}; }}
+[class*="st-key-rk-"]:hover .rk .go {{ color: {PURPLE}; }}
+[class*="st-key-rk-"]:has(button:focus-visible) .rk {{ outline: 2px solid {PURPLE}; outline-offset: -2px; }}
 .bar-bg {{ background: {BG}; border-radius: 4px; width: 100%; }}
 
 /* Formularios y entradas con el estilo de las tarjetas */
@@ -231,19 +306,6 @@ details.news[open] .body {{ margin-top: 10px; padding: 12px 14px; border-radius:
 .foot {{ font-size: 13px; color: {MUTED_2}; }}
 </style>
 """
-
-
-def nav_css(active: str) -> str:
-    """Icono de cada entrada de la navegación y marca de la activa (fondo y filete morado a la izquierda)."""
-    rules = []
-    for view in _NAV_ICONS:
-        on = view == active
-        rules.append(f'.st-key-nav-{view} button {{ background-image: url("{_icon_url(view, "#FFFFFF" if on else NAV_TEXT)}"); }}')
-        if on:
-            rules.append(f".st-key-nav-{view} button {{ background-color: {NAV_ACTIVE} !important; color: #FFFFFF !important;"
-                         f" font-weight: 600; box-shadow: inset 3px 0 0 {PURPLE} !important; }}"
-                         f".st-key-nav-{view} button p {{ font-weight: 600; }}")
-    return "<style>" + "".join(rules) + "</style>"
 
 
 RADAR_LOGO = ('<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="#A100FF" '

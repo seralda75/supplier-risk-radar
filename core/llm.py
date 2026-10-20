@@ -23,9 +23,10 @@ T = TypeVar("T", bound=BaseModel)
 TIMEOUT = 300
 
 
-def is_up() -> bool:
+def is_up(timeout: float = 3) -> bool:
+    """¿Responde Ollama? El panel usa un timeout corto (y cachea la respuesta) para no frenar cada clic."""
     try:
-        return requests.get(f"{OLLAMA_URL}/api/tags", timeout=3).ok
+        return requests.get(f"{OLLAMA_URL}/api/tags", timeout=timeout).ok
     except requests.RequestException:
         return False
 

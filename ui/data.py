@@ -9,7 +9,6 @@ La cola «Requiere tu decisión» son las críticas y las de vigilar, por días 
 from __future__ import annotations
 
 import html
-import math
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -17,7 +16,7 @@ from datetime import datetime
 from core.actions import situation
 from core.countdown import MARGIN_TIGHT_DAYS, Countdown
 from core.judge import NUMBER_WORDS, UNIT_STEMS
-from core.labels import material_es, place_es, product_es, short_supplier
+from core.labels import place_es, short_supplier
 from core.suppliers import Supplier, load_suppliers
 
 LEVEL_ORDER = {"critica": 0, "vigilar": 1, "seguimiento": 2}
@@ -237,14 +236,3 @@ def status_chip(a: Alert) -> tuple[str, str]:
         return "▲ VIGILAR · RIESGO LATENTE", "amber"
     return "SEGUIMIENTO SEMANAL", "grey"
 
-
-def supplier_line(s: Supplier) -> str:
-    return f"{place_es(s.city, s.country)} · {material_es(s.material)}"
-
-
-def products_es(names: list[str]) -> list[str]:
-    return [product_es(p) for p in names]
-
-
-def nice_ceil(x: float, step: int = 25) -> int:
-    return int(max(step, math.ceil(x / step) * step))

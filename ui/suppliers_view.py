@@ -1,7 +1,7 @@
 """Proveedores: dónde es vulnerable Helixa aunque no haya ninguna noticia (CLAUDE.md, 8.2).
 
-Ranking de vulnerabilidad (la misma puntuación de dependencia que decide la urgencia), gasto en
-proveedores únicos, concentración por país y por zona, alternativos que no llegan a tiempo y ficha.
+Ranking de vulnerabilidad (pulsar una fila abre la ficha), gasto en proveedores únicos, concentración
+por país y por zona, alternativos que no llegan a tiempo y ficha de proveedor (ui/sheet.py).
 """
 from __future__ import annotations
 
@@ -9,47 +9,15 @@ from collections import defaultdict
 
 import streamlit as st
 
-from core import feedback, results
 from core.countdown import alternate_margin
-from core.labels import (CATEGORY_ES, CITY_ES, COUNTRY_ES, CRITICALITY_ES, ZONE_ES, material_es, place_es,
-                         product_es, short_supplier)
-from core.schemas import EVENT_LABELS_ES
+from core.labels import CITY_ES, COUNTRY_ES, ZONE_ES, material_es, place_es, short_supplier
 from core.suppliers import load_suppliers
-from core.urgency import dependency
 
+from . import cache, sheet
 from . import theme as T
 from .components import esc, kpi, kpis, md, table
-from .data import build_alerts, meur, pct, signed, status_chip
-
-SPLIT_ES = {"test": "Test", "validation": "Validación", "train": "Entrenamiento"}
-
-
-LATE_ALTERNATE = 0.2     # suma al índice si el alternativo no llega antes de que se acabe el stock
-
-
-def vulnerability(s) -> tuple[float, list[str]]:
-    """Índice de vulnerabilidad sin eventos (CLAUDE.md, 8.2): la dependencia que decide la urgencia
-    (único, criticidad, días de stock) + 0,2 si el alternativo aprobado no llega a tiempo."""
-    d = dependency(s)
-    score, factors = d.score, list(d.factors)
-    if s.alternate_id and s.inventory_cover_days is not None and not alternate_margin(s, set()).in_time:
-        score += LATE_ALTERNATE
-        factors.append("el alternativo no llega a tiempo")
-    return round(min(score, 1.0), 2), factors
-
-
-def _alt_text(s) -> tuple[str, bool]:
-    """(texto del alternativo, ¿llega a tiempo?)."""
-    sup = load_suppliers()
-    if not s.alternate_id:
-        return ("ninguno (único)" if s.single_source else "sin alternativo"), False
-    cover = alternate_margin(s, set())
-    name = short_supplier(sup[s.alternate_id].name)
-    if s.inventory_cover_days is None:
-        return f"{name} · plazo {cover.lead_days or 0:.0f} d", True
-    if cover.in_time:
-        return f"{name} · llega en {cover.lead_days:.0f} d", True
-    return f"{name} · tarda {cover.lead_days or 0:.0f} d, no llega", False
+from .data import meur, pct
+from .sheet import alt_text, vulnerability
 
 
 def _zones() -> list[tuple[str, list]]:
@@ -65,7 +33,7 @@ def _zones() -> list[tuple[str, list]]:
     return sorted(out, key=lambda x: -sum(s.annual_spend_eur or 0 for s in x[1]))
 
 
-def render(loaded: dict) -> None:
+def render() -> None:
     sup = load_suppliers()
     total = sum(s.annual_spend_eur or 0 for s in sup.values())
     unique = [s for s in sup.values() if s.single_source]
@@ -90,25 +58,7 @@ def render(loaded: dict) -> None:
             sub=f"{pct(top_share)} del gasto total"),
     ])
 
-    # Ranking de vulnerabilidad
-    ranked = sorted(sup.values(), key=lambda s: (-vulnerability(s)[0], -(s.annual_spend_eur or 0)))[:10]
-    rows = []
-    for i, s in enumerate(ranked, 1):
-        score, _ = vulnerability(s)
-        alt, ok = _alt_text(s)
-        stock = f'{s.inventory_cover_days:.0f} d' if s.inventory_cover_days is not None else "sin stock"
-        rows.append([f'<span class="num">{i}</span>',
-                     f"<strong>{esc(s.name)}</strong><span class='w'>{esc(place_es(s.city, s.country))}</span>",
-                     esc(material_es(s.material)), f'<span class="num">{stock}</span>',
-                     f'<span style="color:{T.INK if ok else T.RED_INK}">{esc(alt)}</span>',
-                     f'<span class="num">{meur(s.annual_spend_eur or 0)} M€</span>',
-                     f'<div style="display:flex;align-items:center;gap:8px"><div class="bar-bg" style="width:90px">'
-                     f'<div class="bar" style="width:{score * 100:.0f}%"></div></div>'
-                     f'<span class="num">{score:.2f}</span></div>'])
-    md('<section class="card"><div class="card-head"><h2 class="h2">Ranking de vulnerabilidad</h2>'
-       '<span class="sub">Proveedor único, criticidad, días de stock y alternativo que no llega a tiempo'
-       '</span></div>' + table(["#", "Proveedor", "Material", "Stock", "Alternativo", "Gasto anual", "Índice"], rows,
-                               right={3, 5}) + "</section>")
+    ranking(sup)
 
     left, right = st.columns([7, 5], gap="medium")
     with left:
@@ -154,13 +104,40 @@ def render(loaded: dict) -> None:
            '<span class="sub">Un solo evento (inundación, huelga portuaria, río sin navegación) los afecta a la vez.'
            '</span>' + table(["Zona", "Proveedores", "Gasto"], zrows, right={2}) + "</section>")
 
-    _sheet(loaded)
+    _sheet()
+    sheet.open_requested()
 
 
-def _sheet(loaded: dict) -> None:
+RANK_HEAD = ["#", "Proveedor", "Material", "Stock", "Alternativo", "Gasto anual", "Índice", ""]
+
+
+def ranking(sup: dict) -> None:
+    ranked = sorted(sup.values(), key=lambda s: (-vulnerability(s)[0], -(s.annual_spend_eur or 0)))[:10]
+    with st.container(key="panel-ranking"):
+        md('<div class="card-head"><h2 class="h2">Ranking de vulnerabilidad</h2>'
+           '<span class="sub">Proveedor único, criticidad, días de stock y alternativo que no llega a tiempo · '
+           'pulsa una fila para ver la ficha</span></div>'
+           '<div class="rk head">' + "".join(f'<span class="{"r" if i in (3, 5) else ""}">{h}</span>'
+                                              for i, h in enumerate(RANK_HEAD)) + "</div>")
+        for i, s in enumerate(ranked, 1):
+            score, _ = vulnerability(s)
+            alt, ok = alt_text(s)
+            stock = f"{s.inventory_cover_days:.0f} d" if s.inventory_cover_days is not None else "sin stock"
+            with st.container(key=f"rk-{s.id}"):
+                md(f'<div class="rk"><span class="num">{i}</span>'
+                   f'<span><strong>{esc(s.name)}</strong><span class="w">{esc(place_es(s.city, s.country))}</span></span>'
+                   f'<span>{esc(material_es(s.material))}</span><span class="num r">{stock}</span>'
+                   f'<span style="color:{T.INK if ok else T.RED_INK}">{esc(alt)}</span>'
+                   f'<span class="num r">{meur(s.annual_spend_eur or 0)} M€</span>'
+                   f'<span style="display:flex;align-items:center;gap:8px"><span class="bar-bg" style="width:90px">'
+                   f'<span class="bar" style="display:block;width:{score * 100:.0f}%"></span></span>'
+                   f'<span class="num">{score:.2f}</span></span><span class="go" aria-hidden="true">›</span></div>')
+                st.button(f"Ficha de {s.name}", key=f"rkbtn-{s.id}", on_click=sheet.request, args=(s.id,))
+
+
+def _sheet() -> None:
     sup = load_suppliers()
-    alerts_by_split = {sp: build_alerts(d["results"]) for sp, d in loaded.items() if d}
-    exposed = {c.supplier_id for a in alerts_by_split.get("test", []) for c in [a.worst] + a.others}
+    exposed = {c.supplier_id for a in cache.alerts("test") for c in [a.worst] + a.others}
     ids = sorted(sup, key=lambda i: (i not in exposed, sup[i].name))
     with st.container(key="panel-sheet"):
         md('<div class="card-head"><h2 class="h2">Ficha de proveedor</h2>'
@@ -168,52 +145,4 @@ def _sheet(loaded: dict) -> None:
         sid = st.selectbox("Proveedor", ids, key="sup_sel", label_visibility="collapsed",
                            format_func=lambda i: f"{sup[i].name} · {place_es(sup[i].city, sup[i].country)}"
                                                  + ("  · en riesgo" if i in exposed else ""))
-        s = sup[sid]
-        score, _ = vulnerability(s)
-        alt, ok = _alt_text(s)
-        chips = [f'<span class="chip purple">{esc(CATEGORY_ES.get(s.category, s.category))}</span>',
-                 '<span class="chip red">Proveedor único</span>' if s.single_source else
-                 '<span class="chip green">Con alternativo</span>',
-                 f'<span class="chip grey">Criticidad {CRITICALITY_ES.get(s.criticality, s.criticality)}</span>']
-        stock = f"{s.inventory_cover_days:.0f} días" if s.inventory_cover_days is not None else "sin stock"
-        lead = f"{s.lead_time_days:.0f} días" if s.lead_time_days is not None else "—"
-        md(f'<div style="display:flex;flex-direction:column;gap:6px"><h2 class="det-name">{esc(s.name)}</h2>'
-           f'<span class="det-sub">{esc(place_es(s.city, s.country))} · {esc(material_es(s.material))}</span>'
-           f'<span style="display:flex;gap:8px;flex-wrap:wrap">{"".join(chips)}</span></div>')
-        md(f'<div class="boxes"><div class="box"><span class="l">Stock de seguridad</span><span class="num v">{stock}'
-           f'</span><span class="s">cobertura de inventario</span></div>'
-           f'<div class="box"><span class="l">Plazo de entrega</span><span class="num v">{lead}</span>'
-           f'<span class="s">desde el pedido</span></div>'
-           f'<div class="box"><span class="l">Gasto anual</span><span class="num v">{meur(s.annual_spend_eur or 0)} M€'
-           f'</span><span class="s">{s.share_of_category_pct or 0:.0f} % de su categoría</span></div>'
-           f'<div class="box {"" if ok else "amber"}"><span class="l">Alternativo</span><span class="t" '
-           f'style="font-size:16px">{esc(alt)}</span><span class="s">índice de vulnerabilidad {score:.2f}</span></div>'
-           '</div>')
-        prods = ", ".join(product_es(p) for p in s.products) or "ninguno registrado"
-        need = f" · necesidad mensual {s.monthly_requirement}" if s.monthly_requirement else ""
-        md(f'<p class="what" style="font-size:15px"><strong>Medicamentos que dependen de él:</strong> {esc(prods)}'
-           f'{esc(need)}</p>')
-        rows = []
-        for sp, alerts in alerts_by_split.items():
-            fb = feedback.latest(sp)
-            for r in loaded[sp]["results"]:
-                if sid not in r["affected_ids"]:
-                    continue
-                a = next((x for x in alerts if x.id == r["news_id"]), None)
-                c = next((x for x in r.get("countdown", []) if x["supplier_id"] == sid), None)
-                if a:
-                    text, color = status_chip(a)
-                    state = f'<span class="chip {color}">{esc(text)}</span>'
-                else:
-                    state = '<span class="chip grey">Sin riesgo</span>'
-                margin = (f'<span class="num">{signed(c["margin_days"])} d</span>'
-                          if c and c["inventory_days"] is not None else "—")
-                rows.append([f'<span class="num">{esc((r.get("published_date") or "")[:10])}</span>',
-                             f"{esc(r['headline'])}<span class='w'>{SPLIT_ES[sp]} · {esc(r['news_id'])} · "
-                             f"{esc(EVENT_LABELS_ES.get(r['event_type'], r['event_type']))}</span>",
-                             state, margin,
-                             esc(feedback.VERDICTS[fb[r["news_id"]]["verdict"]]) if r["news_id"] in fb else "—"])
-        rows.sort(key=lambda x: x[0], reverse=True)
-        md('<h3 class="h3">Historial de eventos</h3>' + (
-            table(["Fecha", "Noticia", "Estado", "Margen", "Decisión"], rows, right={3}) if rows else
-            '<p class="sub">Ninguna noticia de los tres conjuntos menciona a este proveedor.</p>'))
+        sheet.render(sid)

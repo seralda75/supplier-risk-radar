@@ -18,20 +18,24 @@ ollama pull qwen2.5:7b; ollama pull nomic-embed-text
 .venv\Scripts\streamlit run app.py                 # http://localhost:8501
 ```
 Diseño de `docs/mockup_centro_control.html`, pensado para el director de compras: en 5 segundos, si hay
-riesgo, dónde, cuánto tiempo queda y qué hacer. Navegación lateral con cuatro vistas:
+riesgo, dónde, cuánto tiempo queda y qué hacer. Navegación lateral con cuatro páginas (`st.navigation`:
+solo se ejecuta la activa):
 
 - **Centro de control**: banner de estado, 5 indicadores (alertas críticas, proveedores expuestos,
   medicamentos en riesgo, gasto anual expuesto en € y % del total, menor margen), la cola «Requiere tu
   decisión» (CRÍTICA = urgente; VIGILAR · RIESGO LATENTE = no urgente con margen negativo) ordenada por días
   de margen, el detalle de la alerta (qué pasa, cita con la duración resaltada, impacto, plan en pasos con
-  responsable y plazo de `core/actions.py`, fiabilidad, botones Falsa alarma / Aprobar plan guardados en
-  SQLite), «¿Cuánto aguantamos?» y el mapa. Por defecto, las noticias de test; un selector discreto cambia
-  a entrenamiento o validación.
-- **Proveedores**: ranking de vulnerabilidad, % del gasto en proveedores únicos, concentración por país y por
-  zona, alternativos que no llegan a tiempo y ficha por proveedor con su historial.
+  responsable y plazo de `core/actions.py`, fiabilidad, noticia completa, botones Falsa alarma / Aprobar plan /
+  Reabrir guardados en SQLite, que cambian la tarjeta y los KPIs), el **calendario de roturas** (próximos 90
+  días por medicamento), el mapa y el **treemap del gasto en riesgo**. Pulsar un proveedor en el mapa o en el
+  treemap abre su ficha. Por defecto, las noticias de test; un selector discreto cambia a entrenamiento o
+  validación.
+- **Proveedores**: ranking de vulnerabilidad (cada fila abre la ficha), % del gasto en proveedores únicos,
+  concentración por país y por zona, alternativos que no llegan a tiempo y ficha por proveedor con su historial.
 - **Simulador «¿Y si…?»** y **Transparencia** (métricas, cambios, límites, duraciones ancladas).
 
 Las vistas de negocio no usan jerga: proveedores por nombre y ciudad, «días de margen» en lugar de TTS/TTR.
+Inventario de elementos clicables y tiempos de respuesta (antes y después): `docs/panel.md`.
 La app solo lee `data/results/*.json` (incluidos en el repo): abre en segundos, sin llamar al LLM y sin
 internet (fuentes IBM Plex y contorno del mapa servidos desde `static/`).
 
@@ -53,7 +57,7 @@ core/rules.py        modo solo reglas: tipo de evento, gravedad y proveedores af
 core/urgency.py      dependencia del proveedor y decisión de urgencia
 core/judge.py        juez LLM: few-shot del entrenamiento (Chroma) + JSON schema + salvaguardas
 core/geo.py          coordenadas de las 40 ciudades (mapa)
-core/feedback.py     respuestas de los compradores (confirmar / falsa alarma) en SQLite
+core/feedback.py     respuestas de los compradores (aprobar plan / falsa alarma / reabrir) en SQLite
 core/results.py      resultados guardados para el panel y métricas
 core/countdown.py    cuenta atrás: TTS (inventario + alternativo) − TTR (recuperación)
 core/actions.py      acción recomendada a partir de la cuenta atrás (déficit, alternativo a tiempo o no)
@@ -62,8 +66,9 @@ core/pipeline.py     assess(noticia) -> veredicto + explicación + acción + aud
 core/audit.py        auditoría en SQLite
 core/data.py         carga de las noticias de los tres Excel
 evaluate.py          métricas (python evaluate.py [--no-llm] [--split train])
-app.py               panel Streamlit: navegación y vistas (diseño de docs/mockup_centro_control.html)
-ui/                  vistas del panel (control, proveedores, simulador, transparencia), estilo y datos
+app.py               panel Streamlit: estilo, menú lateral y st.navigation (docs/mockup_centro_control.html)
+views/               una página por fichero (centro de control, proveedores, simulador, transparencia)
+ui/                  contenido de cada página, ficha de proveedor, treemap, cachés, estilo y datos
 core/labels.py       nombres en español para las vistas de negocio
 static/              fuentes IBM Plex (licencia OFL) y contorno del mapa: el panel funciona sin internet
 scripts/build_results.py  genera data/results/{train,validation,test}.json

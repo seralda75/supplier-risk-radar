@@ -11,8 +11,8 @@ import re
 import streamlit as st
 
 from core import results
-from core.config import ROOT
 
+from . import cache
 from .components import esc, md, table
 
 CHANGES = [  # versión, cambio, de dónde sale, efecto en las respuestas
@@ -74,7 +74,7 @@ def consensus_stats(rs: list[dict]) -> dict:
 
 def history_table() -> str:
     """Tabla de historial de métricas de docs/evaluacion.md (la primera tabla del documento)."""
-    text = (ROOT / "docs" / "evaluacion.md").read_text(encoding="utf-8")
+    text = cache.doc("evaluacion.md")
     m = re.search(r"((?:^\|.*\|\s*$\n?)+)", text, flags=re.M)
     return m.group(1) if m else ""
 
@@ -84,7 +84,8 @@ def _section(title: str, body: str, note: str = "") -> None:
     md(f'<section class="card"><div class="card-head"><h2 class="h2">{esc(title)}</h2>{n}</div>{body}</section>')
 
 
-def render(loaded: dict) -> None:
+def render() -> None:
+    loaded = cache.all_data()
     md('<div style="display:flex;flex-direction:column;gap:4px"><span class="overline">Cómo de bien funciona y '
        'cómo lo sabemos</span><h1 class="h1">Transparencia</h1></div>')
 
@@ -147,4 +148,4 @@ def render(loaded: dict) -> None:
     with st.expander("Historial de métricas por versión (docs/evaluacion.md)"):
         st.markdown(history_table())
     with st.expander("Documento completo de evaluación"):
-        st.markdown((ROOT / "docs" / "evaluacion.md").read_text(encoding="utf-8"))
+        st.markdown(cache.doc("evaluacion.md"))

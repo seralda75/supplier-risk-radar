@@ -1,4 +1,8 @@
-"""Piezas HTML/CSS reutilizables (KPIs, tablas, leyendas) y el mapa de proveedores."""
+"""Piezas HTML/CSS reutilizables (KPIs, tablas, leyendas) y el mapa de proveedores (Plotly).
+
+La figura del mapa se cachea (st.cache_data): con los mismos datos no se vuelve a construir. Cada
+proveedor lleva su ID en customdata[0] para abrir su ficha al pulsarlo.
+"""
 from __future__ import annotations
 
 import html
@@ -64,6 +68,7 @@ def dot_legend(items: list[tuple[str, str]]) -> str:
                                                for t, c in items) + "</span>")
 
 
+@st.cache_data(show_spinner=False)
 def risk_map(exposure: dict[str, dict], height: int = 330, fit: bool = False) -> go.Figure:
     """Proveedores en el mapa. exposure: {id: {"margin", "status", "label"(opcional), "hover"}}.
     Color = estado del margen, tamaño = gasto anual. Los no expuestos, en gris.
@@ -85,8 +90,8 @@ def risk_map(exposure: dict[str, dict], height: int = 330, fit: bool = False) ->
     fig.add_trace(go.Scattergeo(
         lat=[p["lat"] for p in calm], lon=[p["lon"] for p in calm], mode="markers", showlegend=False,
         marker=dict(size=[p["size"] * .55 for p in calm], color=T.GREY_DOT, line=dict(width=0)),
-        text=[f'{p["s"].name} · {CITY_ES.get(p["s"].city, p["s"].city)}' for p in calm],
-        hovertemplate="%{text}<br>Sin exposición<extra></extra>"))
+        customdata=[[p["s"].id, f'{p["s"].name} · {CITY_ES.get(p["s"].city, p["s"].city)}'] for p in calm],
+        hovertemplate="%{customdata[1]}<br>Sin exposición · pulsa para ver la ficha<extra></extra>"))
     hot.sort(key=lambda p: -p["size"])          # los grandes debajo
     colors = [STATUS_DOT[exposure[p["s"].id]["status"]][1] for p in hot]
     latent = [exposure[p["s"].id]["status"] == "riesgo_latente" for p in hot]
@@ -97,10 +102,10 @@ def risk_map(exposure: dict[str, dict], height: int = 330, fit: bool = False) ->
         marker=dict(size=[p["size"] for p in hot], color=colors, opacity=[.55 if x else .9 for x in latent],
                     line=dict(width=[2 if x else 2 for x in latent],
                               color=[T.AMBER if x else "#FFFFFF" for x in latent])),
-        customdata=[[p["s"].name, exposure[p["s"].id].get("hover", "")] for p in hot],
-        hovertemplate="<b>%{customdata[0]}</b><br>%{customdata[1]}<extra></extra>"))
+        customdata=[[p["s"].id, p["s"].name, exposure[p["s"].id].get("hover", "")] for p in hot],
+        hovertemplate="<b>%{customdata[1]}</b><br>%{customdata[2]}<br>Pulsa para ver la ficha<extra></extra>"))
     fig.update_geos(projection_type="natural earth", showland=True, landcolor="#DAD5E2", showocean=True,
-                    oceancolor=T.BG, showcountries=True, countrycolor="#F4F3F7", countrywidth=.6,
+                    oceancolor=T.BG, showcountries=False,
                     showcoastlines=False, showframe=False, showlakes=False, bgcolor=T.BG,
                     lataxis_range=[-8, 62], lonaxis_range=[-95, 142])
     if fit and hot:
@@ -113,12 +118,6 @@ def risk_map(exposure: dict[str, dict], height: int = 330, fit: bool = False) ->
                       font=dict(family="IBM Plex Sans", color=T.INK),
                       hoverlabel=dict(font=dict(family="IBM Plex Sans"), bgcolor="#FFFFFF"))
     return fig
-
-
-def show_map(fig: go.Figure, key: str) -> None:
-    # El contorno del mundo se sirve desde static/ (no desde cdn.plot.ly): funciona sin internet
-    st.plotly_chart(fig, width="stretch", key=key,
-                    config={"topojsonURL": "app/static/topojson/", "displaylogo": False, "displayModeBar": False})
 
 
 def map_label(supplier_id: str, margin: float, estimated: bool = False, no_stock: bool = False) -> str:
