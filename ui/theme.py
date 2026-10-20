@@ -228,8 +228,9 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 .st-key-go-sim a :is(p, span) {{ font-size: 15px; font-weight: 600; color: inherit !important; white-space: nowrap; }}
 
 /* Calendario de roturas: una fila por medicamento sobre los próximos 90 días */
-.cal {{ display: grid; grid-template-columns: 150px minmax(0, 1fr) 104px; column-gap: 14px; row-gap: 16px;
+.cal {{ display: grid; grid-template-columns: 210px minmax(0, 1fr) 150px; column-gap: 18px; row-gap: 16px;
   align-items: center; margin-top: 18px; }}
+.cal.small {{ grid-template-columns: 150px minmax(0, 1fr) 118px; column-gap: 14px; }}
 .cal .lbl {{ min-width: 0; }}
 .cal .lbl strong {{ display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 .cal .lbl .w {{ display: block; font-size: 13px; color: {MUTED}; white-space: nowrap; overflow: hidden;
@@ -298,6 +299,40 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 [class*="st-key-rk-"]:hover .rk .go {{ color: {PURPLE}; }}
 [class*="st-key-rk-"]:has(button:focus-visible) .rk {{ outline: 2px solid {PURPLE}; outline-offset: -2px; }}
 .bar-bg {{ background: {BG}; border-radius: 4px; width: 100%; }}
+
+/* Ventanas modales (st.dialog): centradas, con el fondo difuminado */
+[data-testid="stDialog"] {{ backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  background: rgba(23, 21, 28, .38) !important; }}
+[data-testid="stDialog"] [role="dialog"] {{ background: {CARD}; border-radius: 14px; }}
+.st-key-dlg-info [data-testid="stVerticalBlock"] {{ gap: 20px; }}
+.st-key-dlg-act {{ background: {BG}; border-radius: 12px; padding: 18px; }}
+.st-key-dlg-act [data-testid="stVerticalBlock"] {{ gap: 14px; }}
+.news-card {{ padding: 14px 16px; border-radius: 10px; border: 1px solid {LINE}; }}
+.news-card .news-body {{ max-width: none; }}
+.calc {{ margin: 0; padding: 10px 12px; border-radius: 8px; background: {PURPLE_SOFT}; border: 1px solid #EBD9FA;
+  font-size: 13px; color: {INK_2}; }}
+
+/* Falsa alarma (popover con el motivo) y «Crear pedido o recordatorio» */
+[class*="fapop-"] button {{ min-height: 44px; border-radius: 8px; border: 1px solid {LINE_2}; background: #FFFFFF; }}
+[class*="fapop-"] button p {{ font-size: 15px; font-weight: 600; }}
+[class*="st-key-more-"] button {{ min-height: 0 !important; padding: 4px 0 !important; color: {LINK} !important; }}
+[class*="st-key-more-"] button p {{ font-size: 14px; color: {LINK}; }}
+[class*="st-key-more-"] button:hover p {{ text-decoration: underline; }}
+
+/* Acciones en curso (pedidos y recordatorios) y su resumen en cada tarjeta */
+.qitem .acts {{ align-self: flex-start; font-size: 13px; font-weight: 600; color: {PURPLE_DEEP}; background: #F1DDFF;
+  padding: 4px 8px; border-radius: 6px; }}
+.st-key-panel-actions [data-testid="stVerticalBlock"] {{ gap: 10px; }}
+[class*="st-key-act-"] {{ border-top: 1px solid {LINE}; padding-top: 10px; }}
+.act {{ display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: {INK}; padding: 4px 0; }}
+.act .ic {{ font-size: 18px; line-height: 1.2; }}
+.act .w {{ display: block; font-size: 13px; color: {MUTED}; }}
+[class*="st-key-done-"] button {{ min-height: 36px; padding: 6px 12px; }}
+
+/* Proveedores: filas de tarjetas de la misma altura, sin huecos */
+.grid2 {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 24px; align-items: stretch; }}
+.grid2 > .card {{ height: 100%; }}
+.rk.lst {{ grid-template-columns: minmax(0, 2fr) minmax(0, 1.4fr) 80px 14px; }}
 
 /* Formularios y entradas con el estilo de las tarjetas */
 [data-testid="stForm"] {{ background: transparent; border: none; padding: 0; }}

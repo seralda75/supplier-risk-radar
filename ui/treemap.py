@@ -1,10 +1,16 @@
 """Treemap «¿Dónde está el gasto en riesgo?»: gasto anual por categoría y proveedor, color = estado.
 
-No usa Plotly: cada gráfico de Plotly cuesta ~100 ms en montarse en el navegador y el centro de control
-ya tiene el mapa. Aquí la distribución (algoritmo squarified) se calcula en Python y el navegador solo
-coloca botones HTML (st.components.v2, sin iframe). Pulsar un proveedor devuelve su ID a Python
-(setTriggerValue) y se abre su ficha. Cada casilla lleva el estado escrito y un aria-label completo;
-debajo, la lista de proveedores en riesgo por estado: el estado nunca depende solo del color.
+Para que destaque el gasto en riesgo:
+- Cada proveedor con alerta tiene su casilla, con el color de su estado.
+- Los proveedores sin riesgo de esa categoría se agrupan en una casilla neutra «Otros sin riesgo (N)».
+- Las categorías sin ninguna alerta forman un único bloque neutro.
+- Ninguna casilla baja del MIN_SHARE del lienzo, para que siempre quepa al menos el nombre. El tamaño deja
+  de ser exactamente proporcional en las más pequeñas, pero el gasto real va escrito en cada una.
+
+No usa Plotly: cada gráfico de Plotly cuesta ~100 ms en montarse en el navegador. La distribución
+(algoritmo squarified) se calcula en Python y el navegador solo coloca botones HTML (st.components.v2,
+sin iframe). Pulsar una casilla devuelve su ID a Python (setTriggerValue): un proveedor abre su ficha
+y un grupo, la lista de sus proveedores. Cada casilla lleva el estado escrito y un aria-label completo.
 """
 from __future__ import annotations
 
@@ -18,16 +24,19 @@ from core.suppliers import load_suppliers
 from . import theme as T
 from .data import meur
 
-W, H = 1000.0, 420.0          # lienzo nominal: el ancho real se escala en %, el alto es fijo en px
+W, H = 1000.0, 400.0          # lienzo nominal: el ancho real se escala en %, el alto es fijo en px
 HEAD = 20.0                   # franja con el nombre de la categoría
 PAD = 2.0
+MIN_SHARE = 0.022             # área mínima de una casilla (fracción del lienzo): cabe el nombre
+GROUP = "grp:"                # prefijo de las casillas que agrupan proveedores sin riesgo
+REST = GROUP + "*"            # el bloque de las categorías sin ninguna alerta
 
 # estado -> (texto, fondo, color del texto)
 STATES = {
     "critica": ("Crítica", T.RED, "#FFFFFF"),
     "vigilar": ("Vigilar", T.AMBER_DOT, T.INK),
     "seguimiento": ("En seguimiento", "#D9C2EE", T.INK),
-    "sin_riesgo": ("Sin riesgo", "#E6E3EC", T.MUTED),
+    "sin_riesgo": ("Sin riesgo", "#EEEDF2", T.MUTED),
 }
 
 
@@ -67,36 +76,76 @@ def squarify(values: list[float], x: float, y: float, w: float, h: float) -> lis
     return out
 
 
-def layout(states: dict[str, str]) -> dict:
-    """Categorías y casillas en % del ancho y px del alto, con su texto, colores y aria-label."""
+def groups(states: dict[str, str]) -> list[tuple[str, list[tuple[str, float, list[str]]]]]:
+    """[(categoría, [(id de la casilla, gasto, IDs de proveedores)])]. Una casilla es un proveedor con alerta,
+    un grupo «otros sin riesgo» de su categoría o el bloque de las categorías sin alertas."""
     sup = load_suppliers()
     by_cat: dict[str, list] = {}
     for s in sup.values():
         if (s.annual_spend_eur or 0) > 0:
             by_cat.setdefault(s.category, []).append(s)
-    cats = sorted(by_cat.items(), key=lambda kv: -sum(s.annual_spend_eur for s in kv[1]))
-    cat_rects = squarify([sum(s.annual_spend_eur for s in ss) for _, ss in cats], 0, 0, W, H)
+    out, rest = [], []
+    for cat, ss in by_cat.items():
+        risky = sorted((s for s in ss if s.id in states), key=lambda s: -s.annual_spend_eur)
+        calm = [s for s in ss if s.id not in states]
+        if not risky:
+            rest += calm
+            continue
+        tiles = [(s.id, s.annual_spend_eur, [s.id]) for s in risky]
+        if len(calm) == 1:
+            tiles.append((calm[0].id, calm[0].annual_spend_eur, [calm[0].id]))
+        elif calm:
+            tiles.append((GROUP + cat, sum(s.annual_spend_eur for s in calm), [s.id for s in calm]))
+        out.append((CATEGORY_ES.get(cat, cat), tiles))
+    if rest:
+        out.append((f"Otras {len({s.category for s in rest})} categorías",
+                    [(REST, sum(s.annual_spend_eur for s in rest), [s.id for s in rest])]))
+    return out
+
+
+def _tile_text(tid: str, ids: list[str], state: str, spend: float, w: float, h: float) -> tuple[str, str, str]:
+    """(tamaño, HTML, aria-label) de una casilla. Siempre lleva al menos el nombre."""
+    sup = load_suppliers()
+    label, _, _ = STATES[state]
+    money = f"{meur(spend)} M€"
+    if tid.startswith(GROUP):
+        name = f"{'Otras categorías' if tid == REST else 'Otros'} sin riesgo ({len(ids)})"
+        tag = "SIN RIESGO"
+        aria = f"{name}: {money} de gasto anual. Pulsa para ver la lista."
+    else:
+        s = sup[tid]
+        name, tag = short_supplier(s.name), label.upper()
+        aria = f"{s.name} ({CATEGORY_ES.get(s.category, s.category)}): {label.lower()}, {money} de gasto anual. "                "Pulsa para ver la ficha."
+    b = f"<b>{html.escape(name)}</b>"
+    if w >= 105 and h >= 56:
+        size, body = "lg", f"{b}<span class='s'>{tag}</span><span class='m'>{money}</span>"
+    elif w >= 72 and h >= 38:
+        size, body = "md", f"{b}<span class='s'>{tag}</span>"
+    else:
+        size, body = "sm", b
+    return size, body, html.escape(aria)
+
+
+def layout(states: dict[str, str]) -> dict:
+    """Categorías y casillas en % del ancho y px del alto, con su texto, colores y aria-label."""
+    total = sum(v for _, tiles in groups(states) for _, v, _ in tiles)
+    floor = MIN_SHARE * total
+    cats = [(name, [(tid, v, max(v, floor), ids) for tid, v, ids in tiles]) for name, tiles in groups(states)]
+    cats.sort(key=lambda c: -sum(t[2] for t in c[1]))
+    cat_rects = squarify([sum(t[2] for t in tiles) for _, tiles in cats], 0, 0, W, H)
     out_cats, out_tiles = [], []
-    for (cat, ss), (cx, cy, cw, ch) in zip(cats, cat_rects):
-        name = CATEGORY_ES.get(cat, cat)
-        out_cats.append({"x": 100 * cx / W, "y": cy, "w": 100 * cw / W, "h": ch, "label": html.escape(name)})
-        ss = sorted(ss, key=lambda s: -s.annual_spend_eur)
-        head = HEAD if ch > 3 * HEAD else 0.0
-        inner = squarify([s.annual_spend_eur for s in ss], cx + PAD, cy + head, cw - 2 * PAD, ch - head - PAD)
-        for s, (x, y, w, h) in zip(ss, inner):
-            state, bg, fg = STATES[states.get(s.id, "sin_riesgo")]
-            spend = f"{meur(s.annual_spend_eur)} M€"
-            short = html.escape(short_supplier(s.name))
-            if w >= 105 and h >= 54:
-                size, body = "lg", f"<b>{short}</b><span class='s'>{state.upper()}</span><span class='m'>{spend}</span>"
-            elif w >= 70 and h >= 36:
-                size, body = "md", f"<b>{short}</b><span class='s'>{state.upper()}</span>"
-            else:
-                size, body = "sm", ""
-            out_tiles.append({"id": s.id, "x": 100 * x / W, "y": y, "w": 100 * w / W, "h": h, "bg": bg, "fg": fg,
-                              "size": size, "html": body,
-                              "aria": html.escape(f"{s.name} ({name}): {state.lower()}, {spend} de gasto anual. "
-                                                  "Pulsa para ver la ficha.")})
+    for (name, tiles), (cx, cy, cw, ch) in zip(cats, cat_rects):
+        head = HEAD if ch > 2.6 * HEAD and cw > 60 else 0.0
+        out_cats.append({"x": 100 * cx / W, "y": cy, "w": 100 * cw / W, "h": ch,
+                         "label": html.escape(name) if head else ""})
+        tiles = sorted(tiles, key=lambda t: -t[2])
+        inner = squarify([t[2] for t in tiles], cx + PAD, cy + head, cw - 2 * PAD, ch - head - PAD)
+        for (tid, spend, _, ids), (x, y, w, h) in zip(tiles, inner):
+            state = "sin_riesgo" if tid.startswith(GROUP) else states.get(tid, "sin_riesgo")
+            _, bg, fg = STATES[state]
+            size, body, aria = _tile_text(tid, ids, state, spend, w, h)
+            out_tiles.append({"id": tid, "x": 100 * x / W, "y": y, "w": 100 * w / W, "h": h, "bg": bg, "fg": fg,
+                              "size": size, "html": body, "aria": aria, "ids": ids})
     return {"height": H, "cats": out_cats, "tiles": out_tiles}
 
 
@@ -108,7 +157,8 @@ CSS = f"""
 .tile {{ position: absolute; box-sizing: border-box; margin: 0; border: 2px solid #FFFFFF; border-radius: 5px;
   padding: 6px 8px; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; overflow: hidden;
   text-align: left; cursor: pointer; font: inherit; }}
-.tile.sm {{ padding: 0; }}
+.tile.sm {{ padding: 3px 5px; }}
+.tile.sm b {{ font-size: 11px; }}
 .tile:hover {{ box-shadow: inset 0 0 0 2px {T.PURPLE}; z-index: 2; }}
 .tile:focus-visible {{ outline: 3px solid {T.PURPLE}; outline-offset: -3px; z-index: 3; }}
 .tile b {{ max-width: 100%; font-size: 13px; line-height: 1.25; white-space: nowrap; overflow: hidden;
@@ -161,6 +211,7 @@ def _layout(states: dict[str, str]) -> dict:
 
 
 def spend_treemap(states: dict[str, str], key: str) -> str | None:
-    """Dibuja el treemap y devuelve el ID del proveedor pulsado en este clic (o None)."""
+    """Dibuja el treemap y devuelve el ID de la casilla pulsada en este clic: un proveedor o un grupo
+    (GROUP + categoría, o REST). None si no se ha pulsado nada."""
     res = _component(data=_layout(states), key=key, height=int(H), on_picked_change=lambda: None)
     return res.picked if res is not None else None

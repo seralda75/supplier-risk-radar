@@ -46,11 +46,11 @@ def save(split: str, news_id: str, verdict: str, user: str = "comprador", channe
 
 
 def latest(split: str, con: sqlite3.Connection | None = None) -> dict[str, dict]:
-    """Última respuesta de cada noticia de un conjunto: {news_id: {verdict, user, ts, channel}}."""
+    """Última respuesta de cada noticia de un conjunto: {news_id: {verdict, user, ts, channel, note}}."""
     with _LOCK:
-        rows = _db(con).execute("SELECT news_id, verdict, user, ts, channel FROM feedback WHERE split = ? "
+        rows = _db(con).execute("SELECT news_id, verdict, user, ts, channel, note FROM feedback WHERE split = ? "
                                 "ORDER BY id", (split,)).fetchall()
-    return {r[0]: {"verdict": r[1], "user": r[2], "ts": r[3], "channel": r[4]} for r in rows}
+    return {r[0]: {"verdict": r[1], "user": r[2], "ts": r[3], "channel": r[4], "note": r[5]} for r in rows}
 
 
 def active(split: str, con: sqlite3.Connection | None = None) -> dict[str, dict]:

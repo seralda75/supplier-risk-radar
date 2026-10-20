@@ -2,7 +2,7 @@
 
 - st.cache_data: resultados guardados (JSON), alertas derivadas, ejemplos del simulador, documentos.
   La clave incluye la fecha de modificación del fichero: si se regenera, se vuelve a leer.
-- st.cache_resource: la conexión a SQLite (una para todo el proceso).
+- st.cache_resource: la conexión a SQLite (una para todo el proceso): decisiones, pedidos y recordatorios.
 - Ollama: se comprueba con un timeout corto y la respuesta vale 30 s; no se pregunta en cada clic.
 
 El Excel de proveedores y materiales ya se lee una sola vez por proceso (lru_cache en
@@ -15,7 +15,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from core import feedback, llm, results, scenario
+from core import feedback, llm, results, scenario, tasks
 from core.config import ROOT
 
 from .data import Alert, build_alerts
@@ -54,7 +54,7 @@ def alerts(split: str) -> list[Alert]:
 
 @st.cache_resource(show_spinner=False)
 def _connection(path: str) -> sqlite3.Connection:
-    return feedback.connect(path)
+    return tasks.ensure(feedback.connect(path))
 
 
 def db() -> sqlite3.Connection:
@@ -65,6 +65,11 @@ def db() -> sqlite3.Connection:
 def decisions(split: str) -> dict[str, dict]:
     """Decisiones vigentes de los compradores (no se cachea: cambian con cada clic)."""
     return feedback.active(split, db())
+
+
+def items(split: str) -> list[dict]:
+    """Pedidos y recordatorios creados desde las alertas (no se cachea: cambian con cada clic)."""
+    return tasks.items(split, db())
 
 
 @st.cache_data(ttl=OLLAMA_TTL_S, show_spinner=False)

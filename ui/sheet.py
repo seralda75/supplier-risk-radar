@@ -1,8 +1,9 @@
-"""Ficha de proveedor: en la página Proveedores y en un diálogo que se abre desde cualquier vista
-(pulsando un punto del mapa, una casilla del treemap o una fila del ranking).
+"""Ficha de proveedor en una ventana modal (st.dialog) que se abre desde cualquier vista: un punto del
+mapa, una casilla del treemap, una fila del ranking o el buscador de la página Proveedores. Una casilla
+que agrupa proveedores sin riesgo abre la lista de esos proveedores, y desde ella, cada ficha.
 
-El clic solo deja el ID en session_state["sheet"]; open_requested() abre el diálogo en la siguiente
-ejecución de la página (st.dialog no puede abrirse desde un callback).
+El clic solo deja la petición en session_state; open_requested() abre la ventana en esa misma ejecución
+(st.dialog no puede abrirse desde un callback).
 """
 from __future__ import annotations
 
@@ -55,10 +56,14 @@ def alt_text(s) -> tuple[str, bool]:
 # ---------------------------------------------------------------------------
 
 def request(sid: str) -> None:
-    """Callback: pide abrir la ficha de `sid` (y la deja elegida en el selector de la página Proveedores)."""
+    """Callback: pide abrir la ficha de `sid`."""
     if sid in load_suppliers():
         st.session_state["sheet"] = sid
-        st.session_state["sup_sel"] = sid
+
+
+def request_list(title: str, ids: list[str]) -> None:
+    """Pide abrir la lista de unos proveedores (p. ej. «Otros sin riesgo» del treemap)."""
+    st.session_state["sheet_list"] = (title, list(ids))
 
 
 def _picked(key: str, ver: int) -> None:
@@ -83,15 +88,38 @@ def clickable_chart(fig: go.Figure, key: str) -> None:
 
 
 def open_requested() -> None:
-    """Al final de cada página: si se ha pulsado un proveedor, abre su ficha en un diálogo."""
+    """Al final de cada página (y del fragmento del centro de control): abre la ficha o la lista pedida."""
     sid = st.session_state.pop("sheet", None)
+    group = st.session_state.pop("sheet_list", None)
     if sid:
         _dialog(sid)
+    elif group:
+        _list_dialog(*group)
 
 
 @st.dialog("Ficha de proveedor", width="large")
 def _dialog(sid: str) -> None:
     render(sid)
+
+
+@st.dialog("Proveedores sin riesgo", width="medium")
+def _list_dialog(title: str, ids: list[str]) -> None:
+    sup = load_suppliers()
+    ids = sorted(ids, key=lambda i: -(sup[i].annual_spend_eur or 0))
+    md(f'<div style="display:flex;flex-direction:column;gap:4px"><h2 class="det-name">{esc(title)}</h2>'
+       f'<span class="det-sub">{meur(sum(sup[i].annual_spend_eur or 0 for i in ids))} M€ de gasto anual · '
+       'ninguna alerta activa · pulsa uno para ver su ficha</span></div>')
+    for i in ids:
+        s = sup[i]
+        with st.container(key=f"rk-l{i}"):
+            md(f'<div class="rk lst"><span><strong>{esc(s.name)}</strong><span class="w">'
+               f'{esc(place_es(s.city, s.country))} · {esc(CATEGORY_ES.get(s.category, s.category))}</span></span>'
+               f'<span>{esc(material_es(s.material))}</span>'
+               f'<span class="num r">{meur(s.annual_spend_eur or 0)} M€</span>'
+               '<span class="go" aria-hidden="true">›</span></div>')
+            if st.button(f"Ficha de {s.name}", key=f"rkbtn-l{i}"):
+                request(i)
+                st.rerun()          # cierra la lista y, en la ejecución siguiente, abre la ficha
 
 
 # ---------------------------------------------------------------------------

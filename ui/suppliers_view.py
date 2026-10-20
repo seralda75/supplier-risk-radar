@@ -1,7 +1,9 @@
 """Proveedores: dónde es vulnerable Helixa aunque no haya ninguna noticia (CLAUDE.md, 8.2).
 
-Ranking de vulnerabilidad (pulsar una fila abre la ficha), gasto en proveedores únicos, concentración
-por país y por zona, alternativos que no llegan a tiempo y ficha de proveedor (ui/sheet.py).
+Cuadrícula sin huecos: KPIs · ranking de vulnerabilidad (a todo el ancho) · concentración por país y zonas
+con varios proveedores (dos tarjetas de la misma altura) · alternativos que no llegan a tiempo (a todo el
+ancho). La ficha de proveedor (ui/sheet.py) se abre en una ventana: desde el ranking o desde el buscador
+de la cabecera.
 """
 from __future__ import annotations
 
@@ -45,8 +47,11 @@ def render() -> None:
     top_country = max(by_country, key=lambda c: sum(s.annual_spend_eur or 0 for s in by_country[c]))
     top_share = sum(s.annual_spend_eur or 0 for s in by_country[top_country]) / total
 
-    md('<div style="display:flex;flex-direction:column;gap:4px"><span class="overline">Vulnerabilidad sin eventos'
-       '</span><h1 class="h1">Proveedores</h1></div>')
+    title, search = st.columns([3, 1.4], vertical_alignment="bottom")
+    title.markdown('<div style="display:flex;flex-direction:column;gap:4px"><span class="overline">Vulnerabilidad '
+                   'sin eventos</span><h1 class="h1">Proveedores</h1></div>', unsafe_allow_html=True)
+    with search:
+        _search(sup)
     spend_unique = sum(s.annual_spend_eur or 0 for s in unique)
     kpis([
         kpi("Gasto en proveedores únicos", f"{spend_unique / total * 100:.0f}", unit="%",
@@ -60,51 +65,53 @@ def render() -> None:
 
     ranking(sup)
 
-    left, right = st.columns([7, 5], gap="medium")
-    with left:
-        rows = []
-        countries = sorted(by_country, key=lambda c: -sum(s.annual_spend_eur or 0 for s in by_country[c]))
-        for c in countries[:8]:
-            ss = by_country[c]
-            spend = sum(s.annual_spend_eur or 0 for s in ss)
-            uniq = sum(s.single_source for s in ss)
-            rows.append([f"<strong>{esc(COUNTRY_ES.get(c, c))}</strong>",
-                         f'<span class="num">{len(ss)}</span>' + (f'<span class="w">{uniq} único(s)</span>' if uniq else ""),
-                         f'<div style="display:flex;align-items:center;gap:8px"><div class="bar-bg" '
-                         f'style="width:140px"><div class="bar" style="width:{100 * spend / total / top_share:.0f}%">'
-                         f'</div></div><span class="num">{pct(spend / total)}</span></div>',
-                         f'<span class="num">{meur(spend)} M€</span>'])
-        rest = countries[8:]
-        rest_spend = sum(s.annual_spend_eur or 0 for c in rest for s in by_country[c])
-        rows.append([f'<span class="muted">Otros {len(rest)} países</span>',
-                     f'<span class="num">{sum(len(by_country[c]) for c in rest)}</span>',
-                     f'<span class="num muted">{pct(rest_spend / total)}</span>',
-                     f'<span class="num">{meur(rest_spend)} M€</span>'])
-        md('<section class="card"><div class="card-head"><h2 class="h2">Concentración por país</h2>'
-           '<span class="sub">% del gasto anual</span></div>'
-           + table(["País", "Proveedores", "Peso en el gasto", "Gasto"], rows, right={1, 3}) + "</section>")
-    with right:
-        rows = []
-        for s in late:
-            alt = sup[s.alternate_id]
-            gap = alternate_margin(s, set()).lead_days - s.inventory_cover_days
-            gap_txt = f"faltan {gap:.0f} d" if gap > 0 else "llega justo al agotarse"
-            rows.append([f"<strong>{esc(s.name)}</strong><span class='w'>{esc(material_es(s.material))}</span>",
-                         f'<span class="num">{s.inventory_cover_days:.0f} d</span>',
-                         f"{esc(short_supplier(alt.name))}<span class='w'>tarda {alt.lead_time_days:.0f} d · "
-                         f"{gap_txt}</span>"])
-        md('<section class="card"><div class="card-head"><h2 class="h2">Alternativos que no llegan a tiempo</h2></div>'
-           '<span class="sub">Si el proveedor se para, el stock se acaba antes de que llegue el primer envío del '
-           'alternativo.</span>' + table(["Proveedor", "Stock", "Alternativo"], rows, right={1}) + "</section>")
-        zones = _zones()
-        zrows = [[f"<strong>{esc(z)}</strong>",
-                  esc(", ".join(short_supplier(s.name) for s in ss)),
-                  f'<span class="num">{meur(sum(s.annual_spend_eur or 0 for s in ss))} M€</span>'] for z, ss in zones]
-        md('<section class="card"><div class="card-head"><h2 class="h2">Zonas con varios proveedores</h2></div>'
-           '<span class="sub">Un solo evento (inundación, huelga portuaria, río sin navegación) los afecta a la vez.'
-           '</span>' + table(["Zona", "Proveedores", "Gasto"], zrows, right={2}) + "</section>")
+    # Concentración por país | zonas con varios proveedores: una fila de dos tarjetas de la misma altura
+    rows = []
+    countries = sorted(by_country, key=lambda c: -sum(s.annual_spend_eur or 0 for s in by_country[c]))
+    for c in countries[:8]:
+        ss = by_country[c]
+        spend = sum(s.annual_spend_eur or 0 for s in ss)
+        uniq = sum(s.single_source for s in ss)
+        rows.append([f"<strong>{esc(COUNTRY_ES.get(c, c))}</strong>",
+                     f'<span class="num">{len(ss)}</span>' + (f'<span class="w">{uniq} único(s)</span>' if uniq else ""),
+                     f'<div style="display:flex;align-items:center;gap:8px"><div class="bar-bg" '
+                     f'style="width:140px"><div class="bar" style="width:{100 * spend / total / top_share:.0f}%">'
+                     f'</div></div><span class="num">{pct(spend / total)}</span></div>',
+                     f'<span class="num">{meur(spend)} M€</span>'])
+    rest = countries[8:]
+    rest_spend = sum(s.annual_spend_eur or 0 for c in rest for s in by_country[c])
+    rows.append([f'<span class="muted">Otros {len(rest)} países</span>',
+                 f'<span class="num">{sum(len(by_country[c]) for c in rest)}</span>',
+                 f'<span class="num muted">{pct(rest_spend / total)}</span>',
+                 f'<span class="num">{meur(rest_spend)} M€</span>'])
+    country = ('<section class="card"><div class="card-head"><h2 class="h2">Concentración por país</h2>'
+               '<span class="sub">% del gasto anual</span></div>'
+               + table(["País", "Proveedores", "Peso en el gasto", "Gasto"], rows, right={1, 3}) + "</section>")
+    zones = _zones()
+    zrows = [[f"<strong>{esc(z)}</strong>",
+              esc(", ".join(short_supplier(s.name) for s in ss)),
+              f'<span class="num">{meur(sum(s.annual_spend_eur or 0 for s in ss))} M€</span>'] for z, ss in zones]
+    zone = ('<section class="card"><div class="card-head"><h2 class="h2">Zonas con varios proveedores</h2>'
+            '<span class="sub">Un solo evento (inundación, huelga portuaria, río sin navegación) los afecta a la '
+            'vez</span></div>' + table(["Zona", "Proveedores", "Gasto"], zrows, right={2}) + "</section>")
+    md(f'<div class="grid2">{country}{zone}</div>')
 
-    _sheet()
+    rows = []
+    for s in late:
+        alt = sup[s.alternate_id]
+        gap = alternate_margin(s, set()).lead_days - s.inventory_cover_days
+        gap_txt = f"faltan {gap:.0f} d" if gap > 0 else "llega justo al agotarse"
+        rows.append([f"<strong>{esc(s.name)}</strong><span class='w'>{esc(place_es(s.city, s.country))}</span>",
+                     esc(material_es(s.material)),
+                     f'<span class="num">{s.inventory_cover_days:.0f} d</span>',
+                     esc(alt.name),
+                     f'<span class="num">{alt.lead_time_days:.0f} d</span>',
+                     f'<span style="color:{T.RED_INK}">{gap_txt}</span>'])
+    md('<section class="card"><div class="card-head"><h2 class="h2">Alternativos que no llegan a tiempo</h2>'
+       '<span class="sub">Si el proveedor se para, el stock se acaba antes de que llegue el primer envío del '
+       'alternativo</span></div>'
+       + table(["Proveedor", "Material", "Stock", "Alternativo", "Plazo del alternativo", "Diferencia"], rows,
+               right={2, 4}) + "</section>")
     sheet.open_requested()
 
 
@@ -135,14 +142,18 @@ def ranking(sup: dict) -> None:
                 st.button(f"Ficha de {s.name}", key=f"rkbtn-{s.id}", on_click=sheet.request, args=(s.id,))
 
 
-def _sheet() -> None:
-    sup = load_suppliers()
+def _pick() -> None:
+    """Buscador: abre la ficha elegida en una ventana y deja el buscador vacío para la próxima."""
+    sid = st.session_state.get("sup_pick")
+    if sid:
+        sheet.request(sid)
+    st.session_state["sup_pick"] = None
+
+
+def _search(sup: dict) -> None:
     exposed = {c.supplier_id for a in cache.alerts("test") for c in [a.worst] + a.others}
     ids = sorted(sup, key=lambda i: (i not in exposed, sup[i].name))
-    with st.container(key="panel-sheet"):
-        md('<div class="card-head"><h2 class="h2">Ficha de proveedor</h2>'
-           '<span class="sub">Primero, los expuestos en las noticias de test</span></div>')
-        sid = st.selectbox("Proveedor", ids, key="sup_sel", label_visibility="collapsed",
-                           format_func=lambda i: f"{sup[i].name} · {place_es(sup[i].city, sup[i].country)}"
-                                                 + ("  · en riesgo" if i in exposed else ""))
-        sheet.render(sid)
+    st.selectbox("Ficha de proveedor", ids, index=None, key="sup_pick", on_change=_pick,
+                 placeholder="Buscar un proveedor y abrir su ficha…", label_visibility="collapsed",
+                 format_func=lambda i: f"{sup[i].name} · {place_es(sup[i].city, sup[i].country)}"
+                                       + ("  · en riesgo" if i in exposed else ""))

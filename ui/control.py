@@ -1,20 +1,22 @@
 """Centro de control (docs/mockup_centro_control.html): ¿hay riesgo, dónde, cuánto tiempo tengo y qué hago?
 
-Cabecera · zona de decisión (banner, 5 KPIs, cola «Requiere tu decisión» y detalle de la alerta: qué
-pasa, cita, impacto, plan en pasos, fiabilidad y decisión) · calendario de roturas + mapa · treemap
-del gasto en riesgo.
+Cabecera · zona de decisión (banner, 5 KPIs; a la izquierda la cola «Requiere tu decisión» y las acciones
+en curso; a la derecha el detalle de la alerta y el mapa) · calendario de roturas · treemap del gasto en
+riesgo. Pulsar una tarjeta abre la alerta en una ventana (información + decisión): aprobar el plan,
+falsa alarma con motivo, crear un pedido o un recordatorio. Todo se guarda en SQLite.
 
-Rendimiento: la zona de decisión es un st.fragment. Elegir una tarjeta, «Revisar ahora», «Aprobar plan»
-o «Reabrir» solo vuelven a ejecutar esa zona; los gráficos no se tocan. «Falsa alarma» (o reabrir una
-falsa alarma) cambia la exposición, y entonces se redibuja la página entera.
+Rendimiento: la zona de decisión es un st.fragment: elegir una tarjeta o marcar una acción como hecha
+solo vuelve a ejecutar esa zona. Una decisión (aprobar, falsa alarma, reabrir) cambia KPIs, calendario,
+mapa y treemap: se guarda y se vuelve a ejecutar la página entera (st.rerun), sin estado intermedio.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date, timedelta
 
 import streamlit as st
 
-from core import feedback, results
+from core import feedback, results, tasks
 from core.actions import plan_steps
 from core.countdown import Countdown
 from core.labels import CRITICALITY_ES, material_es, product_es, product_short, short_supplier
@@ -23,7 +25,7 @@ from core.suppliers import load_suppliers
 from . import cache, sheet
 from . import theme as T
 from .components import STATUS_DOT, dot_legend, esc, kpi, kpis, map_label, md, risk_map
-from .treemap import STATES, spend_treemap
+from .treemap import GROUP, REST, STATES, groups as tm_groups, spend_treemap
 from .data import EVENT_SHORT, Alert, margin_color, meur, pct, quote_for, signed, status_chip, when
 
 FORM_WORDS = (" inyectable", " comprimidos", " cápsulas")
@@ -31,6 +33,8 @@ USER = "director de compras (panel)"
 HORIZON = 90          # días que cubre el calendario de roturas
 AXIS_START = -6       # un poco de aire a la izquierda para que se vea la línea de «hoy»
 LEVEL_RANK = {"critica": 0, "vigilar": 1, "seguimiento": 2}
+MONTHS = "ene feb mar abr may jun jul ago sep oct nov dic".split()
+WHEN_DAYS = {"hoy": 1, "48 h": 2, "1 semana": 7, "semanal": 7, "si se alarga": 7}   # plazo del plan -> recordatorio
 
 
 # ---------------------------------------------------------------------------
@@ -66,9 +70,9 @@ class Board:
 
     @property
     def queue(self) -> list[Alert]:
-        """Críticas y de vigilar: primero las pendientes, luego las decididas (cada grupo por margen)."""
-        q = [a for a in self.alerts if a.level in ("critica", "vigilar")]
-        return sorted(q, key=lambda a: (self.dismissed(a), self.verdict(a) is not None))
+        """Críticas y de vigilar, por nivel y días de margen. El orden no cambia al decidir: la tarjeta
+        decidida se queda en su sitio y cambia de aspecto, para que se vea qué ha pasado."""
+        return [a for a in self.alerts if a.level in ("critica", "vigilar")]
 
     @property
     def rest(self) -> list[Alert]:
@@ -87,13 +91,42 @@ def _select(split: str, news_id: str) -> None:
     st.session_state[f"sel-{split}"] = news_id
 
 
-def _decide(split: str, news_id: str, verdict: str, previous: str | None = None) -> None:
-    feedback.save(split, news_id, verdict, user=USER, con=cache.db())
-    st.session_state["toast"] = {"plan_aprobado": ("Plan aprobado · registrado en la auditoría", "✅"),
-                                 "falsa_alarma": ("Marcada como falsa alarma · registrado en la auditoría", "🚫"),
-                                 "reabierta": ("Decisión reabierta · vuelve a estar pendiente", "↩️")}[verdict]
-    if "falsa_alarma" in (verdict, previous):        # cambia la exposición: también gráficos y mapa
-        st.session_state["full_rerun"] = True
+def _open(split: str, news_id: str) -> None:
+    """Callback de una tarjeta: la elige y abre su ventana. La ventana sigue abierta (aunque la página se
+    vuelva a ejecutar) hasta que el usuario la cierra (_close) o toma una decisión (decide)."""
+    _select(split, news_id)
+    st.session_state["alert_dialog"] = (split, news_id)
+
+
+def _close() -> None:
+    st.session_state.pop("alert_dialog", None)
+
+
+def decide(split: str, a: Alert, verdict: str, note: str = "") -> None:
+    """Guarda la decisión y vuelve a ejecutar la página entera: KPIs, tarjeta, calendario, mapa y treemap
+    salen ya con la decisión aplicada, y el aviso se muestra al principio de la ejecución siguiente."""
+    feedback.save(split, a.id, verdict, user=USER, note=note.strip(), con=cache.db())
+    _close()
+    name = short_supplier(a.supplier.name)
+    st.session_state["toast"] = {
+        "plan_aprobado": (f"Plan aprobado · {name} · registrado en la auditoría", "✅"),
+        "falsa_alarma": (f"Falsa alarma · {name} sale de los indicadores, el calendario y el mapa", "🚫"),
+        "reabierta": (f"Decisión reabierta · {name} vuelve a estar pendiente", "↩️")}[verdict]
+    st.rerun()
+
+
+def _done(kind: str, item_id: int) -> None:
+    tasks.mark_done(kind, item_id, con=cache.db())
+    st.session_state["toast"] = ("Acción marcada como hecha", "✔️")
+
+
+def day_es(iso: str) -> str:
+    """'2026-10-22' -> '22 oct'."""
+    try:
+        d = date.fromisoformat(iso[:10])
+    except (TypeError, ValueError):
+        return iso or ""
+    return f"{d.day} {MONTHS[d.month - 1]}"
 
 
 def _set_split() -> None:
@@ -196,7 +229,22 @@ def kpi_row(b: Board) -> None:
 # Cola y detalle
 # ---------------------------------------------------------------------------
 
-def queue_item(a: Alert, selected: bool, verdict: str | None) -> str:
+def action_badges(its: list[dict]) -> str:
+    """«📦 Pedido creado · ⏰ Recordatorio 22 oct» con las acciones de una alerta."""
+    out = []
+    orders = [x for x in its if x["kind"] == "order"]
+    rems = [x for x in its if x["kind"] == "reminder"]
+    if orders:
+        pend = [x for x in orders if x["status"] != "hecho"]
+        out.append(f"📦 {len(pend)} pedidos creados" if len(pend) > 1 else "📦 Pedido creado" if pend
+                   else "📦 Pedido hecho")
+    if rems:
+        pend = sorted((x for x in rems if x["status"] != "hecho"), key=lambda x: x["due"])
+        out.append(f"⏰ Recordatorio {day_es(pend[0]['due'])}" if pend else "⏰ Recordatorio hecho")
+    return f'<span class="acts">{esc(" · ".join(out))}</span>' if out else ""
+
+
+def queue_item(a: Alert, selected: bool, verdict: str | None, its: list[dict] | None = None) -> str:
     text, color = status_chip(a)
     if verdict == "falsa_alarma":
         text, color = "FALSA ALARMA · DESCARTADA", "grey"
@@ -212,19 +260,21 @@ def queue_item(a: Alert, selected: bool, verdict: str | None) -> str:
             f'<span class="num m" style="color:{margin_color(a.margin, a.level)}">{m_txt}{est}</span></span>'
             f'<span><span class="n">{esc(a.supplier.name)}</span><span class="w">{esc(a.place)} · '
             f'{esc(a.what_short)}</span></span>'
-            f'<span class="a">Afecta a <strong>{esc(prod)}</strong> · {esc(a.affects_note)}</span></div>')
+            f'<span class="a">Afecta a <strong>{esc(prod)}</strong> · {esc(a.affects_note)}</span>'
+            f'{action_badges(its or [])}</div>')
 
 
-def queue(split: str, b: Board, sel: str) -> None:
+def queue(split: str, b: Board, sel: str, its: list[dict]) -> None:
     with st.container(key="panel-queue"):
         md('<div class="card-head"><h2 class="h2" id="cola-t">Requiere tu decisión</h2>'
-           '<span class="sub">Pendientes primero, por días de margen</span></div>')
+           '<span class="sub">Por días de margen · pulsa una alerta para abrirla</span></div>')
         if not b.queue:
             md('<p class="sub">Nada pendiente: no hay alertas críticas ni en riesgo latente.</p>')
         for a in b.queue:
             with st.container(key=f"qcard-{a.id}"):
-                md(queue_item(a, a.id == sel, b.verdict(a)))
-                st.button(f"Ver {a.supplier.name}", key=f"qbtn-{a.id}", on_click=_select, args=(split, a.id))
+                md(queue_item(a, a.id == sel, b.verdict(a), [x for x in its if x["news_id"] == a.id]))
+                st.button(f"Abrir la alerta de {a.supplier.name}", key=f"qbtn-{a.id}", on_click=_open,
+                          args=(split, a.id))
         if b.rest:
             # Plegado: el director ve primero solo lo que requiere decisión; el resto, a un clic
             exp = st.expander(f"En seguimiento semanal · {len(b.rest)}", expanded=any(a.id == sel for a in b.rest))
@@ -244,7 +294,8 @@ def queue(split: str, b: Board, sel: str) -> None:
                        f'<span class="w" style="display:block">{esc(a.place)} · {esc(a.what_short)}</span></span>'
                        f'<span class="num" style="color:{margin_color(a.margin, a.level)};font-weight:600{off}">'
                        f'{m_txt}</span></div>')
-                    st.button(f"Ver {a.supplier.name}", key=f"qbtn-{a.id}", on_click=_select, args=(split, a.id))
+                    st.button(f"Abrir la alerta de {a.supplier.name}", key=f"qbtn-{a.id}", on_click=_open,
+                              args=(split, a.id))
 
 
 def _impact_boxes(a: Alert) -> str:
@@ -311,12 +362,47 @@ def _decided(verdict: dict) -> str:
     v = verdict["verdict"]
     who = f'· {esc(verdict["user"])} · {esc(when(verdict["ts"]))} · registrado en la auditoría'
     if v == "falsa_alarma":
-        return (f'<div class="decided fa">{T.ICON_WARN}Falsa alarma <span class="w">{who}. No cuenta en los '
-                'indicadores, el calendario ni el mapa.</span></div>')
-    return f'<div class="decided ok">{T.ICON_CHECK}{esc(feedback.VERDICTS[v])} <span class="w">{who}</span></div>'
+        why = f' Motivo: «{esc(verdict["note"])}».' if verdict.get("note") else ""
+        return (f'<div class="decided fa">{T.ICON_WARN}Falsa alarma <span class="w">{who}.{why} No cuenta en los '
+                'indicadores, el calendario, el mapa ni el treemap.</span></div>')
+    return (f'<div class="decided ok">{T.ICON_CHECK}✓ {esc(feedback.VERDICTS[v])} <span class="w">{who}. Sigue '
+            'en el calendario y el mapa: el riesgo no ha pasado.</span></div>')
 
 
-def detail(split: str, a: Alert, verdict: dict | None) -> None:
+def _plan(a: Alert) -> str:
+    steps = plan_steps(a.worst, a.supplier, urgent=a.level == "critica")
+    return ('<div style="display:flex;flex-direction:column;gap:10px"><h3 class="h3">Plan recomendado</h3>'
+            '<ol class="steps">' + "".join(
+                f'<li><span class="num i">{i}</span><span class="b"><span class="x">{esc(st_.text)}</span>'
+                f'<span class="o">{esc(st_.owner)} · {esc(st_.when)}</span></span></li>'
+                for i, st_ in enumerate(steps, 1)) + "</ol></div>")
+
+
+def decision_controls(split: str, a: Alert, verdict: dict | None, where: str = "") -> None:
+    """Aprobar plan · Falsa alarma (con motivo opcional) · Reabrir, en el detalle (where="") y en la
+    ventana de la alerta (where="dlg-"): el mismo botón en dos sitios necesita dos claves. Cada botón
+    guarda y vuelve a ejecutar la página (decide)."""
+    k = f"{split}-{a.id}"
+    if verdict:
+        c1, c2 = st.columns([3.8, 1.2], vertical_alignment="center")
+        c1.markdown(_decided(verdict), unsafe_allow_html=True)
+        if c2.button("Reabrir", key=f"{where}re-{k}", width="stretch",
+                     help="Vuelve a dejar la alerta pendiente (la auditoría conserva las dos decisiones)"):
+            decide(split, a, "reabierta")
+        return
+    c1, c2 = st.columns(2, vertical_alignment="top")
+    with c1.popover("Falsa alarma", width="stretch", key=f"{where}fapop-{k}"):
+        md('<p class="sub" style="max-width:340px">La alerta deja de contar en los indicadores, el calendario, '
+           'el mapa y el treemap. Se puede reabrir.</p>')
+        note = st.text_input("Motivo (opcional)", key=f"{where}fanote-{k}",
+                             placeholder="p. ej. el proveedor confirma que la planta no está afectada")
+        if st.button("Marcar como falsa alarma", key=f"{where}fa-{k}", width="stretch"):
+            decide(split, a, "falsa_alarma", note)
+    if c2.button("Aprobar plan", key=f"{where}ok-{k}", type="primary", width="stretch"):
+        decide(split, a, "plan_aprobado")
+
+
+def detail(split: str, a: Alert, verdict: dict | None, its: list[dict]) -> None:
     s = a.supplier
     text, color = status_chip(a)
     with st.container(key="panel-detail"):
@@ -330,40 +416,158 @@ def detail(split: str, a: Alert, verdict: dict | None) -> None:
         md(f'<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">Qué pasa</h3>'
            f'<p class="what">{esc(a.what())}</p><blockquote class="quote">«{quote}»</blockquote></div>')
         md(_impact_boxes(a))
-        steps = plan_steps(a.worst, s, urgent=a.level == "critica")
-        md('<div style="display:flex;flex-direction:column;gap:10px"><h3 class="h3">Plan recomendado</h3>'
-           '<ol class="steps">' + "".join(
-               f'<li><span class="num i">{i}</span><span class="b"><span class="x">{esc(st_.text)}</span>'
-               f'<span class="o">{esc(st_.owner)} · {esc(st_.when)}</span></span></li>'
-               for i, st_ in enumerate(steps, 1)) + "</ol></div>")
+        md(_plan(a))
         with st.container(key="decision"):
-            if not verdict:
-                c1, c2, c3 = st.columns([2.6, 1.15, 1.2], vertical_alignment="center")
-                c1.markdown(_trust(a), unsafe_allow_html=True)
-                c2.button("Falsa alarma", key=f"fa-{split}-{a.id}", on_click=_decide,
-                          args=(split, a.id, "falsa_alarma"), width="stretch")
-                c3.button("Aprobar plan", key=f"ok-{split}-{a.id}", type="primary", on_click=_decide,
-                          args=(split, a.id, "plan_aprobado"), width="stretch")
-            else:
-                c1, c2 = st.columns([3.8, 1.15], vertical_alignment="center")
-                c1.markdown(_trust(a) + _decided(verdict), unsafe_allow_html=True)
-                c2.button("Reabrir", key=f"re-{split}-{a.id}", on_click=_decide,
-                          args=(split, a.id, "reabierta", verdict["verdict"]), width="stretch",
-                          help="Vuelve a dejar la alerta pendiente (la auditoría conserva las dos decisiones)")
+            md(_trust(a) + action_badges(its))
+            decision_controls(split, a, verdict)
+            st.button("Crear pedido o recordatorio", key=f"more-{split}-{a.id}", on_click=_open,
+                      args=(split, a.id), width="stretch", type="tertiary",
+                      help="Abre la alerta completa: pedido prellenado, recordatorio y decisión")
+
+
+# ---------------------------------------------------------------------------
+# Ventana de la alerta: información + decisión
+# ---------------------------------------------------------------------------
+
+def _action_line(x: dict, a: Alert | None) -> str:
+    src = f" · alerta de {esc(short_supplier(a.supplier.name))}" if a else ""
+    done = f" · hecho el {day_es(x['done_ts'])}" if x["status"] == "hecho" and x.get("done_ts") else ""
+    if x["kind"] == "order":
+        qty = f"{x['quantity']:,.0f}".replace(",", ".")
+        return (f'<div class="act"><span class="ic" aria-hidden="true">📦</span><span><strong>Pedido: {qty} '
+                f'{esc(x["unit"])} de {esc(x["material"])}</strong> a {esc(x["supplier_name"])}<span class="w">'
+                f'Para el {day_es(x["needed_by"])} · prioridad {esc(x["priority"].lower())} · '
+                f'{esc(tasks.ORDER_STATES[x["status"]])}{done}{src}</span></span></div>')
+    return (f'<div class="act"><span class="ic" aria-hidden="true">⏰</span><span><strong>{esc(x["text"])}</strong>'
+            f'<span class="w">Recordatorio · {esc(x["owner"] or "sin responsable")} · {day_es(x["due"])}{done}{src}'
+            '</span></span></div>')
+
+
+def order_form(split: str, a: Alert) -> None:
+    d = tasks.suggest_order(a.worst, a.supplier, a.level)
+    k = f"{split}-{a.id}"
+    names = dict(d.options)
+    with st.form(key=f"order-{k}", border=False):
+        sid = st.selectbox("Proveedor", list(names), index=list(names).index(d.supplier_id), format_func=names.get,
+                           key=f"o-sup-{k}", help="Propuesto por el plan: el alternativo si llega a tiempo")
+        mat = st.text_input("Material", value=material_es(a.supplier.material), key=f"o-mat-{k}")
+        c1, c2 = st.columns(2)
+        qty = c1.number_input(f"Cantidad ({d.unit})", min_value=0.0, value=float(d.quantity), step=1.0,
+                              format="%.0f", key=f"o-qty-{k}")
+        need = c2.date_input("Fecha requerida", value=d.needed_by, format="DD/MM/YYYY", key=f"o-date-{k}",
+                             help="El día en que se acaba el stock (hoy si no hay stock de reserva)")
+        prio = st.selectbox("Prioridad", tasks.PRIORITIES, index=tasks.PRIORITIES.index(d.priority),
+                            key=f"o-prio-{k}")
+        md(f'<p class="calc"><strong>Cantidad sugerida.</strong> {esc(d.calc)}</p>')
+        sent = st.form_submit_button("Crear pedido", type="primary", width="stretch")
+    if sent:
+        if qty <= 0:
+            st.error("Indica una cantidad mayor que 0.")
+            return
+        tasks.create_order(split, a.id, sid, names[sid], mat, qty, d.unit, need, prio, d.calc, user=USER,
+                           con=cache.db())
+        st.session_state[f"made-{k}"] = "📦 Pedido creado · queda como «Pedido pendiente de envío al ERP» (no se envía)"
+        st.rerun()        # la ventana sigue abierta, ya con el pedido; la tarjeta y la página, también
+
+
+def reminder_form(split: str, a: Alert) -> None:
+    first = plan_steps(a.worst, a.supplier, urgent=a.level == "critica")[0]
+    k = f"{split}-{a.id}"
+    with st.form(key=f"rem-{k}", border=False):
+        text = st.text_input("Recordatorio", value=first.text, key=f"r-text-{k}")
+        c1, c2 = st.columns(2)
+        owner = c1.text_input("Responsable", value=first.owner, key=f"r-owner-{k}")
+        due = c2.date_input("Fecha", value=date.today() + timedelta(days=WHEN_DAYS.get(first.when, 2)),
+                            format="DD/MM/YYYY", key=f"r-date-{k}")
+        sent = st.form_submit_button("Crear recordatorio", type="primary", width="stretch")
+    if sent:
+        if not text.strip():
+            st.error("Escribe el texto del recordatorio.")
+            return
+        tasks.create_reminder(split, a.id, text, owner, due, user=USER, con=cache.db())
+        st.session_state[f"made-{k}"] = f"⏰ Recordatorio creado para el {day_es(due.isoformat())}"
+        st.rerun()
+
+
+@st.dialog("Alerta", width="large", on_dismiss=_close)
+def alert_dialog(split: str, news_id: str) -> None:
+    """La alerta completa. Izquierda: qué pasa, la noticia, el impacto, el calendario de ese medicamento y
+    el plan. Derecha: la decisión y las acciones (todo se guarda en SQLite). Crear un pedido o un
+    recordatorio vuelve a ejecutar la página con la ventana abierta: la tarjeta y «Acciones en curso» ya
+    lo muestran detrás. Una decisión cierra la ventana."""
+    b = board(split)
+    a = next((x for x in b.alerts if x.id == news_id), None)
+    if a is None:
+        st.warning("Esta alerta ya no está en el conjunto de noticias.")
+        return
+    s, k = a.supplier, f"{split}-{a.id}"
+    its = [x for x in cache.items(split) if x["news_id"] == a.id]
+    info, act = st.columns([7, 5], gap="large")
+    with info, st.container(key="dlg-info"):
+        text, color = status_chip(a)
+        quote, _ = quote_for(a.r)
+        md(f'<div style="display:flex;flex-direction:column;gap:6px"><span class="overline">Información</span>'
+           f'<span class="chip {color}">{text}</span><h2 class="det-name">{esc(s.name)}</h2>'
+           f'<span class="det-sub">{esc(a.place)} · {esc(material_es(s.material))}</span></div>')
+        md(f'<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">Qué pasa</h3>'
+           f'<p class="what">{esc(a.what())}</p><blockquote class="quote">«{quote}»</blockquote></div>')
+        md('<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">La noticia</h3>'
+           f'<div class="news-card">{_news(a)}</div></div>')
+        md('<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">Impacto</h3>'
+           f'{_impact_boxes(a)}</div>')
+        md(calendar([a], card=False))
+        md(_plan(a))
+    with act, st.container(key="dlg-act"):
+        md('<span class="overline">Decisión</span>')
+        if msg := st.session_state.pop(f"made-{k}", None):
+            st.success(msg)
+        md(_trust(a))
+        t_dec, t_ord, t_rem = st.tabs(["Decidir", "📦 Crear pedido", "⏰ Crear recordatorio"])
+        with t_dec:
+            decision_controls(split, a, b.verdicts.get(a.id), where="dlg-")
+        with t_ord:
+            order_form(split, a)
+        with t_rem:
+            reminder_form(split, a)
+        md('<h3 class="h3">Acciones de esta alerta</h3>' + (
+            "".join(_action_line(x, None) for x in its) if its else
+            '<p class="sub">Aún no hay pedidos ni recordatorios para esta alerta.</p>'))
+
+
+def actions_panel(split: str, b: Board, its: list[dict]) -> None:
+    """Acciones en curso: pedidos y recordatorios creados desde las alertas, con «Hecho»."""
+    by_id = {a.id: a for a in b.alerts}
+    pend = [x for x in its if x["status"] != "hecho"]
+    done = [x for x in its if x["status"] == "hecho"]
+    with st.container(key="panel-actions"):
+        md('<div class="card-head"><h2 class="h2" id="acc-t">Acciones en curso</h2>'
+           f'<span class="sub">{len(pend)} pendiente{"s" if len(pend) != 1 else ""} · pedidos y recordatorios'
+           '</span></div>')
+        if not its:
+            md('<p class="sub">Aún no hay pedidos ni recordatorios. Se crean desde la ventana de cada alerta.</p>')
+        for x in pend:
+            with st.container(key=f"act-{x['kind']}-{x['id']}"):
+                c1, c2 = st.columns([5, 1.25], vertical_alignment="center")
+                c1.markdown(_action_line(x, by_id.get(x["news_id"])), unsafe_allow_html=True)
+                c2.button("Hecho", key=f"done-{x['kind']}-{x['id']}", on_click=_done, args=(x["kind"], x["id"]),
+                          width="stretch", help="Marcar como hecho")
+        if done:
+            with st.expander(f"Hechas · {len(done)}"):
+                md("".join(_action_line(x, by_id.get(x["news_id"])) for x in done))
 
 
 @st.fragment
 def decision_zone(split: str) -> None:
-    """Banner + KPIs + cola + detalle: un clic aquí solo vuelve a ejecutar esta función."""
-    if st.session_state.pop("full_rerun", False):
-        st.rerun(scope="app")
+    """Banner + KPIs + cola, acciones en curso, detalle y mapa: elegir una tarjeta o marcar una acción como
+    hecha solo vuelve a ejecutar esta función. Las ventanas (alerta, ficha) se abren al final."""
     if toast := st.session_state.pop("toast", None):
         st.toast(toast[0], icon=toast[1])
     b = board(split)
+    its = cache.items(split)
     sel_key = f"sel-{split}"
     ids = [a.id for a in b.alerts]
     if st.session_state.get(sel_key) not in ids:
-        st.session_state[sel_key] = (b.queue or b.alerts)[0].id if ids else None
+        st.session_state[sel_key] = (b.pending or b.queue or b.alerts)[0].id if ids else None
     sel = st.session_state[sel_key]
     banner(split, b)
     kpi_row(b)
@@ -372,10 +576,18 @@ def decision_zone(split: str) -> None:
         return
     left, right = st.columns([5, 7], gap="medium")
     with left:
-        queue(split, b, sel)
+        queue(split, b, sel, its)
+        actions_panel(split, b, its)
     with right:
         a = next(x for x in b.alerts if x.id == sel)
-        detail(split, a, b.verdicts.get(sel))
+        detail(split, a, b.verdicts.get(sel), [x for x in its if x["news_id"] == sel])
+        active = b.active
+        where(active, {x.id for x in active if x.level in ("critica", "vigilar")})
+    req = st.session_state.get("alert_dialog")
+    if req and req[0] == split:
+        alert_dialog(*req)
+    else:
+        sheet.open_requested()        # una sola ventana a la vez
 
 
 # ---------------------------------------------------------------------------
@@ -406,12 +618,18 @@ def calendar_rows(alerts: list[Alert]) -> list[tuple[str, Countdown, Alert]]:
     return sorted(((p, c, a) for p, (c, a) in best.items()), key=lambda x: (x[1].margin_days, x[0]))
 
 
-def calendar(alerts: list[Alert]) -> str:
+def calendar(alerts: list[Alert], card: bool = True) -> str:
+    """Calendario de roturas de los próximos HORIZON días. card=False: sin tarjeta, para la ventana de una
+    alerta (solo los medicamentos de esa alerta)."""
     rows = calendar_rows(alerts)
     head = ('<div class="card-head"><h2 class="h2" id="cal-t">Calendario de roturas</h2>'
-            f'<span class="sub">¿Cuánto aguantamos? Próximos {HORIZON} días por medicamento</span></div>')
+            f'<span class="sub">¿Cuánto aguantamos? Próximos {HORIZON} días por medicamento</span></div>') if card else \
+        f'<h3 class="h3">Calendario de {"este medicamento" if len(rows) == 1 else "estos medicamentos"}</h3>'
     if not rows:
-        return f'<section class="card">{head}<p class="sub">Ningún medicamento en riesgo en la cola.</p></section>'
+        empty = ("Ningún medicamento en riesgo en la cola." if card else
+                 "Sin medicamentos con stock afectado: el impacto es directo sobre el servicio.")
+        return f'<section class="card">{head}<p class="sub">{empty}</p></section>' if card else \
+            f'<div style="display:flex;flex-direction:column;gap:8px">{head}<p class="sub">{empty}</p></div>'
     sup = load_suppliers()
     cells = []
     for i, (prod, c, a) in enumerate(rows, 1):
@@ -465,8 +683,11 @@ def calendar(alerts: list[Alert]) -> str:
               '<span><span class="mk-rec"></span>Se recupera el proveedor</span>'
               '<span><span class="mk-alt"></span>Llega el alternativo</span>'
               '<span><span class="sw hatch"></span>Plazo estimado</span></span>')
-    return (f'<section class="card" style="height:100%">{head}{legend}<div class="cal" role="img" aria-label='
-            f'"Calendario de roturas de {n} medicamentos">{"".join(cells)}</div></section>')
+    grid = (f'<div class="cal{"" if card else " small"}" role="img" aria-label="Calendario de roturas de {n} '
+            f'medicamento{"s" if n != 1 else ""}">{"".join(cells)}</div>')
+    if not card:
+        return f'<div style="display:flex;flex-direction:column;gap:10px">{head}{legend}{grid}</div>'
+    return f'<section class="card">{head}{legend}{grid}</section>'
 
 
 # ---------------------------------------------------------------------------
@@ -505,33 +726,27 @@ def spend(alerts: list[Alert]) -> None:
     with st.container(key="panel-treemap"):
         md('<div class="card-head"><h2 class="h2" id="tm-t">¿Dónde está el gasto en riesgo?</h2>'
            f'<span class="sub">{meur(risky)} M€ de {meur(total)} M€ de gasto anual en proveedores con alertas · '
-           'pulsa un proveedor para ver su ficha</span></div>')
+           'pulsa una casilla para ver la ficha</span></div>')
         picked = spend_treemap(states, key="tm-control")
-        if picked:
+        if picked and picked.startswith(GROUP):
+            for cat, tiles in tm_groups(states):
+                for tid, _, ids in tiles:
+                    if tid == picked:
+                        sheet.request_list("Categorías sin alertas" if tid == REST else f"{cat}: otros sin riesgo",
+                                           ids)
+        elif picked:
             sheet.request(picked)
         md('<span class="legend">' + "".join(f'<span><span class="sw" style="background:{c};border:1px solid '
                                              f'{T.LINE_2}"></span>{esc(t)}</span>'
-                                             for t, c, _ in STATES.values()) + "</span>")
-        # El estado, también por escrito (las casillas pequeñas no tienen sitio para el texto)
-        lines = []
-        for level in ("critica", "vigilar", "seguimiento"):
-            ids = sorted((i for i, lv in states.items() if lv == level), key=lambda i: -(sup[i].annual_spend_eur or 0))
-            if ids:
-                lines.append(f"<strong>{STATES[level][0]}:</strong> " + ", ".join(
-                    f"{esc(short_supplier(sup[i].name))} ({meur(sup[i].annual_spend_eur or 0)} M€)" for i in ids))
-        if lines:
-            md('<p class="sub" style="margin:0">' + " · ".join(lines) + "</p>")
+                                             for t, c, _ in STATES.values())
+           + '<span>Las casillas más pequeñas tienen un tamaño mínimo para que quepa el nombre; el gasto real va '
+             'escrito en cada una.</span></span>')
 
 
 def charts(split: str) -> None:
-    b = board(split)
-    active = b.active
-    in_queue = [a for a in active if a.level in ("critica", "vigilar")]
-    left, right = st.columns([7, 5], gap="medium")
-    with left:
-        md(calendar(in_queue))
-    with right:
-        where(active, {a.id for a in in_queue})
+    """Calendario y treemap, a todo el ancho, debajo de la zona de decisión."""
+    active = board(split).active
+    md(calendar([a for a in active if a.level in ("critica", "vigilar")]))
     spend(active)
 
 

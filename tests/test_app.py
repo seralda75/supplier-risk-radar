@@ -6,7 +6,9 @@ import pytest
 import streamlit as st
 from streamlit.testing.v1 import AppTest
 
-from core import feedback, results, scenario
+from datetime import date
+
+from core import feedback, results, scenario, tasks
 from core.config import ROOT
 
 APP = ROOT / "app.py"
@@ -101,13 +103,19 @@ def test_calendario_una_fila_por_medicamento_con_el_estado_en_texto():
 
 
 @NEEDS_RESULTS
-def test_la_cola_selecciona_la_alerta():
+def test_la_cola_selecciona_la_alerta_y_abre_su_ventana():
     at = run()
     ids = [b.key.removeprefix("qbtn-") for b in at.button if b.key.startswith("qbtn-")]
     assert len(ids) >= 2
     at.button(key=f"qbtn-{ids[1]}").click().run()
+    assert not at.exception, at.exception
     assert at.session_state["sel-test"] == ids[1]
-    assert any(b.key == f"ok-test-{ids[1]}" for b in at.button)       # el detalle muestra esa alerta
+    keys = {b.key for b in at.button}
+    assert f"ok-test-{ids[1]}" in keys                  # el detalle muestra esa alerta
+    assert f"dlg-ok-test-{ids[1]}" in keys              # y la ventana está abierta, con su decisión
+    page = html(at)
+    for text in ("La noticia", "Impacto", "Calendario de", "Plan recomendado", "Acciones de esta alerta"):
+        assert text in page
 
 
 @NEEDS_RESULTS
@@ -166,11 +174,81 @@ def test_falsa_alarma_saca_la_alerta_de_la_exposicion():
 
 
 @NEEDS_RESULTS
+def test_aprobar_desde_la_ventana_de_la_alerta():
+    at = run()
+    sel = at.session_state["sel-test"]
+    at.button(key=f"qbtn-{sel}").click().run()
+    at.button(key=f"dlg-ok-test-{sel}").click().run()
+    assert not at.exception, at.exception
+    assert feedback.latest("test")[sel]["verdict"] == "plan_aprobado"
+    assert f"dlg-ok-test-{sel}" not in {b.key for b in at.button}      # la ventana se ha cerrado
+    assert "✓ PLAN APROBADO" in html(at)
+
+
+@NEEDS_RESULTS
+def test_falsa_alarma_guarda_el_motivo():
+    at = run()
+    sel = at.session_state["sel-test"]
+    at.text_input(key=f"fanote-test-{sel}").input("El proveedor confirma que no le afecta")
+    at.button(key=f"fa-test-{sel}").click().run()
+    assert not at.exception, at.exception
+    assert feedback.latest("test")[sel]["note"] == "El proveedor confirma que no le afecta"
+    assert "Motivo: «El proveedor confirma que no le afecta»" in html(at)
+
+
+@NEEDS_RESULTS
+def test_crear_pedido_y_recordatorio_y_marcarlos_como_hechos():
+    at = run()
+    sel = at.session_state["sel-test"]
+    at.button(key=f"qbtn-{sel}").click().run()
+    next(b for b in at.button if b.label == "Crear pedido").click().run()
+    assert not at.exception, at.exception
+    (order,) = [x for x in tasks.items("test", feedback.connect()) if x["kind"] == "order"]
+    assert order["news_id"] == sel and order["status"] == "pendiente_erp" and order["quantity"] > 0
+    at.button(key=f"qbtn-{sel}").click().run()
+    next(b for b in at.button if b.label == "Crear recordatorio").click().run()
+    assert not at.exception, at.exception
+    at = run()                                            # la página, ya sin la ventana
+    page = html(at)
+    assert "📦 Pedido creado" in page and "⏰ Recordatorio" in page            # en la tarjeta
+    assert "Acciones en curso" in page and "Pedido pendiente de envío al ERP" in page
+    at.button(key=f"done-order-{order['id']}").click().run()
+    assert not at.exception, at.exception
+    assert next(x for x in tasks.items("test", feedback.connect()) if x["kind"] == "order")["status"] == "hecho"
+    assert "📦 Pedido hecho" in html(at)
+
+
+def test_pedido_sugerido_necesidad_mensual_por_dias_de_deficit():
+    from core.countdown import Countdown
+    from core.suppliers import load_suppliers
+    sup = load_suppliers()
+    # Kaveri (S002): 45 d de stock, el proveedor tarda 90 d en recuperarse; su alternativo no llega a tiempo
+    c = Countdown("S002", "Kaveri", 45, "S001", False, 0, 60, False, 45, 90, False, "", -45, 45, "rotura_prevista",
+                  [], "1200 kg")
+    d = tasks.suggest_order(c, sup["S002"], "critica", today=date(2026, 10, 20))
+    assert d.quantity == 1800 and d.unit == "kg"                 # 1200 kg/mes × 45 días / 30
+    assert d.supplier_id == "S001"                               # el plan pide envío urgente al alternativo
+    assert d.needed_by == date(2026, 12, 4) and d.priority == "Alta"
+    assert "1.200 kg/mes × 45 días de déficit / 30 = 1.800 kg" in d.calc
+    with pytest.raises(ValueError):
+        tasks.create_order("test", "N1", "S001", "x", "x", 0, "kg", date.today(), "Alta", con=feedback.connect())
+
+
+@NEEDS_RESULTS
 def test_una_fila_del_ranking_abre_la_ficha():
     at = run("suppliers")
     at.button(key="rkbtn-S012").click().run()
-    assert not at.exception and at.session_state["sup_sel"] == "S012"
-    assert html(at).count(">Nordic Lipids AS</h2>") == 2              # diálogo + ficha de la página
+    assert not at.exception, at.exception
+    assert html(at).count(">Nordic Lipids AS</h2>") == 1              # en la ventana, no en la página
+
+
+@NEEDS_RESULTS
+def test_el_buscador_de_proveedores_abre_la_ficha():
+    at = run("suppliers")
+    at.selectbox(key="sup_pick").set_value("S025").run()
+    assert not at.exception, at.exception
+    assert ">Celsius Bioprocess Systems</h2>" in html(at)
+    assert at.session_state["sup_pick"] is None                        # el buscador queda vacío
 
 
 def test_pulsar_un_punto_del_mapa_pide_la_ficha():
@@ -190,16 +268,22 @@ def test_pulsar_un_punto_del_mapa_pide_la_ficha():
     assert at.session_state["map-v"] == 2              # gráfico nuevo: el mismo punto se puede volver a pulsar
 
 
-def test_treemap_reparte_todo_el_gasto_y_escribe_el_estado():
+def test_treemap_agrupa_lo_que_no_tiene_riesgo_y_toda_casilla_lleva_nombre():
     from core.suppliers import load_suppliers
-    from ui.treemap import H, layout, squarify
+    from ui.treemap import GROUP, H, W, MIN_SHARE, layout, squarify
     rects = squarify([6, 6, 4, 3, 2, 2, 1], 0, 0, 600, 400)
     assert abs(sum(w * h for _, _, w, h in rects) - 600 * 400) < 1e-6
     sup = load_suppliers()
     tm = layout({"S025": "critica", "S002": "vigilar"})
-    assert {t["id"] for t in tm["tiles"]} == {i for i, s in sup.items() if (s.annual_spend_eur or 0) > 0}
+    covered = [i for t in tm["tiles"] for i in t["ids"]]
+    assert sorted(covered) == sorted(i for i, s in sup.items() if (s.annual_spend_eur or 0) > 0)   # todo el gasto
+    assert {t["id"] for t in tm["tiles"] if not t["id"].startswith(GROUP)} >= {"S025", "S002"}
+    assert sum(t["id"].startswith(GROUP) for t in tm["tiles"]) <= 3      # el resto, agrupado
     celsius = next(t for t in tm["tiles"] if t["id"] == "S025")
     assert "crítica" in celsius["aria"] and "Pulsa para ver la ficha" in celsius["aria"]   # estado en texto
+    assert all("<b>" in t["html"] for t in tm["tiles"])                  # ninguna casilla sin nombre
+    area = [t["w"] / 100 * W * t["h"] for t in tm["tiles"]]
+    assert min(area) >= 0.9 * MIN_SHARE * W * H                          # tamaño mínimo
     assert all(0 <= t["x"] and t["x"] + t["w"] <= 100.01 and t["y"] + t["h"] <= H + 0.01 for t in tm["tiles"])
 
 
