@@ -99,6 +99,7 @@ def _open(split: str, news_id: str) -> None:
 
 
 def _close() -> None:
+    """Al cerrar la ventana con la X o pulsando fuera de ella."""
     st.session_state.pop("alert_dialog", None)
 
 
@@ -106,7 +107,7 @@ def decide(split: str, a: Alert, verdict: str, note: str = "") -> None:
     """Guarda la decisión y vuelve a ejecutar la página entera: KPIs, tarjeta, calendario, mapa y treemap
     salen ya con la decisión aplicada, y el aviso se muestra al principio de la ejecución siguiente."""
     feedback.save(split, a.id, verdict, user=USER, note=note.strip(), con=cache.db())
-    _close()
+    st.session_state.pop("alert_dialog", None)          # la decisión cierra la ventana
     name = short_supplier(a.supplier.name)
     st.session_state["toast"] = {
         "plan_aprobado": (f"Plan aprobado · {name} · registrado en la auditoría", "✅"),

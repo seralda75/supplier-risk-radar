@@ -300,13 +300,16 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 [class*="st-key-rk-"]:has(button:focus-visible) .rk {{ outline: 2px solid {PURPLE}; outline-offset: -2px; }}
 .bar-bg {{ background: {BG}; border-radius: 4px; width: 100%; }}
 
+/* Avisos (st.toast) abajo a la derecha: arriba tapaban la X de la ventana que se abre justo después */
+[data-testid="stToastContainer"] {{ top: auto !important; bottom: 24px !important; }}
+
 /* Ventanas modales (st.dialog): centradas, con el fondo difuminado */
 [data-testid="stDialog"] {{ backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
   background: rgba(23, 21, 28, .38) !important; }}
 [data-testid="stDialog"] [role="dialog"] {{ background: {CARD}; border-radius: 14px; }}
-.st-key-dlg-info [data-testid="stVerticalBlock"] {{ gap: 20px; }}
+.st-key-dlg-info, .st-key-dlg-info [data-testid="stVerticalBlock"] {{ gap: 24px !important; }}
 .st-key-dlg-act {{ background: {BG}; border-radius: 12px; padding: 18px; }}
-.st-key-dlg-act [data-testid="stVerticalBlock"] {{ gap: 14px; }}
+.st-key-dlg-act, .st-key-dlg-act [data-testid="stVerticalBlock"] {{ gap: 16px !important; }}
 .news-card {{ padding: 14px 16px; border-radius: 10px; border: 1px solid {LINE}; }}
 .news-card .news-body {{ max-width: none; }}
 .calc {{ margin: 0; padding: 10px 12px; border-radius: 8px; background: {PURPLE_SOFT}; border: 1px solid #EBD9FA;
