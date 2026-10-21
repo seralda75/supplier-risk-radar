@@ -7,3 +7,6 @@ data/chroma/
 data/*.db
 data/llm_cache/
 outputs/
+
+# Ajustes locales de Claude Code (personales)
+.claude/settings.local.json
