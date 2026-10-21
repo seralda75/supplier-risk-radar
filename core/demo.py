@@ -116,6 +116,8 @@ def warm_up() -> None:
             if llm.is_up(timeout=1):
                 llm.chat("OK", temperature=0)
                 llm.embed(["warm up"])
+                from .judge import build_prompt          # carga la base de ejemplos (Chroma)
+                build_prompt("Supplier warm up", "", [], None)
         except Exception:          # calentar es opcional: si falla, la primera noticia tardará más
             pass
     _pool.submit(run)

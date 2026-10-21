@@ -240,10 +240,11 @@ class Prepared:
     attempts: int
 
 
-def prepare(f: Facts, use_llm: bool = True) -> Prepared:
+def prepare(f: Facts, use_llm: bool = True, fresh: bool = False) -> Prepared:
     """Borradores para una alerta. La IA redacta el correo y el resumen; el código pone el impacto y el plan
     de la nota (con las cifras de la alerta). Si el texto de la IA tiene problemas (issues), se le pide otra
-    redacción; si vuelve a fallar, o no hay IA, se usa la plantilla entera."""
+    redacción; si vuelve a fallar, o no hay IA, se usa la plantilla entera. fresh=True: sin la caché del LLM
+    (para medir la latencia real)."""
     t0 = time.perf_counter()
     if not use_llm:
         return Prepared(template(f), "plantilla", "la IA local no está disponible", time.perf_counter() - t0, 0)
@@ -251,7 +252,7 @@ def prepare(f: Facts, use_llm: bool = True) -> Prepared:
     bad: list[str] = []
     for attempt in (1, 2):
         try:
-            w = llm.extract(_prompt(f, bad), Written, system=SYSTEM, use_cache=attempt == 1)
+            w = llm.extract(_prompt(f, bad), Written, system=SYSTEM, use_cache=attempt == 1 and not fresh)
         except Exception as e:                        # Ollama caído a mitad, JSON inválido tras los reintentos
             return Prepared(template(f), "plantilla", f"la IA local falló ({type(e).__name__})",
                             time.perf_counter() - t0, attempt)

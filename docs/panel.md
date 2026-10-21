@@ -80,7 +80,26 @@ Lo que se ha cambiado para que no vuelva a pasar:
 
 Sin excepciones y sin ninguna petición fuera de `localhost`. El treemap tiene 19 casillas y ninguna vacía.
 
-## 3. Rendimiento
+## 3. Modo demo y agente de comunicaciones: latencia
+
+Medido con `python scripts/latency_demo.py` el 21 oct 2026, **con el portátil en batería** (no estaba
+enchufado: la GPU va más lenta; hay que repetirlo enchufado). Ollama con qwen2.5:7b, modelo ya cargado.
+
+| Función | IA en directo (sin caché) | Con caché |
+|---|---:|---:|
+| Pipeline de una noticia (assess) | mediana 31,5 s (26–38 s, n = 5) | 0,1 s |
+| Comunicaciones de una alerta | mediana 27,4 s (25–32 s, n = 5) | al instante |
+| Plantilla de comunicaciones (sin IA) | — | < 0,01 s |
+
+En el panel, del clic en «Simular noticia entrante» a la alerta en la cola (clics reales, en batería): 22–35 s
+con IA en directo y ~9,7 s con caché, de los que 8,4 s son las pausas para que el público siga cada paso
+(`DEMO_STEP_S`, `DEMO_END_S`). La primera noticia con caché tardó 19,4 s (carga de la base de ejemplos); el
+modo demo ahora la precarga al activarse. «Preparar comunicaciones» con la respuesta en caché: 2,2–2,8 s
+del clic a los borradores en pantalla.
+
+Si la IA en directo tarda más de 60 s (`LIVE_TIMEOUT_S`), la demo usa el resultado precalculado y lo dice.
+
+## 4. Rendimiento
 
 Medido con Playwright: tiempo desde el clic hasta que la pantalla queda dibujada. Es decir, hasta que Streamlit
 termina la ejecución y el DOM lleva 400 ms sin cambios. Se toma la mediana de varias repeticiones; la primera

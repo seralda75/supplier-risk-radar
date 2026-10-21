@@ -44,6 +44,27 @@ Inventario de elementos clicables, interacciones probadas con clic real y tiempo
 La app solo lee `data/results/*.json` (incluidos en el repo): abre en segundos, sin llamar al LLM y sin
 internet (fuentes IBM Plex y contorno del mapa servidos desde `static/`).
 
+**Modo demo en directo** (interruptor «Modo demo» al pie del menú, o la URL con `?demo=1`): en el centro de
+control aparece «Simular noticia entrante». Cada pulsación toma la siguiente noticia de un guion de validación
+(`core/demo.py`) y la procesa con el pipeline real, paso a paso a la vista: noticia recibida → proveedores
+candidatos → diagnóstico (IA local en directo, o con caché si se apaga «IA en directo»; sin Ollama, el
+resultado precalculado) → cuenta atrás → alerta. La alerta entra resaltada («● NUEVA») y se actualizan KPIs,
+calendario, mapa y treemap. Todo va a `data/demo.db`: no toca la entrega, los resultados ni `data/app.db`.
+
+```powershell
+.venv\Scripts\python scripts\reset_demo.py      # demo limpia (vacía data/demo.db)
+.venv\Scripts\streamlit run app.py               # y abrir http://localhost:8501/?demo=1
+```
+
+«Reiniciar demo» hace lo mismo desde el panel. `scripts\reset_demo.py --panel` borra además las pruebas hechas
+fuera del modo demo en `data/app.db` (decisiones, pedidos, recordatorios, comunicaciones), con copia previa y
+sin tocar la auditoría del pipeline. Latencia: `scripts\latency_demo.py` (ver `docs/panel.md`).
+
+**Agente de comunicaciones** (pestaña «✉ Comunicar» de la ventana de la alerta): correo al proveedor en inglés
+y nota interna en español, editables. La IA local redacta el texto; las cifras de la nota las pone el código y
+se comprueba que el texto de la IA no trae cifras ajenas a la alerta ni datos internos en el correo (si no,
+plantilla). «Copiar» y «Marcar como enviado» (auditoría; la tarjeta muestra «✉ Comunicado»). No se envía nada.
+
 **Simulador «¿Y si…?»** (fase 5): el LLM convierte la pregunta en un escenario estructurado que el usuario
 revisa; el código calcula proveedores, materiales, productos, margen, gasto expuesto y acciones. Sin Ollama
 funciona con los ejemplos precalculados (`python scripts/build_scenarios.py` los regenera). Ver
@@ -63,7 +84,9 @@ core/urgency.py      dependencia del proveedor y decisión de urgencia
 core/judge.py        juez LLM: few-shot del entrenamiento (Chroma) + JSON schema + salvaguardas
 core/geo.py          coordenadas de las 40 ciudades (mapa)
 core/feedback.py     respuestas de los compradores (aprobar plan / falsa alarma con motivo / reabrir) en SQLite
-core/tasks.py        pedidos (pendientes de envío al ERP) y recordatorios creados desde las alertas
+core/tasks.py        pedidos (pendientes de envío al ERP), recordatorios y comunicaciones marcadas como enviadas
+core/comms.py        agente de comunicaciones: correo al proveedor y nota interna, con comprobación de cifras
+core/demo.py         modo demo en directo: guion de noticias, pipeline en segundo plano, data/demo.db
 core/results.py      resultados guardados para el panel y métricas
 core/countdown.py    cuenta atrás: TTS (inventario + alternativo) − TTR (recuperación)
 core/actions.py      acción recomendada a partir de la cuenta atrás (déficit, alternativo a tiempo o no)
