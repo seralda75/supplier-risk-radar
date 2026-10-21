@@ -2,40 +2,91 @@
 
 ## 1. Inventario de elementos clicables
 
-Revisado con capturas automáticas (Playwright, sin internet): cada elemento se pulsó y se comprobó qué cambiaba.
+Cada elemento se ha comprobado con clics de ratón reales (Playwright, Edge, sin internet): se pulsa en sus
+coordenadas, como un usuario, y se comprueba qué cambia en la pantalla y en SQLite.
 
-| Página | Elemento | Antes | Ahora |
-|---|---|---|---|
-| Todas | Menú lateral (4 entradas) | `st.button` que cambiaba una variable y recargaba toda la app | `st.page_link` de `st.navigation`: enlace real con su URL (`/proveedores`, `/simulador`, `/transparencia`); solo se ejecuta la página activa |
-| Centro de control | Selector de noticias (test, validación, entrenamiento) | Funcionaba | Igual |
-| Centro de control | «Simular escenario» | `st.button` | `st.page_link` al simulador |
-| Centro de control | «Revisar ahora» (banner) | Elegía la crítica con menos margen, aunque ya estuviera decidida | Elige la crítica **pendiente** con menos margen; solo se redibuja la zona de decisión |
-| Centro de control | Tarjetas de la cola y filas «En seguimiento semanal» | HTML con un `st.button` invisible encima: funcionaban | Igual, y muestran el estado de la decisión (plan aprobado, falsa alarma) |
-| Centro de control | «Ver noticia original» | `<details>` de HTML: se abría en el navegador, sin pasar por Python | `st.popover`: fuente, fecha, tipo de evento, titular y resumen (el reto no trae enlaces) |
-| Centro de control | «Aprobar plan» | Guardaba en SQLite y mostraba un aviso; la tarjeta solo añadía un chip pequeño y los KPIs no cambiaban | Guarda, avisa, muestra la confirmación (quién y cuándo), la tarjeta pasa a «✓ PLAN APROBADO» y baja el KPI de críticas sin decidir |
-| Centro de control | «Falsa alarma» | Igual que «Aprobar plan» | Guarda y avisa; la tarjeta queda tachada como «FALSA ALARMA · DESCARTADA» y la alerta deja de contar en los KPIs, el calendario, el mapa y el treemap |
-| Centro de control | «Reabrir» | No existía (una decisión no se podía deshacer) | Vuelve a dejar la alerta pendiente; la auditoría conserva las dos decisiones |
-| Centro de control | Puntos del mapa | Solo información al pasar el ratón | Abren la ficha del proveedor (diálogo) |
-| Centro de control | «¿Cuánto aguantamos?» (barras HTML) | No clicable | Sustituido por el calendario de roturas; no es clicable ni lo parece |
-| Centro de control | Treemap «¿Dónde está el gasto en riesgo?» | — | Cada casilla es un botón que abre la ficha |
-| Proveedores | Filas del ranking de vulnerabilidad | Tabla HTML sin acción | Cada fila abre la ficha y la deja elegida en «Ficha de proveedor» |
-| Proveedores | Selector «Ficha de proveedor» | Funcionaba | Igual |
-| Simulador | Texto, «Interpretar con la IA», ejemplos, «Usar este ejemplo», formulario y «Calcular impacto» | Funcionaban | Igual |
-| Simulador | Puntos del mapa | Solo información al pasar el ratón | Abren la ficha |
-| Transparencia | Dos desplegables (historial y documento de evaluación) | Funcionaban | Igual |
+| Página | Elemento | Qué hace |
+|---|---|---|
+| Todas | Menú lateral (4 entradas) | `st.page_link` de `st.navigation`: enlace real con su URL (`/proveedores`, `/simulador`, `/transparencia`); solo se ejecuta la página activa |
+| Centro de control | Selector de noticias (test, validación, entrenamiento) | Cambia el conjunto |
+| Centro de control | «Simular escenario» | Enlace al simulador |
+| Centro de control | «Revisar ahora» (banner) | Elige la crítica **pendiente** con menos margen |
+| Centro de control | Tarjeta de «Requiere tu decisión» o fila «En seguimiento semanal» | La elige (detalle a la derecha) y abre su **ventana** (centrada, fondo difuminado) |
+| Centro de control · detalle | «Ver noticia original» | Desplegable con fuente, fecha, tipo de evento, titular y resumen (el reto no trae enlaces) |
+| Centro de control · detalle y ventana | «Aprobar plan» | Guarda en SQLite, avisa, la tarjeta pasa a «✓ PLAN APROBADO», baja el KPI de críticas sin decidir y aparece la confirmación (quién y cuándo) |
+| Centro de control · detalle y ventana | «Falsa alarma» | Pide un motivo (opcional) y lo guarda; la alerta sale de los KPIs, el calendario, el mapa y el treemap; la tarjeta queda tachada |
+| Centro de control · detalle y ventana | «Reabrir» | Deja la alerta pendiente otra vez; la auditoría conserva las dos decisiones |
+| Centro de control · detalle | «Crear pedido o recordatorio» | Abre la ventana de la alerta |
+| Ventana de la alerta | «Crear pedido» | Formulario prellenado (material, proveedor según el plan, cantidad = necesidad mensual × días de déficit / 30 con el cálculo explicado, fecha requerida, prioridad). Se guarda como «Pedido pendiente de envío al ERP» (no se envía) |
+| Ventana de la alerta | «Crear recordatorio» | Texto (el primer paso del plan), responsable y fecha. Se guarda en SQLite |
+| Ventana de la alerta | X o pulsar fuera | Cierra la ventana |
+| Centro de control | «Acciones en curso» · «Hecho» | Marca el pedido o el recordatorio como hecho (pasa a «Hechas») |
+| Centro de control | Puntos del mapa | Abren la ficha del proveedor (ventana) |
+| Centro de control | Casilla de un proveedor del treemap | Abre su ficha (ventana) |
+| Centro de control | Casilla «Otros sin riesgo (N)» del treemap | Abre la lista de esos proveedores; cada uno abre su ficha |
+| Proveedores | Buscador de la cabecera | Abre la ficha del proveedor elegido (ventana) |
+| Proveedores | Filas del ranking de vulnerabilidad | Abren la ficha (ventana) |
+| Simulador | Texto, «Interpretar con la IA», ejemplos, «Usar este ejemplo», formulario y «Calcular impacto» | Como antes |
+| Simulador | Puntos del mapa | Abren la ficha |
+| Transparencia | Dos desplegables (historial y documento de evaluación) | Como antes |
 
-No queda ningún elemento con aspecto de clicable que no haga nada. Las tarjetas, las filas y las casillas son
-HTML propio, pero lo que se pulsa es siempre un widget real de Streamlit:
+Las tarjetas, filas y casillas son HTML propio, pero lo que se pulsa es siempre un widget real de Streamlit: un
+`st.button` invisible encima (cola, ranking, lista), botones de un componente `st.components.v2` (treemap) o la
+selección de puntos de `st.plotly_chart` (mapa).
 
-- En la cola y el ranking, un `st.button` invisible colocado encima de cada tarjeta o fila.
-- En el treemap, botones de un componente `st.components.v2` que devuelven el ID a Python.
-- En el mapa, la selección de puntos de `st.plotly_chart`.
+### «Aprobar plan» y «Falsa alarma» no hacían nada
 
-## 2. Rendimiento
+No se pudo reproducir con la versión anterior: con clics reales en Edge, Chrome y Firefox, en cinco anchos y con
+zoom, y en nueve recorridos (cambiar de página y volver, elegir otra tarjeta, «Revisar ahora», abrir la ficha…)
+la decisión siempre se guardaba. Lo que sí se vio: la base de datos del revisor no tenía ninguna decisión, así
+que sus clics no llegaron al servidor.
+
+Lo que se ha cambiado para que no vuelva a pasar:
+
+- **Sin estado intermedio.** Antes: un callback guardaba y dejaba banderas en `session_state` que el fragmento
+  leía en la ejecución siguiente («volver a ejecutar la página entera», «mostrar el aviso»). Ahora:
+  `if st.button(...)` → se guarda en SQLite → `st.rerun()` de la página entera. KPIs, tarjeta, calendario, mapa
+  y treemap salen ya con la decisión.
+- **La tarjeta no se mueve.** Antes, al decidir, la tarjeta saltaba al final de la cola y parecía que no había
+  pasado nada; ahora se queda en su sitio y cambia de aspecto.
+- **Avisos abajo a la derecha.** Fallo real encontrado con los clics: el aviso de una decisión (arriba a la
+  derecha, unos 4 s) tapaba la X de la siguiente ventana, y ese clic se perdía.
+
+## 2. Interacciones probadas con clic real (última pasada)
+
+| Interacción | Resultado |
+|---|---|
+| «Aprobar plan» en el detalle | SQLite `plan_aprobado`, aviso, tarjeta «✓ PLAN APROBADO», KPI críticas 5 → 4, confirmación |
+| «Reabrir» | Vuelve a pendiente, KPI 4 → 5 |
+| «Falsa alarma» con motivo en el detalle | SQLite `falsa_alarma` + motivo, proveedores expuestos 11 → 10, tarjeta tachada, motivo en la confirmación |
+| Tarjeta de la cola | Abre la ventana con fondo difuminado: noticia, impacto, calendario, plan y decisión |
+| «Crear pedido» en la ventana | SQLite `orders` (pendiente_erp); la ventana sigue abierta con la confirmación |
+| «Crear recordatorio» en la ventana | SQLite `reminders` |
+| «Aprobar plan» en la ventana | Se guarda y la ventana se cierra; la tarjeta muestra «📦 Pedido creado · ⏰ Recordatorio 21 oct» |
+| «Acciones en curso» · «Hecho» | Estado `hecho` en SQLite |
+| «Falsa alarma» con motivo en la ventana | Se guarda con el motivo y la ventana se cierra |
+| X de la ventana, también justo después de una decisión | Se cierra; la siguiente tarjeta abre su ventana |
+| «Revisar ahora» | Selecciona la crítica pendiente con menos margen |
+| «Ver noticia original» | Noticia completa |
+| «Crear pedido o recordatorio» en el detalle | Abre la ventana de esa alerta |
+| Punto del mapa | Ficha del proveedor |
+| Casilla del treemap | Ficha del proveedor |
+| Casilla «Otros sin riesgo» → proveedor de la lista | Lista de 5 proveedores → su ficha |
+| «Simular escenario» | `/simulador` |
+| Fila del ranking · buscador de Proveedores | Ficha del proveedor |
+| Proveedores: fila de dos tarjetas | Misma altura (680 px y 680 px) |
+| Simulador: ejemplo + «Calcular impacto» | Resultado con el plan |
+| Menú lateral (4 páginas) | Cambia de página |
+
+Sin excepciones y sin ninguna petición fuera de `localhost`. El treemap tiene 19 casillas y ninguna vacía.
+
+## 3. Rendimiento
 
 Medido con Playwright: tiempo desde el clic hasta que la pantalla queda dibujada. Es decir, hasta que Streamlit
 termina la ejecución y el DOM lleva 400 ms sin cambios. Se toma la mediana de varias repeticiones; la primera
 visita a cada página se descarta.
+
+Medido en la versión anterior (commit f7759a0), antes de la ventana de alerta y de la nueva distribución; no se ha vuelto a medir.
 
 **Medición principal: mismas condiciones.** La versión anterior (commit 4d92806) y la actual se midieron
 alternándose, dos rondas cada una, con el portátil en batería (CPU limitada). La tabla da la media de las
@@ -69,7 +120,7 @@ fronteras), así que el Centro de control actual debería ir algo más rápido q
 - **Centro de control:** es la página más pesada, con dos gráficos y unas 40 tarjetas, cajas y pasos. Dentro de
   ella, lo que se usa a cada momento (elegir una alerta o decidir) se queda entre 136 y 198 ms enchufado.
 
-### Qué se ha cambiado
+### Qué se cambió
 
 | Cambio | Efecto |
 |---|---|

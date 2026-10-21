@@ -24,18 +24,23 @@ solo se ejecuta la activa):
 - **Centro de control**: banner de estado, 5 indicadores (alertas críticas, proveedores expuestos,
   medicamentos en riesgo, gasto anual expuesto en € y % del total, menor margen), la cola «Requiere tu
   decisión» (CRÍTICA = urgente; VIGILAR · RIESGO LATENTE = no urgente con margen negativo) ordenada por días
-  de margen, el detalle de la alerta (qué pasa, cita con la duración resaltada, impacto, plan en pasos con
-  responsable y plazo de `core/actions.py`, fiabilidad, noticia completa, botones Falsa alarma / Aprobar plan /
-  Reabrir guardados en SQLite, que cambian la tarjeta y los KPIs), el **calendario de roturas** (próximos 90
-  días por medicamento), el mapa y el **treemap del gasto en riesgo**. Pulsar un proveedor en el mapa o en el
-  treemap abre su ficha. Por defecto, las noticias de test; un selector discreto cambia a entrenamiento o
-  validación.
-- **Proveedores**: ranking de vulnerabilidad (cada fila abre la ficha), % del gasto en proveedores únicos,
-  concentración por país y por zona, alternativos que no llegan a tiempo y ficha por proveedor con su historial.
+  de margen y, debajo, **Acciones en curso** (pedidos y recordatorios, con «Hecho»). A la derecha, el detalle
+  de la alerta (qué pasa, cita con la duración resaltada, impacto, plan en pasos con responsable y plazo de
+  `core/actions.py`, fiabilidad, noticia completa, Falsa alarma con motivo / Aprobar plan / Reabrir) y el mapa.
+  Pulsar una tarjeta abre la **ventana de la alerta**: información (noticia, impacto, calendario de ese
+  medicamento, plan) y decisión (aprobar, falsa alarma, **crear pedido** prellenado con la cantidad
+  calculada, que queda como «pendiente de envío al ERP», y **crear recordatorio**), todo en SQLite
+  (`core/feedback.py`, `core/tasks.py`). Debajo, a todo el ancho, el **calendario de roturas** (próximos 90
+  días por medicamento) y el **treemap del gasto en riesgo** (lo que no tiene riesgo, agrupado en gris).
+  Pulsar un proveedor en el mapa o en el treemap abre su ficha. Por defecto, las noticias de test; un
+  selector discreto cambia a entrenamiento o validación.
+- **Proveedores**: ranking de vulnerabilidad, % del gasto en proveedores únicos, concentración por país y por
+  zona y alternativos que no llegan a tiempo. La ficha de proveedor (con su historial) se abre en una ventana
+  desde el ranking o desde el buscador de la cabecera.
 - **Simulador «¿Y si…?»** y **Transparencia** (métricas, cambios, límites, duraciones ancladas).
 
 Las vistas de negocio no usan jerga: proveedores por nombre y ciudad, «días de margen» en lugar de TTS/TTR.
-Inventario de elementos clicables y tiempos de respuesta (antes y después): `docs/panel.md`.
+Inventario de elementos clicables, interacciones probadas con clic real y tiempos de respuesta: `docs/panel.md`.
 La app solo lee `data/results/*.json` (incluidos en el repo): abre en segundos, sin llamar al LLM y sin
 internet (fuentes IBM Plex y contorno del mapa servidos desde `static/`).
 
@@ -57,7 +62,8 @@ core/rules.py        modo solo reglas: tipo de evento, gravedad y proveedores af
 core/urgency.py      dependencia del proveedor y decisión de urgencia
 core/judge.py        juez LLM: few-shot del entrenamiento (Chroma) + JSON schema + salvaguardas
 core/geo.py          coordenadas de las 40 ciudades (mapa)
-core/feedback.py     respuestas de los compradores (aprobar plan / falsa alarma / reabrir) en SQLite
+core/feedback.py     respuestas de los compradores (aprobar plan / falsa alarma con motivo / reabrir) en SQLite
+core/tasks.py        pedidos (pendientes de envío al ERP) y recordatorios creados desde las alertas
 core/results.py      resultados guardados para el panel y métricas
 core/countdown.py    cuenta atrás: TTS (inventario + alternativo) − TTR (recuperación)
 core/actions.py      acción recomendada a partir de la cuenta atrás (déficit, alternativo a tiempo o no)
