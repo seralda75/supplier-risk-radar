@@ -405,6 +405,40 @@ def test_calendario_respeta_falsa_alarma_y_modo_demo():
     assert int(kpi_value(at, "Rotura prevista")) == roturas + 1       # la base de la demo no tiene la falsa alarma
 
 
+@NEEDS_RESULTS
+def test_calendario_crear_pedido_desde_el_semaforo():
+    at = run("calendar")
+    at.button(key="sem-order-0").click().run()                 # el medicamento en peor estado
+    assert not at.exception, at.exception
+    iso, mid = at.session_state["cal_day"]
+    assert iso == date.today().isoformat() and mid
+    assert "Eventos del día" in html(at)
+    next(b for b in at.button if b.label == "Crear pedido" and not (b.key or "").startswith("sem-")).click().run()
+    assert not at.exception, at.exception
+    (o,) = [x for x in tasks.items("test", feedback.connect()) if x["kind"] == "order"]
+    assert o["status"] == "pendiente_erp" and o["quantity"] > 0
+    assert not o["news_id"].startswith("cal-")                 # el peor material tiene alerta: queda enlazado a ella
+    from ui.calendar_view import active_countdowns, events
+    from core.order_calendar import plan
+    mats, _ = plan(active_countdowns("test")[1], date.today())  # el pedido sale en el calendario, en su fecha
+    evs = events(mats, tasks.items("test", feedback.connect()), date.today())
+    assert any(e["k"] == "pedido" for e in evs.get(o["needed_by"], []))
+
+
+def test_pedido_de_reposicion_desde_el_calendario():
+    from core.countdown import Countdown
+    from core.order_calendar import materials, material_plan
+    today = date(2026, 10, 21)
+    m = next(x for x in materials() if x.id == "M03")          # atorvastatina, 80 kg/mes
+    d = tasks.suggest_restock(material_plan(m, [], today), today)
+    assert d.supplier_id == "S004" and d.quantity == 80 and "un mes de necesidad" in d.calc
+    assert d.needed_by == date(2026, 12, 20) and d.priority == "Baja"   # hoy + 60 d de stock
+    c = Countdown("S004", "Orion", 60, "S005", True, 0, 80, False, 60, 90, False, "", -30, 30, "rotura_prevista",
+                  [], "")
+    d = tasks.suggest_restock(material_plan(m, [c], today), today)     # rotura del día 60 al 90
+    assert d.quantity == 80 and "30 días de déficit" in d.calc and d.priority == "Alta"
+
+
 def test_demo_guion_sin_etiquetas_y_en_orden(tmp_path):
     con = demo.connect(tmp_path / "d.db")
     n = demo.next_news(con)

@@ -10,11 +10,15 @@ import re
 import sqlite3
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from .actions import situation
 from .countdown import Countdown
 from .feedback import _LOCK, _db
 from .suppliers import Supplier, load_suppliers
+
+if TYPE_CHECKING:
+    from .order_calendar import MaterialPlan
 
 ORDER_STATES = {"pendiente_erp": "Pedido pendiente de envío al ERP", "hecho": "Hecho"}
 REMINDER_STATES = {"pendiente": "Pendiente", "hecho": "Hecho"}
@@ -126,6 +130,38 @@ def suggest_order(c: Countdown, s: Supplier, level: str, today: date | None = No
     needed_by = today + timedelta(days=int(c.tts_days)) if c.inventory_days is not None else today
     priority = "Alta" if level == "critica" or c.margin_days < 0 else ("Media" if level == "vigilar" else "Baja")
     return OrderDraft(pick[0], pick[1], s.material, qty, unit, needed_by, priority, calc, options)
+
+
+def suggest_restock(mp: "MaterialPlan", today: date | None = None) -> OrderDraft:
+    """Pedido propuesto desde el calendario para un material (core/order_calendar.MaterialPlan).
+
+    - Proveedor: el que se usaría (el alternativo si el principal está afectado).
+    - Cantidad: con rotura prevista, necesidad mensual × días de déficit / 30 (los días entre la rotura y la
+      recuperación del proveedor, como en la ventana de la alerta); si no, un mes de necesidad.
+    - Fecha requerida: el día en que se acaba el stock.
+    - Prioridad: alta si hay rotura prevista o la fecha límite para pedir ya ha pasado; media en peligro.
+    """
+    today = today or date.today()
+    sup = load_suppliers()
+    m = mp.material
+    options = [(m.primary_id, sup[m.primary_id].name)]
+    if m.alternate_id:
+        options.append((m.alternate_id, sup[m.alternate_id].name))
+    options.append((OTHER_SUPPLIER, "Proveedor no aprobado (cualificación de urgencia)"))
+    need, unit = monthly_need(m.monthly)
+    if need is None:
+        qty, calc = 0.0, "Sin necesidad mensual registrada para este material: indica la cantidad."
+    elif mp.stockout and mp.recovery and mp.recovery > mp.stockout:
+        days = (mp.recovery - mp.stockout).days
+        qty = round(need * days / 30)
+        calc = (f"{_fmt(need)} {unit}/mes × {days} días de déficit / 30 = {_fmt(qty)} {unit} (déficit = días entre la "
+                "rotura prevista y la recuperación del proveedor)")
+    else:
+        qty, calc = need, f"Reposición: un mes de necesidad ({_fmt(need)} {unit}/mes)."
+    priority = ("Alta" if mp.status == "rotura" or mp.days_left < 0 else
+                "Media" if mp.status == "peligro" else "Baja")
+    needed_by = today + timedelta(days=int(mp.stock_days))
+    return OrderDraft(mp.supplier_id, sup[mp.supplier_id].name, m.name, qty, unit, needed_by, priority, calc, options)
 
 
 # ---------------------------------------------------------------------------

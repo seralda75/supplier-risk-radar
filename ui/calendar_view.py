@@ -16,7 +16,7 @@ from datetime import date, timedelta
 
 import streamlit as st
 
-from core import results
+from core import results, tasks
 from core.labels import material_es, product_es, short_supplier
 from core.order_calendar import STATUS_ES, plan
 from core.suppliers import load_suppliers
@@ -115,7 +115,7 @@ CSS = f"""
 .oc-grid {{ display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }}
 .oc-dow {{ font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: {T.MUTED};
   padding: 2px 6px; }}
-.oc-day {{ min-height: 122px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 6px;
+.oc-day {{ min-height: 122px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 5px 4px;
   border: 1px solid {T.LINE}; border-radius: 8px; background: #FFFFFF; text-align: left; cursor: pointer;
   font: inherit; color: inherit; min-width: 0; }}
 .oc-day:hover {{ border-color: {T.PURPLE}; box-shadow: 0 0 0 1px {T.PURPLE}; }}
@@ -269,18 +269,93 @@ def semaphore(meds, today: date) -> None:
         md('<div class="card-head"><h2 class="h2">Semáforo de medicamentos</h2></div>'
            '<p class="sub" style="margin:0">El peor de sus materiales. Una fecha vencida significa que debería '
            'haber ya un pedido en curso.</p>')
-        for d in meds:
-            w = d.worst
-            rot = d.stockout_days
-            left = (d.deadline - today).days
-            md(f'<div class="sem {d.status}"><span class="top"><span class="n">{esc(product_es(d.name))}</span>'
-               f'<span class="chip {STATUS_CHIP[d.status]}">{STATUS_ES[d.status].upper()}</span></span>'
-               f'<span class="g"><span><span class="l">Stock</span><b class="num">{w.stock_days:.0f} d</b></span>'
-               f'<span><span class="l">Pedir antes del</span><b>{control.day_es(d.deadline.isoformat())}</b>'
-               f'<span class="w{" late" if left < 0 else ""}">{_deadline_text(left)}</span></span>'
-               f'<span><span class="l">Rotura</span><b>{"en " + str(rot) + " d" if rot is not None else "no prevista"}'
-               f'</b></span></span>'
-               f'<span class="w" title="{esc(w.why)}">{esc(material_es(w.material.name))}: {esc(w.why)}</span></div>')
+        for i, d in enumerate(meds):
+            with st.container(key=f"sem-{i}"):
+                md(sem_card(d, today))
+                # Abre la ventana de hoy con el pedido del material que decide el estado
+                st.button("Crear pedido", key=f"sem-order-{i}", on_click=_open_day,
+                          args=(today.isoformat(), d.worst.material.id, "📦 Crear pedido"),
+                          help=f"Pedido de {material_es(d.worst.material.name)} (el material que decide el estado)")
+
+
+def sem_card(d, today: date) -> str:
+    """Tarjeta de un medicamento: estado, días de stock, fecha límite para pedir y días hasta la rotura."""
+    w, rot = d.worst, d.stockout_days
+    left = (d.deadline - today).days
+    return (f'<div class="sem {d.status}"><span class="top"><span class="n">{esc(product_es(d.name))}</span>'
+            f'<span class="chip {STATUS_CHIP[d.status]}">{STATUS_ES[d.status].upper()}</span></span>'
+            f'<span class="g"><span><span class="l">Stock</span><b class="num">{w.stock_days:.0f} d</b></span>'
+            f'<span><span class="l">Pedir antes del</span><b>{control.day_es(d.deadline.isoformat())}</b>'
+            f'<span class="w{" late" if left < 0 else ""}">{_deadline_text(left)}</span></span>'
+            f'<span><span class="l">Rotura</span><b>{"en " + str(rot) + " d" if rot is not None else "no prevista"}'
+            f'</b></span></span>'
+            f'<span class="w" title="{esc(w.why)}">{esc(material_es(w.material.name))}: {esc(w.why)}</span></div>')
+
+
+# ---------------------------------------------------------------------------
+# Ventana de un día (o «Crear pedido» del semáforo): eventos + crear pedido o recordatorio
+# ---------------------------------------------------------------------------
+
+def _open_day(iso: str, mid: str | None = None, tab: str | None = None) -> None:
+    """Abre la ventana del día (sigue abierta aunque la página se vuelva a ejecutar, hasta cerrarla)."""
+    st.session_state["cal_day"] = (iso, mid)
+    if tab:
+        st.session_state[f"cal-tabs-{iso}"] = tab
+
+
+def _close_day() -> None:
+    st.session_state.pop("cal_day", None)
+
+
+def _news_id(b, mp) -> str:
+    """La alerta a la que se asocia un pedido o recordatorio del calendario (sale también en su tarjeta);
+    si el material no tiene alerta activa, un identificador propio del calendario."""
+    if mp.alert_supplier:
+        for a in b.active:
+            if mp.alert_supplier in {c.supplier_id for c in [a.worst] + a.others}:
+                return a.id
+    return f"cal-{mp.material.id}"
+
+
+@st.dialog("Calendario", width="large", on_dismiss=_close_day)
+def day_dialog(split: str, iso: str, mid: str | None) -> None:
+    today = date.today()
+    d = date.fromisoformat(iso)
+    b, cds = active_countdowns(split)
+    mats, _ = plan(cds, today)
+    by = {m.material.id: m for m in mats}
+    evs = events(mats, cache.items(split), today).get(iso, [])
+    title = long_date(d)
+    md(f'<div style="display:flex;flex-direction:column;gap:4px"><span class="overline">'
+       f'{"Hoy" if d == today else ("Día pasado" if d < today else "Proyección")}</span>'
+       f'<h2 class="det-name">{esc(title[0].upper() + title[1:])}</h2></div>')
+    left, right = st.columns([5, 6], gap="large")
+    with left:
+        md('<h3 class="h3">Eventos del día</h3>' + ("".join(
+            f'<div class="act"><span class="ic" aria-hidden="true">{e["i"]}</span><span>'
+            f'<strong>{esc(KINDS[e["k"]][1])}</strong><span class="w">{esc(e["f"])}</span></span></div>'
+            for e in evs) if evs else '<p class="sub">Sin eventos este día. Puedes crear un pedido o un '
+                                      'recordatorio igualmente.</p>'))
+    with right, st.container(key="cal-act"):
+        ids = list(dict.fromkeys([x for x in [mid] + [e["id"] for e in evs] if x] + [m.material.id for m in mats]))
+        mid = st.selectbox("Material", ids, key=f"cal-mat-{iso}-{ids[0]}",
+                           format_func=lambda i: f"{material_es(by[i].material.name)} · "
+                                                 f"{STATUS_ES[by[i].status].lower()}")
+        mp = by[mid]
+        k = f"cal-{iso}-{mid}"
+        if msg := st.session_state.pop(f"made-{k}", None):
+            st.success(msg)
+        left_days = _deadline_text(mp.days_left)
+        md(f'<p class="sub">{esc(mp.why[0].upper() + mp.why[1:])}. Pedir antes del '
+           f'{control.day_es(mp.deadline.isoformat())} ({left_days}).</p>')
+        news_id = _news_id(b, mp)
+        t_ord, t_rem = st.tabs(["📦 Crear pedido", "⏰ Crear recordatorio"], key=f"cal-tabs-{iso}", on_change="rerun")
+        with t_ord:
+            control.draft_form(split, news_id, tasks.suggest_restock(mp, today), material_es(mp.material.name), k)
+        with t_rem:
+            who = short_supplier(load_suppliers()[mp.supplier_id].name)
+            control.reminder_fields(split, news_id, f"Revisar el stock de {material_es(mp.material.name)} con {who}",
+                                    "Compras", max(d, today), k)
 
 
 def page() -> None:
@@ -301,7 +376,11 @@ def page() -> None:
     _kpis(meds, mats, today)
     left, right = st.columns([7.4, 4.6], gap="medium")
     with left, st.container(key="panel-calendar"):
-        calendar(events(mats, cache.items(split), today), today)
+        picked = calendar(events(mats, cache.items(split), today), today)
         md('<span class="legend">' + "".join(f'<span>{i} {esc(t)}</span>' for i, t in KINDS.values()) + "</span>")
     with right:
         semaphore(meds, today)
+    if picked:
+        _open_day(picked)
+    if req := st.session_state.get("cal_day"):
+        day_dialog(split, *req)

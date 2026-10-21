@@ -459,13 +459,18 @@ def _action_line(x: dict, a: Alert | None) -> str:
 
 
 def order_form(split: str, a: Alert) -> None:
-    d = tasks.suggest_order(a.worst, a.supplier, a.level)
-    k = f"{split}-{a.id}"
+    draft_form(split, a.id, tasks.suggest_order(a.worst, a.supplier, a.level), material_es(a.supplier.material),
+               f"{split}-{a.id}")
+
+
+def draft_form(split: str, news_id: str, d: tasks.OrderDraft, material: str, k: str) -> None:
+    """Formulario «Crear pedido» prellenado con una propuesta (OrderDraft). Lo usan la ventana de la alerta y
+    la del calendario. Al guardar deja un aviso en session_state[f"made-{k}"] y vuelve a ejecutar la página."""
     names = dict(d.options)
     with st.form(key=f"order-{k}", border=False):
         sid = st.selectbox("Proveedor", list(names), index=list(names).index(d.supplier_id), format_func=names.get,
                            key=f"o-sup-{k}", help="Propuesto por el plan: el alternativo si llega a tiempo")
-        mat = st.text_input("Material", value=material_es(a.supplier.material), key=f"o-mat-{k}")
+        mat = st.text_input("Material", value=material, key=f"o-mat-{k}")
         c1, c2 = st.columns(2)
         qty = c1.number_input(f"Cantidad ({d.unit})", min_value=0.0, value=float(d.quantity), step=1.0,
                               format="%.0f", key=f"o-qty-{k}")
@@ -479,7 +484,7 @@ def order_form(split: str, a: Alert) -> None:
         if qty <= 0:
             st.error("Indica una cantidad mayor que 0.")
             return
-        tasks.create_order(split, a.id, sid, names[sid], mat, qty, d.unit, need, prio, d.calc, user=USER,
+        tasks.create_order(split, news_id, sid, names[sid], mat, qty, d.unit, need, prio, d.calc, user=USER,
                            con=cache.db())
         st.session_state[f"made-{k}"] = "📦 Pedido creado · queda como «Pedido pendiente de envío al ERP» (no se envía)"
         st.rerun()        # la ventana sigue abierta, ya con el pedido; la tarjeta y la página, también
@@ -487,19 +492,23 @@ def order_form(split: str, a: Alert) -> None:
 
 def reminder_form(split: str, a: Alert) -> None:
     first = plan_steps(a.worst, a.supplier, urgent=a.level == "critica")[0]
-    k = f"{split}-{a.id}"
+    reminder_fields(split, a.id, first.text, first.owner, date.today() + timedelta(days=WHEN_DAYS.get(first.when, 2)),
+                    f"{split}-{a.id}")
+
+
+def reminder_fields(split: str, news_id: str, text: str, owner: str, due: date, k: str) -> None:
+    """Formulario «Crear recordatorio» prellenado (ventana de la alerta y ventana del calendario)."""
     with st.form(key=f"rem-{k}", border=False):
-        text = st.text_input("Recordatorio", value=first.text, key=f"r-text-{k}")
+        text = st.text_input("Recordatorio", value=text, key=f"r-text-{k}")
         c1, c2 = st.columns(2)
-        owner = c1.text_input("Responsable", value=first.owner, key=f"r-owner-{k}")
-        due = c2.date_input("Fecha", value=date.today() + timedelta(days=WHEN_DAYS.get(first.when, 2)),
-                            format="DD/MM/YYYY", key=f"r-date-{k}")
+        owner = c1.text_input("Responsable", value=owner, key=f"r-owner-{k}")
+        due = c2.date_input("Fecha", value=due, format="DD/MM/YYYY", key=f"r-date-{k}")
         sent = st.form_submit_button("Crear recordatorio", type="primary", width="stretch")
     if sent:
         if not text.strip():
             st.error("Escribe el texto del recordatorio.")
             return
-        tasks.create_reminder(split, a.id, text, owner, due, user=USER, con=cache.db())
+        tasks.create_reminder(split, news_id, text, owner, due, user=USER, con=cache.db())
         st.session_state[f"made-{k}"] = f"⏰ Recordatorio creado para el {day_es(due.isoformat())}"
         st.rerun()
 
