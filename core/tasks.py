@@ -1,4 +1,4 @@
-"""Acciones en curso de cada alerta: pedidos y recordatorios que crea el comprador (SQLite).
+"""Acciones en curso de cada alerta: pedidos, recordatorios y comunicaciones (SQLite).
 
 Los pedidos no se envían a ningún sitio: quedan como «Pedido pendiente de envío al ERP», listos para que
 una integración (SAP, Oracle…) los recoja. La propuesta del pedido (proveedor, cantidad, fecha y
@@ -18,6 +18,7 @@ from .suppliers import Supplier, load_suppliers
 
 ORDER_STATES = {"pendiente_erp": "Pedido pendiente de envío al ERP", "hecho": "Hecho"}
 REMINDER_STATES = {"pendiente": "Pendiente", "hecho": "Hecho"}
+COMM_KINDS = {"correo": "Correo al proveedor", "nota": "Nota interna"}
 PRIORITIES = ["Alta", "Media", "Baja"]
 UNIT_ES = {"kg": "kg", "units": "unidades", "m2": "m²", "litres": "litros"}
 OTHER_SUPPLIER = "otro"        # proveedor sin ID: no aprobado o servicio puntual (cualificación de urgencia)
@@ -33,6 +34,10 @@ def ensure(con: sqlite3.Connection) -> sqlite3.Connection:
         con.execute("""CREATE TABLE IF NOT EXISTS reminders (
             id INTEGER PRIMARY KEY, ts TEXT, split TEXT, news_id TEXT, text TEXT, owner TEXT, due TEXT,
             status TEXT, user TEXT, done_ts TEXT)""")
+        # Comunicaciones marcadas como enviadas (correo al proveedor, nota interna). No se envían de verdad.
+        con.execute("""CREATE TABLE IF NOT EXISTS communications (
+            id INTEGER PRIMARY KEY, ts TEXT, split TEXT, news_id TEXT, kind TEXT, recipient TEXT,
+            subject TEXT, body TEXT, source TEXT, user TEXT)""")
     return con
 
 
@@ -155,6 +160,19 @@ def create_reminder(split: str, news_id: str, text: str, owner: str, due: date, 
     return cur.lastrowid
 
 
+def log_communication(split: str, news_id: str, kind: str, recipient: str, subject: str, body: str,
+                      source: str, user: str = "comprador", con: sqlite3.Connection | None = None) -> int:
+    """Registra en la auditoría que una comunicación se ha marcado como enviada (kind: correo | nota)."""
+    if kind not in COMM_KINDS:
+        raise ValueError(f"Comunicación desconocida: {kind}")
+    db = _con(con)
+    with _LOCK, db:
+        cur = db.execute("INSERT INTO communications (ts, split, news_id, kind, recipient, subject, body, source, "
+                         "user) VALUES (?,?,?,?,?,?,?,?,?)",
+                         (_now(), split, news_id, kind, recipient, subject, body, source, user))
+    return cur.lastrowid
+
+
 def mark_done(kind: str, item_id: int, con: sqlite3.Connection | None = None) -> None:
     table = {"order": "orders", "reminder": "reminders"}[kind]
     db = _con(con)
@@ -163,7 +181,8 @@ def mark_done(kind: str, item_id: int, con: sqlite3.Connection | None = None) ->
 
 
 def items(split: str, con: sqlite3.Connection | None = None) -> list[dict]:
-    """Pedidos y recordatorios de un conjunto, los pendientes primero y por fecha."""
+    """Pedidos, recordatorios y comunicaciones de un conjunto, los pendientes primero y por fecha.
+    Una comunicación ya está hecha (marcada como enviada)."""
     db = _con(con)
     with _LOCK:
         orders = db.execute("SELECT id, ts, news_id, supplier_id, supplier_name, material, quantity, unit, "
@@ -171,9 +190,13 @@ def items(split: str, con: sqlite3.Connection | None = None) -> list[dict]:
                             (split,)).fetchall()
         rems = db.execute("SELECT id, ts, news_id, text, owner, due, status, user, done_ts FROM reminders "
                           "WHERE split = ?", (split,)).fetchall()
+        comms = db.execute("SELECT id, ts, news_id, kind, recipient, subject, body, source, user FROM "
+                           "communications WHERE split = ?", (split,)).fetchall()
     out = [dict(zip(["id", "ts", "news_id", "supplier_id", "supplier_name", "material", "quantity", "unit",
                      "needed_by", "priority", "calc", "status", "user", "done_ts"], r), kind="order", date=r[8])
            for r in orders]
     out += [dict(zip(["id", "ts", "news_id", "text", "owner", "due", "status", "user", "done_ts"], r),
                  kind="reminder", date=r[5]) for r in rems]
+    out += [dict(zip(["id", "ts", "news_id", "channel", "recipient", "subject", "body", "source", "user"], r),
+                 kind="comm", date=r[1][:10], status="hecho", done_ts=r[1]) for r in comms]
     return sorted(out, key=lambda x: (x["status"] == "hecho", x["date"], x["ts"]))

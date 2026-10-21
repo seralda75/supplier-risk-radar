@@ -4,18 +4,21 @@
   La clave incluye la fecha de modificación del fichero: si se regenera, se vuelve a leer.
 - st.cache_resource: la conexión a SQLite (una para todo el proceso): decisiones, pedidos y recordatorios.
 - Ollama: se comprueba con un timeout corto y la respuesta vale 30 s; no se pregunta en cada clic.
+- Modo demo (interruptor de la barra lateral): todo se lee y se escribe en data/demo.db, y las noticias
+  «recibidas» en la demo se suman a las alertas de test. data/app.db y los resultados no se tocan.
 
 El Excel de proveedores y materiales ya se lee una sola vez por proceso (lru_cache en
 core/suppliers.py y core/scenario.py), porque también lo usan los scripts y el bot sin Streamlit.
 """
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
 
 import streamlit as st
 
-from core import feedback, llm, results, scenario, tasks
+from core import demo, feedback, llm, results, scenario, tasks
 from core.config import ROOT
 
 from .data import Alert, build_alerts
@@ -48,18 +51,37 @@ def _alerts(split: str, mtime: float) -> list[Alert]:
     return build_alerts(d["results"]) if d else []
 
 
+@st.cache_data(show_spinner=False)
+def _alerts_demo(split: str, mtime: float, injected: str) -> list[Alert]:
+    d = results.load(split)
+    return build_alerts((d["results"] if d else []) + json.loads(injected))
+
+
+def demo_on() -> bool:
+    return bool(st.session_state.get("demo"))
+
+
 def alerts(split: str) -> list[Alert]:
-    return _alerts(split, _mtime(results.path(split)))
+    """Alertas de un conjunto; en modo demo, las de test más las de las noticias recibidas en la demo."""
+    mtime = _mtime(results.path(split))
+    if split == demo.SPLIT and demo_on():
+        extra = demo.injected(db())
+        if extra:
+            return _alerts_demo(split, mtime, json.dumps(extra, ensure_ascii=False, sort_keys=True))
+    return _alerts(split, mtime)
 
 
 @st.cache_resource(show_spinner=False)
-def _connection(path: str) -> sqlite3.Connection:
-    return tasks.ensure(feedback.connect(path))
+def _connection(path: str, is_demo: bool) -> sqlite3.Connection:
+    return demo.connect(path) if is_demo else tasks.ensure(feedback.connect(path))
 
 
 def db() -> sqlite3.Connection:
-    """Conexión compartida a SQLite (la ruta forma parte de la clave: los tests usan una base temporal)."""
-    return _connection(str(feedback.DB_PATH))
+    """Conexión compartida a SQLite: data/app.db o, en modo demo, data/demo.db (la ruta forma parte de la
+    clave: los tests usan bases temporales)."""
+    if demo_on():
+        return _connection(str(demo.DB_PATH), True)
+    return _connection(str(feedback.DB_PATH), False)
 
 
 def decisions(split: str) -> dict[str, dict]:

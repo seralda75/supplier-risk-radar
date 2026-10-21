@@ -22,7 +22,7 @@ from core.countdown import Countdown
 from core.labels import CRITICALITY_ES, material_es, product_es, product_short, short_supplier
 from core.suppliers import load_suppliers
 
-from . import cache, sheet
+from . import cache, demo_view, sheet
 from . import theme as T
 from .components import STATUS_DOT, dot_legend, esc, kpi, kpis, map_label, md, risk_map
 from .treemap import GROUP, REST, STATES, groups as tm_groups, spend_treemap
@@ -245,18 +245,21 @@ def action_badges(its: list[dict]) -> str:
     return f'<span class="acts">{esc(" · ".join(out))}</span>' if out else ""
 
 
-def queue_item(a: Alert, selected: bool, verdict: str | None, its: list[dict] | None = None) -> str:
+def queue_item(a: Alert, selected: bool, verdict: str | None, its: list[dict] | None = None,
+               new: bool = False) -> str:
     text, color = status_chip(a)
     if verdict == "falsa_alarma":
         text, color = "FALSA ALARMA · DESCARTADA", "grey"
     chips = f'<span class="chip {color}">{text}</span>'
+    if new:
+        chips = '<span class="chip purple">● NUEVA</span>' + chips
     if verdict and verdict != "falsa_alarma":
         chips += f'<span class="chip green">✓ {esc(feedback.VERDICTS[verdict]).upper()}</span>'
     est = '<span class="e"> estimado</span>' if a.estimated and a.worst.inventory_days is not None else ""
     m_txt = f"{signed(a.margin)} d" if a.worst.inventory_days is not None else "sin stock"
     prod = product_es(a.products[0]) if a.products else "sin medicamentos asociados"
-    cls = "qitem" + (" sel" if selected else "") + (" off" if verdict == "falsa_alarma" else
-                                                    " done" if verdict else "")
+    cls = "qitem" + (" sel" if selected else "") + (" new" if new else "") + (
+        " off" if verdict == "falsa_alarma" else " done" if verdict else "")
     return (f'<div class="{cls}"><span class="top"><span class="chips">{chips}</span>'
             f'<span class="num m" style="color:{margin_color(a.margin, a.level)}">{m_txt}{est}</span></span>'
             f'<span><span class="n">{esc(a.supplier.name)}</span><span class="w">{esc(a.place)} · '
@@ -273,7 +276,8 @@ def queue(split: str, b: Board, sel: str, its: list[dict]) -> None:
             md('<p class="sub">Nada pendiente: no hay alertas críticas ni en riesgo latente.</p>')
         for a in b.queue:
             with st.container(key=f"qcard-{a.id}"):
-                md(queue_item(a, a.id == sel, b.verdict(a), [x for x in its if x["news_id"] == a.id]))
+                md(queue_item(a, a.id == sel, b.verdict(a), [x for x in its if x["news_id"] == a.id],
+                              new=a.id == st.session_state.get("demo_new")))
                 st.button(f"Abrir la alerta de {a.supplier.name}", key=f"qbtn-{a.id}", on_click=_open,
                           args=(split, a.id))
         if b.rest:
@@ -290,6 +294,8 @@ def queue(split: str, b: Board, sel: str, its: list[dict]) -> None:
                         tag = ' · <span class="chip amber">revisar</span>'
                     m_txt = f"{signed(a.margin)} d" if a.worst.inventory_days is not None else "sin corte"
                     sel_style = f' style="border:2px solid {T.PURPLE};background:{T.PURPLE_SOFT}"' if a.id == sel else ""
+                    if a.id == st.session_state.get("demo_new"):
+                        tag = ' · <span class="chip purple">● NUEVA</span>' + tag
                     off = ";text-decoration:line-through;opacity:.6" if v == "falsa_alarma" else ""
                     md(f'<div class="qrow"{sel_style}><span><strong>{esc(a.supplier.name)}</strong>{tag}'
                        f'<span class="w" style="display:block">{esc(a.place)} · {esc(a.what_short)}</span></span>'
@@ -759,9 +765,12 @@ def page() -> None:
                    f"Genéralos con `python scripts/build_results.py --split {split}`.")
         return
     header(split, data)
+    if cache.demo_on():
+        demo_view.bar(split)
     decision_zone(split)
     if cache.alerts(split):
         charts(split)
     md('<footer class="foot">Datos del reto (Helixa Pharmaceuticals, empresa ficticia). Toda decisión requiere '
        'aprobación humana y queda registrada.</footer>')
     sheet.open_requested()
+    demo_view.open_requested()

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from core import demo
 from ui import cache
 from ui import theme as T
 from ui.components import esc, md
@@ -46,6 +47,17 @@ with st.sidebar:
     up = cache.llm_up()
     n_news = sum(len(d["results"]) for d in loaded.values() if d)
     stamp = max((d["generated"] for d in loaded.values() if d), default="")
+    # Modo demo (discreto, al pie del menú): noticias que «llegan» en directo, con su propia base de datos.
+    # También se activa abriendo la app con ?demo=1.
+    st.session_state.setdefault("demo", st.query_params.get("demo") == "1")
+    with st.container(key="navdemo"):
+        st.toggle("Modo demo", key="demo", on_change=lambda: st.session_state["demo"] and demo.warm_up(),
+                  help="Simula noticias entrantes en el centro de control. Usa data/demo.db: no toca la entrega "
+                       "ni data/app.db")
+        if st.session_state["demo"]:
+            demo.warm_up()
+            st.toggle("IA en directo", key="demo_live", value=True,
+                      help="Encendido: llamada real a la IA local (más lenta). Apagado: la respuesta en caché")
     with st.container(key="navfoot"):
         md(f'<div class="nav-foot"><span><span class="dot" style="background:{"#4CAF7A" if up else "#A9A3B6"}">'
            f'</span>{"Sistema operativo · local" if up else "Modo lectura · IA local apagada"}</span>'

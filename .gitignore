@@ -10,3 +10,4 @@ outputs/
 
 # Ajustes locales de Claude Code (personales)
 .claude/settings.local.json
+data/*.db.bak-*

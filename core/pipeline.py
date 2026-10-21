@@ -117,12 +117,13 @@ TIEBREAK = {"Is_Risk": "llm", "Urgent": "llm", "Affected_Supplier_IDs": "llm"}
 # ---------------------------------------------------------------------------
 
 def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_MODEL,
-           exclude_examples: set[str] | None = None) -> AssessmentResult:
+           exclude_examples: set[str] | None = None, use_cache: bool | None = None) -> AssessmentResult:
     """Evalúa una noticia (dict con News_ID, Headline, Summary...).
 
     use_llm=False -> solo reglas. Sin candidatos no se llama al LLM: no hay ningún proveedor
     relacionado, así que la respuesta es 'sin riesgo' sin gastar ~20 s de GPU.
     exclude_examples -> IDs que no pueden usarse como ejemplo (leave-one-out en entrenamiento).
+    use_cache=False -> sin la caché del LLM: llamada real a Ollama (modo demo en directo).
     """
     headline, summary = news["Headline"], news.get("Summary", "") or ""
     cands = find_candidates(headline, summary)
@@ -131,7 +132,8 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
     mode = "llm" if use_llm and cands else "reglas"
     if mode == "llm":
         from .judge import judge
-        a, examples, raw = judge(headline, summary, cands, model=model, exclude_ids=exclude_examples)
+        a, examples, raw = judge(headline, summary, cands, model=model, exclude_ids=exclude_examples,
+                                 use_cache=use_cache)
         rules_sev, rules_soon = severity_signal(headline, summary)
         signals = {"severity_llm": a.severity, "soon_llm": a.stops_supply_soon,
                    "severity_rules": rules_sev, "soon_rules": rules_soon}

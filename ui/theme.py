@@ -82,7 +82,9 @@ section[data-testid="stSidebar"] [class*="st-key-navon-"] a :is(p, span) {{ font
 {_nav_icons()}
 section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"] > div > [data-testid="stVerticalBlock"] {{
   min-height: calc(100vh - 56px); }}
-section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-navfoot) {{ margin-top: auto; }}
+section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-navdemo) {{ margin-top: auto; }}
+.st-key-navdemo {{ padding: 0 4px 12px; }}
+.st-key-navdemo label p {{ font-size: 13px !important; color: {NAV_MUTED} !important; }}
 .nav-foot {{ display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: {NAV_MUTED};
   border-top: 1px solid {NAV_LINE}; padding-top: 18px; }}
 .nav-foot .dot {{ display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }}
@@ -303,6 +305,30 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 
 /* Avisos (st.toast) abajo a la derecha: arriba tapaban la X de la ventana que se abre justo después */
 [data-testid="stToastContainer"] {{ top: auto !important; bottom: 24px !important; }}
+
+/* Modo demo: barra, ventana paso a paso y alerta recién llegada */
+.st-key-demo-bar {{ background: {PURPLE_SOFT}; border: 1px dashed #C9A2EE; border-radius: 12px; padding: 12px 16px; }}
+.demo-t {{ font-size: 14px; color: {PURPLE_DEEP}; }}
+.demo-t b {{ letter-spacing: 1px; }}
+.dsteps {{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }}
+.ds {{ display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: 10px;
+  border: 1px solid {LINE}; background: {CARD}; transition: opacity .3s; }}
+.ds.todo {{ opacity: .38; }}
+.ds.now {{ border: 2px solid {PURPLE}; background: {PURPLE_SOFT}; padding: 13px 15px; }}
+.ds .dn {{ flex: 0 0 30px; height: 30px; border-radius: 50%; background: {LINE}; color: {INK}; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; }}
+.ds.done .dn {{ background: {GREEN}; color: #FFFFFF; }}
+.ds.now .dn {{ background: {PURPLE}; color: #FFFFFF; animation: dpulse 1s ease-in-out infinite; }}
+.ds .db {{ display: flex; flex-direction: column; gap: 6px; min-width: 0; }}
+.ds .dt {{ font-size: 13px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: {MUTED}; }}
+.ds .hl {{ font-size: 17px; font-weight: 700; color: {INK}; }}
+.ds .sm {{ font-size: 15px; color: {INK_2}; line-height: 1.45; }}
+.ds .how {{ font-size: 13px; color: {MUTED}; }}
+.ds .chips {{ display: flex; flex-wrap: wrap; gap: 6px; }}
+.ds .chips .chip {{ white-space: normal; }}
+@keyframes dpulse {{ 50% {{ box-shadow: 0 0 0 6px rgba(161, 0, 255, .18); }} }}
+.qitem.new {{ animation: qnew 1.4s ease-in-out 4; }}
+@keyframes qnew {{ 50% {{ box-shadow: 0 0 0 6px rgba(161, 0, 255, .22); }} }}
 
 /* Ventanas modales (st.dialog): centradas, con el fondo difuminado */
 [data-testid="stDialog"] {{ backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);

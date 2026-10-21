@@ -165,9 +165,12 @@ def apply_guards(a: NewsAssessment, cands: list[Candidate], headline: str = "",
 
 
 def judge(headline: str, summary: str, cands: list[Candidate], model: str = LLM_MODEL,
-          exclude_ids: set[str] | None = None) -> tuple[NewsAssessment, list[str], NewsAssessment]:
+          exclude_ids: set[str] | None = None,
+          use_cache: bool | None = None) -> tuple[NewsAssessment, list[str], NewsAssessment]:
     """Devuelve el veredicto del LLM ya con salvaguardas, los IDs de los ejemplos usados y el
-    veredicto en bruto (para la auditoría: qué cambiaron las salvaguardas)."""
+    veredicto en bruto (para la auditoría: qué cambiaron las salvaguardas).
+    use_cache=False fuerza una llamada real a Ollama (modo demo en directo)."""
     prompt, used = build_prompt(headline, summary, cands, exclude_ids)
-    raw = llm.extract(prompt, NewsAssessment, model=model, system=SYSTEM)
+    kw = {} if use_cache is None else {"use_cache": use_cache}
+    raw = llm.extract(prompt, NewsAssessment, model=model, system=SYSTEM, **kw)
     return apply_guards(raw, cands, headline, summary), used, raw

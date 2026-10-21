@@ -8,7 +8,7 @@ from streamlit.testing.v1 import AppTest
 
 from datetime import date
 
-from core import feedback, results, scenario, tasks
+from core import demo, feedback, results, scenario, tasks
 from core.config import ROOT
 
 APP = ROOT / "app.py"
@@ -22,8 +22,12 @@ NEEDS_RESULTS = pytest.mark.skipif(not results.path("test").exists(),
 
 @pytest.fixture(autouse=True)
 def db_temporal(tmp_path, monkeypatch):
-    # las decisiones de los botones van a una base de datos temporal, no a data/app.db
+    # las decisiones de los botones van a una base de datos temporal, no a data/app.db ni a data/demo.db
     monkeypatch.setattr(feedback, "DB_PATH", tmp_path / "test.db")
+    monkeypatch.setattr(demo, "DB_PATH", tmp_path / "demo.db")
+    from ui import demo_view
+    monkeypatch.setattr(demo_view, "STEP_S", 0)          # la demo sin pausas entre pasos
+    monkeypatch.setattr(demo_view, "END_S", 0)
 
 
 @pytest.fixture(autouse=True)
@@ -285,6 +289,40 @@ def test_treemap_agrupa_lo_que_no_tiene_riesgo_y_toda_casilla_lleva_nombre():
     area = [t["w"] / 100 * W * t["h"] for t in tm["tiles"]]
     assert min(area) >= 0.9 * MIN_SHARE * W * H                          # tamaño mínimo
     assert all(0 <= t["x"] and t["x"] + t["w"] <= 100.01 and t["y"] + t["h"] <= H + 0.01 for t in tm["tiles"])
+
+
+@NEEDS_RESULTS
+def test_modo_demo_noticia_entrante_y_reiniciar():
+    at = run()
+    assert not any(b.key == "demo-go" for b in at.button)            # sin modo demo, no hay botón
+    critical, exposed = int(kpi_value(at, "Alertas críticas")), int(kpi_value(at, "Proveedores expuestos"))
+    at.toggle(key="demo").set_value(True).run()
+    at.button(key="demo-go").click().run()               # sin Ollama: el resultado precalculado
+    assert not at.exception, at.exception
+    assert at.session_state["demo_new"] == demo.FEED[0] == at.session_state["sel-test"]
+    assert int(kpi_value(at, "Alertas críticas")) == critical + 1          # Nordic Lipids: urgente
+    assert int(kpi_value(at, "Proveedores expuestos")) == exposed + 1
+    assert "● NUEVA" in html(at) and "1 de 10 noticias" in html(at)
+    at.button(key=f"ok-test-{demo.FEED[0]}").click().run()            # una decisión en la demo...
+    con = demo.connect()
+    assert [r["news_id"] for r in demo.injected(con)] == [demo.FEED[0]]
+    assert feedback.latest("test", con)[demo.FEED[0]]["verdict"] == "plan_aprobado"
+    assert feedback.latest("test") == {}                                   # ...no toca la base del panel
+    at.button(key="demo-reset").click().run()
+    assert int(kpi_value(at, "Alertas críticas")) == critical and demo.injected(con) == []
+    assert feedback.latest("test", con) == {} and "● NUEVA" not in html(at)
+
+
+def test_demo_guion_sin_etiquetas_y_en_orden(tmp_path):
+    con = demo.connect(tmp_path / "d.db")
+    n = demo.next_news(con)
+    assert n["News_ID"] == demo.FEED[0] and "Is_Risk" not in n and "Explanation" not in n
+    r = demo.precomputed(n["News_ID"])
+    assert "gold" not in r
+    demo.save(con, r, "precalculado", 0.1)
+    assert demo.next_news(con)["News_ID"] == demo.FEED[1] and demo.progress(con) == (1, len(demo.FEED))
+    demo.reset(con)
+    assert demo.progress(con) == (0, len(demo.FEED))
 
 
 @NEEDS_RESULTS
