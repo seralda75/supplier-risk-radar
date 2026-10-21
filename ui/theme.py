@@ -281,6 +281,7 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 .tbl td {{ padding: 10px; border-bottom: 1px solid {LINE}; vertical-align: top; color: {INK}; }}
 .tbl tr:last-child td {{ border-bottom: none; }}
 .tbl td.r, .tbl th.r {{ text-align: right; }}
+.tbl .num, .tbl td.r {{ white-space: nowrap; }}      /* «10,2 M€» o «16 %» nunca en dos líneas */
 .tbl .w {{ display: block; font-size: 13px; color: {MUTED}; }}
 .tbl-wrap {{ overflow-x: auto; }}
 .bar {{ height: 8px; border-radius: 4px; background: {PURPLE}; }}

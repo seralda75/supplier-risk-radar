@@ -75,7 +75,7 @@ def render() -> None:
         rows.append([f"<strong>{esc(COUNTRY_ES.get(c, c))}</strong>",
                      f'<span class="num">{len(ss)}</span>' + (f'<span class="w">{uniq} único(s)</span>' if uniq else ""),
                      f'<div style="display:flex;align-items:center;gap:8px"><div class="bar-bg" '
-                     f'style="width:140px"><div class="bar" style="width:{100 * spend / total / top_share:.0f}%">'
+                     f'style="width:96px"><div class="bar" style="width:{100 * spend / total / top_share:.0f}%">'
                      f'</div></div><span class="num">{pct(spend / total)}</span></div>',
                      f'<span class="num">{meur(spend)} M€</span>'])
     rest = countries[8:]
