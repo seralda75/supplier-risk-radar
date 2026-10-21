@@ -87,10 +87,17 @@ navegador, sin volver a ejecutar la página. Medido con clics reales (desde el `
 está pintado), 21 oct 2026, **portátil enchufado**: mediana 13 ms, máximo 40 ms (6 cambios), 0 ejecuciones de la
 página. En batería: mediana 12 ms, máximo 36 ms. Objetivo: < 300 ms.
 
-Interacciones probadas con clic real (en modo demo, sin tocar `data/app.db`): pulsar un día abre su ventana con
-los eventos (fondo difuminado); «Crear pedido» y «Crear recordatorio» se guardan y salen en el calendario; el
-«Crear pedido» del semáforo abre la ventana de hoy con el material que decide el estado; una falsa alarma en el
-centro de control quita una rotura prevista (2 → 1) y una noticia de la demo la añade (1 → 2).
+Criterio (21 oct 2026): se asume reposición regular salvo los proveedores con alerta activa. Con las noticias
+de test: 4 medicamentos suficientes, 1 en peligro (Amoxira: riesgo latente en Kaveri) y 1 en rotura prevista
+(HX-mAb: Celsius, pedir antes del 23 nov con compra urgente).
+
+Interacciones probadas con clic real (en modo demo, sin tocar `data/app.db`): la cabecera explica el supuesto y
+los 4 medicamentos sin alerta muestran «reposición regular»; pulsar el 23 nov abre su ventana con el último día
+para pedir las bolsas de biorreactor (fondo difuminado); «Crear pedido» (88 unidades, enlazado a la alerta de
+Celsius) y «Crear recordatorio» se guardan y salen en el calendario; el «Crear pedido» del semáforo abre la
+ventana de hoy con el material que decide el estado; una falsa alarma en el centro de control quita la rotura
+prevista (1 → 0) y una noticia de la demo (Nordic Lipids) la añade (0 → 1). El caso «Pedir hoy con envío
+urgente · llegaría N días tarde» no se da con los datos del reto: lo cubre un test.
 
 ## 4. Modo demo y agente de comunicaciones: latencia
 

@@ -425,6 +425,23 @@ def test_calendario_crear_pedido_desde_el_semaforo():
     assert any(e["k"] == "pedido" for e in evs.get(o["needed_by"], []))
 
 
+def test_calendario_si_ya_no_llega_a_tiempo_pide_hoy_con_envio_urgente():
+    # Lumina (S015) parada 60 d con 35 d de stock; su alternativo Vitrum tarda 50 d: llegaría 15 d tarde
+    from core.countdown import Countdown
+    from core.order_calendar import plan
+    from ui.calendar_view import _deadline_text, events
+    today = date.today()
+    c = Countdown("S015", "Lumina", 35, "S016", False, 0, 50, False, 35, 60, False, "", -25, 25, "rotura_prevista",
+                  [], "")
+    mats, meds = plan([c], today)
+    m = next(x for x in mats if x.material.id == "M11")
+    assert _deadline_text(m) == "Pedir hoy con envío urgente · llegaría 15 días tarde"
+    evs = events(mats, [], today)
+    (e,) = [x for x in evs[today.isoformat()] if x["k"] == "pedir"]                # el marcador va a hoy
+    assert "pedir hoy con envío urgente · llegaría 15 días tarde" in e["f"]
+    assert not any(x["k"] == "pedir" for x in evs.get(m.deadline.isoformat(), []))   # no en una fecha pasada
+
+
 def test_pedido_de_reposicion_desde_el_calendario():
     from core.countdown import Countdown
     from core.order_calendar import materials, material_plan

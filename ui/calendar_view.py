@@ -68,10 +68,15 @@ def events(mats, its: list[dict], today: date) -> dict[str, list[dict]]:
         name = material_es(m.material.name)
         word = name.split()[0]
         who = short_supplier(sup[m.supplier_id].name)
-        late = f" (vencida hace {-m.days_left} días)" if m.days_left < 0 else ""
-        add(m.deadline, "pedir", word,
-            f"Último día para pedir {name} a {who}: {m.stock_days:.0f} d de stock − {m.lead_days:.0f} d de plazo"
-            f"{late}", m.material.id)
+        if m.deadline:          # solo los materiales con alerta: el resto se repone con normalidad
+            how = (f"{m.lead_days:.0f} d de compra urgente (sin alternativo libre)" if m.urgent_buy else
+                   f"{m.lead_days:.0f} d de plazo de {who}")
+            calc = f"se acaba el stock el día {m.stock_days:.0f} − {how}"
+            if m.late_days:     # ya no llega a tiempo: el marcador va a hoy, que es cuando hay que actuar
+                add(today, "pedir", f"hoy {word}", f"{name}: pedir hoy con envío urgente · llegaría {m.late_days} "
+                    f"días tarde ({calc})", m.material.id)
+            else:
+                add(m.deadline, "pedir", word, f"Último día para pedir {name} ({calc})", m.material.id)
         if m.stockout:
             prods = ", ".join(product_es(p) for p in m.material.products)
             add(m.stockout, "rotura", word, f"Rotura prevista de {name}: se acaba el stock ({prods})", m.material.id)
@@ -243,8 +248,8 @@ def calendar(evs: dict[str, list[dict]], today: date) -> str | None:
 
 def _kpis(meds, mats, today: date) -> None:
     n = {k: sum(m.status == k for m in meds) for k in STATUS_ES}
-    due = [m for m in mats if 0 <= m.days_left <= 7]
-    late = [m for m in mats if m.days_left < 0]
+    due = [m for m in mats if m.deadline and m.days_left <= 7]          # incluye los que hay que pedir ya
+    late = [m for m in due if m.late_days]
     names = lambda ms: esc(" · ".join(product_es(m.name).split(" ")[0] for m in ms)) or "ninguno"   # noqa: E731
     kpis([
         kpi("Stock suficiente", str(n["suficiente"]), unit=f"de {len(meds)}", color=T.GREEN if n["suficiente"] else "",
@@ -253,24 +258,28 @@ def _kpis(meds, mats, today: date) -> None:
             sub=f"medicamentos · {names([m for m in meds if m.status == 'peligro'])}"),
         kpi("Rotura prevista", str(n["rotura"]), unit=f"de {len(meds)}", color=T.RED if n["rotura"] else "",
             alert=bool(n["rotura"]), sub=f"medicamentos · {names([m for m in meds if m.status == 'rotura'])}"),
-        kpi("Pedidos que vencen en 7 días", str(len(due)), unit="materiales",
-            sub=(esc(", ".join(material_es(m.material.name) for m in due[:3])) or "ninguno")
-            + (f" · y {len(late)} con la fecha ya vencida" if late else "")),
+        kpi("Pedidos que vencen en 7 días", str(len(due)), unit="materiales", color=T.RED if late else "",
+            sub=(esc(", ".join(material_es(m.material.name) for m in due[:3])) or
+                 f"ninguno · {sum(m.deadline is not None for m in mats)} materiales con alerta y fecha límite")
+            + (f" · {len(late)} para pedir hoy con envío urgente" if late else "")),
     ])
 
 
-def _deadline_text(days_left: int) -> str:
-    if days_left < 0:
-        return f"vencida hace {-days_left} d"
-    return "hoy" if days_left == 0 else f"en {days_left} d"
+def _deadline_text(m) -> str:
+    """Cuándo pedir un material con alerta (o la frase de reposición regular si no la tiene)."""
+    if m.deadline is None:
+        return "reposición regular" if not m.affected else "no hace falta: el proveedor vuelve antes"
+    if m.late_days:
+        return f"Pedir hoy con envío urgente · llegaría {m.late_days} días tarde"
+    return "hoy" if m.days_left == 0 else f"en {m.days_left} d"
 
 
 def semaphore(meds, today: date) -> None:
     # Misma altura que el calendario del mes (la lista se desplaza dentro): sin huecos al lado del calendario
     with st.container(key="panel-semaforo", height=SEM_HEIGHT):
         md('<div class="card-head"><h2 class="h2">Semáforo de medicamentos</h2></div>'
-           '<p class="sub" style="margin:0">El peor de sus materiales. Una fecha vencida significa que debería '
-           'haber ya un pedido en curso.</p>')
+           '<p class="sub" style="margin:0">El peor de sus materiales. Sin alerta, la cobertura es solo informativa: '
+           'se asume reposición regular.</p>')
         for i, d in enumerate(meds):
             with st.container(key=f"sem-{i}"):
                 md(sem_card(d, today))
@@ -281,14 +290,19 @@ def semaphore(meds, today: date) -> None:
 
 
 def sem_card(d, today: date) -> str:
-    """Tarjeta de un medicamento: estado, días de stock, fecha límite para pedir y días hasta la rotura."""
-    w, rot = d.worst, d.stockout_days
-    left = (d.deadline - today).days
+    """Tarjeta de un medicamento: estado, días de stock, fecha límite para pedir y días hasta la rotura.
+    Sin alerta: la cobertura (informativa, sin alarma) y «reposición regular»."""
+    w, rot, dp = d.worst, d.stockout_days, d.deadline_plan
+    if dp:
+        stock = f'<span class="l">Stock</span><b class="num">{dp.stock_days:.0f} d</b>'
+        when = (f'<span class="l">Pedir antes del</span><b>{"hoy" if dp.late_days else control.day_es(dp.deadline.isoformat())}'
+                f'</b><span class="w{" late" if dp.late_days else ""}">{esc(_deadline_text(dp))}</span>')
+    else:
+        stock = f'<span class="l">Cobertura</span><b class="num muted">{d.cover_days:.0f} d</b>'
+        when = '<span class="l">Pedir</span><b class="muted">reposición regular</b>'
     return (f'<div class="sem {d.status}"><span class="top"><span class="n">{esc(product_es(d.name))}</span>'
             f'<span class="chip {STATUS_CHIP[d.status]}">{STATUS_ES[d.status].upper()}</span></span>'
-            f'<span class="g"><span><span class="l">Stock</span><b class="num">{w.stock_days:.0f} d</b></span>'
-            f'<span><span class="l">Pedir antes del</span><b>{control.day_es(d.deadline.isoformat())}</b>'
-            f'<span class="w{" late" if left < 0 else ""}">{_deadline_text(left)}</span></span>'
+            f'<span class="g"><span>{stock}</span><span>{when}</span>'
             f'<span><span class="l">Rotura</span><b>{"en " + str(rot) + " d" if rot is not None else "no prevista"}'
             f'</b></span></span>'
             f'<span class="w" title="{esc(w.why)}">{esc(material_es(w.material.name))}: {esc(w.why)}</span></div>')
@@ -347,9 +361,13 @@ def day_dialog(split: str, iso: str, mid: str | None) -> None:
         k = f"cal-{iso}-{mid}"
         if msg := st.session_state.pop(f"made-{k}", None):
             st.success(msg)
-        left_days = _deadline_text(mp.days_left)
-        md(f'<p class="sub">{esc(mp.why[0].upper() + mp.why[1:])}. Pedir antes del '
-           f'{control.day_es(mp.deadline.isoformat())} ({left_days}).</p>')
+        if mp.deadline is None:
+            when = f"Pedir: {_deadline_text(mp)}."
+        elif mp.late_days:
+            when = f"{_deadline_text(mp)}."
+        else:
+            when = f"Pedir antes del {control.day_es(mp.deadline.isoformat())} ({_deadline_text(mp)})."
+        md(f'<p class="sub">{esc(mp.why[0].upper() + mp.why[1:])}. {esc(when)}</p>')
         news_id = _news_id(b, mp)
         t_ord, t_rem = st.tabs(["📦 Crear pedido", "⏰ Crear recordatorio"], key=f"cal-tabs-{iso}", on_change="rerun")
         with t_ord:
@@ -371,10 +389,13 @@ def page() -> None:
     b, cds = active_countdowns(split)
     mats, meds = plan(cds, today)
     dismissed = len(b.alerts) - len(b.active)
-    md(f'<p class="sub">Proyección desde hoy ({today.day} de {MONTHS_LONG[today.month - 1]} de {today.year}) con el '
-       f'stock y los plazos de entrega de cada proveedor y las {len(b.active)} alertas activas de '
-       f'«{results.SPLITS[split]}»{f" ({dismissed} descartadas como falsa alarma no cuentan)" if dismissed else ""}. '
-       'No conoce los pedidos que ya estén en curso en el ERP.</p>')
+    md('<p class="assume"><strong>Proyección desde hoy; se asume reposición regular salvo los proveedores con '
+       'alerta.</strong></p>'
+       f'<p class="sub" style="margin:0">Hoy es {today.day} de {MONTHS_LONG[today.month - 1]} de {today.year}. Cuentan '
+       f'las {len(b.active)} alertas activas de «{results.SPLITS[split]}»'
+       f'{f" ({dismissed} descartadas como falsa alarma no cuentan)" if dismissed else ""}. Para los materiales con '
+       'alerta, la fecha límite para pedir es el día en que se acaba el stock menos el plazo del alternativo (o de '
+       'una compra urgente si no lo hay).</p>')
     _kpis(meds, mats, today)
     left, right = st.columns([7.4, 4.6], gap="medium")
     with left, st.container(key="panel-calendar"):

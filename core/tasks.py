@@ -135,7 +135,7 @@ def suggest_order(c: Countdown, s: Supplier, level: str, today: date | None = No
 def suggest_restock(mp: "MaterialPlan", today: date | None = None) -> OrderDraft:
     """Pedido propuesto desde el calendario para un material (core/order_calendar.MaterialPlan).
 
-    - Proveedor: el que se usaría (el alternativo si el principal está afectado).
+    - Proveedor: el que se usaría (el alternativo libre del proveedor afectado; si no, el habitual).
     - Cantidad: con rotura prevista, necesidad mensual × días de déficit / 30 (los días entre la rotura y la
       recuperación del proveedor, como en la ventana de la alerta); si no, un mes de necesidad.
     - Fecha requerida: el día en que se acaba el stock.
@@ -158,7 +158,7 @@ def suggest_restock(mp: "MaterialPlan", today: date | None = None) -> OrderDraft
                 "rotura prevista y la recuperación del proveedor)")
     else:
         qty, calc = need, f"Reposición: un mes de necesidad ({_fmt(need)} {unit}/mes)."
-    priority = ("Alta" if mp.status == "rotura" or mp.days_left < 0 else
+    priority = ("Alta" if mp.status == "rotura" or (mp.days_left or 0) < 0 else
                 "Media" if mp.status == "peligro" else "Baja")
     needed_by = today + timedelta(days=int(mp.stock_days))
     return OrderDraft(mp.supplier_id, sup[mp.supplier_id].name, m.name, qty, unit, needed_by, priority, calc, options)

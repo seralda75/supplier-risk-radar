@@ -332,7 +332,9 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 .qitem.new {{ animation: qnew 1.4s ease-in-out 4; }}
 @keyframes qnew {{ 50% {{ box-shadow: 0 0 0 6px rgba(161, 0, 255, .22); }} }}
 
-/* Calendario: semáforo de medicamentos */
+/* Calendario: el supuesto de la proyección y el semáforo de medicamentos */
+.assume {{ margin: 0 !important; font-size: 15px; color: {INK_2}; }}
+.sem .g b.muted {{ color: {MUTED}; font-weight: 500; }}
 .st-key-panel-semaforo [data-testid="stVerticalBlock"] {{ gap: 10px; }}
 .sem {{ display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 10px;
   border: 1px solid {LINE}; border-left: 5px solid {GREEN}; }}

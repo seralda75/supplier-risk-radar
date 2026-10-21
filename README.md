@@ -35,11 +35,13 @@ solo se ejecuta la activa):
   Pulsar un proveedor en el mapa o en el treemap abre su ficha. Por defecto, las noticias de test; un
   selector discreto cambia a entrenamiento o validación.
 - **Calendario**: qué medicamentos tienen stock suficiente, cuáles están en peligro y cuáles se quedan sin stock,
-  y hasta qué día se puede esperar para pedir (`core/order_calendar.py`: fecha límite = hoy + días de stock −
-  plazo del proveedor que se usaría). KPIs, calendario mensual o de 90 días con marcadores (último día para
-  pedir, rotura prevista, recuperación, llegada del alternativo, pedidos y recordatorios) y semáforo de
-  medicamentos. Pulsar un día abre su ventana con «Crear pedido» y «Crear recordatorio». Es una proyección
-  desde hoy; respeta la falsa alarma y el modo demo.
+  y hasta qué día se puede esperar para pedir (`core/order_calendar.py`). Proyección desde hoy que asume
+  reposición regular salvo los proveedores con alerta activa: suficiente sin alerta (la cobertura solo informa),
+  en peligro con margen de 0 a 14 días o riesgo latente, rotura prevista con margen negativo. Para los materiales
+  con alerta, fecha límite = día en que se acaba el stock − plazo del alternativo (o de la compra urgente del
+  plan); si ya ha pasado, «Pedir hoy con envío urgente · llegaría N días tarde». KPIs, calendario mensual o de
+  90 días con marcadores y semáforo de medicamentos; pulsar un día abre su ventana con «Crear pedido» y «Crear
+  recordatorio». Respeta la falsa alarma y el modo demo.
 - **Proveedores**: ranking de vulnerabilidad, % del gasto en proveedores únicos, concentración por país y por
   zona y alternativos que no llegan a tiempo. La ficha de proveedor (con su historial) se abre en una ventana
   desde el ranking o desde el buscador de la cabecera.
