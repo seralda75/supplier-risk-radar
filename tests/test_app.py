@@ -12,10 +12,10 @@ from core import demo, feedback, results, scenario, tasks
 from core.config import ROOT
 
 APP = ROOT / "app.py"
-PAGES = {"control": None, "suppliers": "views/suppliers.py", "simulator": "views/simulator.py",
-         "transparency": "views/transparency.py"}
-NAV = {"Centro de control": "", "Proveedores": "proveedores", "Simulador «¿Y si…?»": "simulador",
-       "Transparencia": "transparencia"}
+PAGES = {"control": None, "calendar": "views/calendar.py", "suppliers": "views/suppliers.py",
+         "simulator": "views/simulator.py", "transparency": "views/transparency.py"}
+NAV = {"Centro de control": "", "Calendario": "calendario", "Proveedores": "proveedores",
+       "Simulador «¿Y si…?»": "simulador", "Transparencia": "transparencia"}
 NEEDS_RESULTS = pytest.mark.skipif(not results.path("test").exists(),
                                    reason="faltan data/results (scripts/build_results.py)")
 
@@ -379,6 +379,30 @@ def test_modo_demo_noticia_entrante_y_reiniciar():
     at.button(key="demo-reset").click().run()
     assert int(kpi_value(at, "Alertas críticas")) == critical and demo.injected(con) == []
     assert feedback.latest("test", con) == {} and "● NUEVA" not in html(at)
+
+
+@NEEDS_RESULTS
+def test_calendario_respeta_falsa_alarma_y_modo_demo():
+    at = run("calendar")
+    assert not at.exception, at.exception
+    page = html(at)
+    assert "Semáforo de medicamentos" in page and "Proyección desde hoy" in page
+    roturas = int(kpi_value(at, "Rotura prevista"))
+    assert roturas >= 1
+    # Celsius (N024) descartada como falsa alarma: el HX-mAb deja de estar en rotura
+    feedback.save("test", "N024", "falsa_alarma")
+    at = run("calendar")
+    assert int(kpi_value(at, "Rotura prevista")) == roturas - 1
+    assert "1 descartadas como falsa alarma no cuentan" in html(at)
+    # Modo demo: Nordic Lipids (N008, margen negativo) aparece también en el calendario
+    con = demo.connect()
+    demo.save(con, demo.precomputed("N008"), "precalculado", 0.1)
+    at = AppTest.from_file(str(APP), default_timeout=60)
+    at.session_state["demo"] = True
+    at.run()
+    at.switch_page("views/calendar.py").run()
+    assert not at.exception, at.exception
+    assert int(kpi_value(at, "Rotura prevista")) == roturas + 1       # la base de la demo no tiene la falsa alarma
 
 
 def test_demo_guion_sin_etiquetas_y_en_orden(tmp_path):

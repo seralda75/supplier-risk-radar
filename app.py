@@ -28,6 +28,7 @@ st.session_state.setdefault("split", "test")
 
 PAGES = {
     "control": st.Page("views/control.py", title="Centro de control", default=True),
+    "calendar": st.Page("views/calendar.py", title="Calendario", url_path="calendario"),
     "suppliers": st.Page("views/suppliers.py", title="Proveedores", url_path="proveedores"),
     "simulator": st.Page("views/simulator.py", title="Simulador «¿Y si…?»", url_path="simulador"),
     "transparency": st.Page("views/transparency.py", title="Transparencia", url_path="transparencia"),

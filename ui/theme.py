@@ -22,6 +22,8 @@ NAV_BG, NAV_ACTIVE, NAV_TEXT, NAV_MUTED, NAV_LINE = "#17151C", "#2A2631", "#CFC9
 _NAV_ICONS = {
     "control": '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/>'
                '<rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+    "calendar": '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v4"/>'
+                '<path d="M16 3v4"/>',
     "suppliers": '<path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/>',
     "simulator": '<path d="M4 19l5-6 4 3 7-9"/><circle cx="20" cy="7" r="1.5"/>',
     "transparency": '<circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
@@ -329,6 +331,22 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 @keyframes dpulse {{ 50% {{ box-shadow: 0 0 0 6px rgba(161, 0, 255, .18); }} }}
 .qitem.new {{ animation: qnew 1.4s ease-in-out 4; }}
 @keyframes qnew {{ 50% {{ box-shadow: 0 0 0 6px rgba(161, 0, 255, .22); }} }}
+
+/* Calendario: semáforo de medicamentos */
+.st-key-panel-semaforo [data-testid="stVerticalBlock"] {{ gap: 10px; }}
+.sem {{ display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 10px;
+  border: 1px solid {LINE}; border-left: 5px solid {GREEN}; }}
+.sem.peligro {{ border-left-color: {AMBER_DOT}; }}
+.sem.rotura {{ border-left-color: {RED}; }}
+.sem .top {{ display: flex; justify-content: space-between; align-items: center; gap: 8px; }}
+.sem .n {{ font-size: 15px; font-weight: 700; }}
+.sem .g {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 14px; }}
+.sem .g > span {{ display: flex; flex-direction: column; }}
+.sem .g .l {{ font-size: 12px; color: {MUTED}; }}
+.sem .g b {{ color: {INK}; font-weight: 600; }}
+.sem .w {{ font-size: 12px; color: {MUTED}; font-weight: 400; }}
+.sem .w.late {{ color: {RED_INK}; font-weight: 600; }}
+.sem > .w {{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 
 /* Ventanas modales (st.dialog): centradas, con el fondo difuminado */
 [data-testid="stDialog"] {{ backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
