@@ -11,3 +11,6 @@ outputs/
 # Ajustes locales de Claude Code (personales)
 .claude/settings.local.json
 data/*.db.bak-*
+
+# Capturas, scripts de prueba y ficheros temporales
+tmp/
