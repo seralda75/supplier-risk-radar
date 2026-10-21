@@ -32,6 +32,7 @@ KINDS = {"pedir": ("🛒", "Último día para pedir"), "rotura": ("⛔", "Rotura
          "vuelve": ("↺", "Se recupera el proveedor"), "llega": ("🚚", "Llega el alternativo"),
          "pedido": ("📦", "Pedido guardado"), "recordatorio": ("⏰", "Recordatorio")}
 WINDOW = (-62, 200)           # días (desde hoy) con marcadores: unos meses hacia atrás y hacia delante
+SEM_HEIGHT = 814              # px: el alto del calendario de un mes de 5 semanas, con su leyenda
 MONTHS_LONG = "enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre".split()
 
 
@@ -265,7 +266,8 @@ def _deadline_text(days_left: int) -> str:
 
 
 def semaphore(meds, today: date) -> None:
-    with st.container(key="panel-semaforo"):
+    # Misma altura que el calendario del mes (la lista se desplaza dentro): sin huecos al lado del calendario
+    with st.container(key="panel-semaforo", height=SEM_HEIGHT):
         md('<div class="card-head"><h2 class="h2">Semáforo de medicamentos</h2></div>'
            '<p class="sub" style="margin:0">El peor de sus materiales. Una fecha vencida significa que debería '
            'haber ya un pedido en curso.</p>')

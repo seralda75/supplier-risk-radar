@@ -18,7 +18,7 @@ ollama pull qwen2.5:7b; ollama pull nomic-embed-text
 .venv\Scripts\streamlit run app.py                 # http://localhost:8501
 ```
 Diseño de `docs/mockup_centro_control.html`, pensado para el director de compras: en 5 segundos, si hay
-riesgo, dónde, cuánto tiempo queda y qué hacer. Navegación lateral con cuatro páginas (`st.navigation`:
+riesgo, dónde, cuánto tiempo queda y qué hacer. Navegación lateral con cinco páginas (`st.navigation`:
 solo se ejecuta la activa):
 
 - **Centro de control**: banner de estado, 5 indicadores (alertas críticas, proveedores expuestos,
@@ -34,6 +34,12 @@ solo se ejecuta la activa):
   días por medicamento) y el **treemap del gasto en riesgo** (lo que no tiene riesgo, agrupado en gris).
   Pulsar un proveedor en el mapa o en el treemap abre su ficha. Por defecto, las noticias de test; un
   selector discreto cambia a entrenamiento o validación.
+- **Calendario**: qué medicamentos tienen stock suficiente, cuáles están en peligro y cuáles se quedan sin stock,
+  y hasta qué día se puede esperar para pedir (`core/order_calendar.py`: fecha límite = hoy + días de stock −
+  plazo del proveedor que se usaría). KPIs, calendario mensual o de 90 días con marcadores (último día para
+  pedir, rotura prevista, recuperación, llegada del alternativo, pedidos y recordatorios) y semáforo de
+  medicamentos. Pulsar un día abre su ventana con «Crear pedido» y «Crear recordatorio». Es una proyección
+  desde hoy; respeta la falsa alarma y el modo demo.
 - **Proveedores**: ranking de vulnerabilidad, % del gasto en proveedores únicos, concentración por país y por
   zona y alternativos que no llegan a tiempo. La ficha de proveedor (con su historial) se abre en una ventana
   desde el ranking o desde el buscador de la cabecera.
@@ -87,6 +93,7 @@ core/feedback.py     respuestas de los compradores (aprobar plan / falsa alarma 
 core/tasks.py        pedidos (pendientes de envío al ERP), recordatorios y comunicaciones marcadas como enviadas
 core/comms.py        agente de comunicaciones: correo al proveedor y nota interna, con comprobación de cifras
 core/demo.py         modo demo en directo: guion de noticias, pipeline en segundo plano, data/demo.db
+core/order_calendar.py  fecha límite para pedir y estado (suficiente, en peligro, rotura) por material y medicamento
 core/results.py      resultados guardados para el panel y métricas
 core/countdown.py    cuenta atrás: TTS (inventario + alternativo) − TTR (recuperación)
 core/actions.py      acción recomendada a partir de la cuenta atrás (déficit, alternativo a tiempo o no)
@@ -96,7 +103,7 @@ core/audit.py        auditoría en SQLite
 core/data.py         carga de las noticias de los tres Excel
 evaluate.py          métricas (python evaluate.py [--no-llm] [--split train])
 app.py               panel Streamlit: estilo, menú lateral y st.navigation (docs/mockup_centro_control.html)
-views/               una página por fichero (centro de control, proveedores, simulador, transparencia)
+views/               una página por fichero (centro de control, calendario, proveedores, simulador, transparencia)
 ui/                  contenido de cada página, ficha de proveedor, treemap, cachés, estilo y datos
 core/labels.py       nombres en español para las vistas de negocio
 static/              fuentes IBM Plex (licencia OFL) y contorno del mapa: el panel funciona sin internet

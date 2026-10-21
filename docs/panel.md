@@ -80,7 +80,19 @@ Lo que se ha cambiado para que no vuelva a pasar:
 
 Sin excepciones y sin ninguna petición fuera de `localhost`. El treemap tiene 19 casillas y ninguna vacía.
 
-## 3. Modo demo y agente de comunicaciones: latencia
+## 3. Calendario: cambio de mes
+
+El calendario es HTML (`st.components.v2`) con los marcadores de unos meses: cambiar de mes o de vista lo hace el
+navegador, sin volver a ejecutar la página. Medido con clics reales (desde el `pointerdown` hasta que el mes nuevo
+está pintado), 21 oct 2026, **portátil enchufado**: mediana 13 ms, máximo 40 ms (6 cambios), 0 ejecuciones de la
+página. En batería: mediana 12 ms, máximo 36 ms. Objetivo: < 300 ms.
+
+Interacciones probadas con clic real (en modo demo, sin tocar `data/app.db`): pulsar un día abre su ventana con
+los eventos (fondo difuminado); «Crear pedido» y «Crear recordatorio» se guardan y salen en el calendario; el
+«Crear pedido» del semáforo abre la ventana de hoy con el material que decide el estado; una falsa alarma en el
+centro de control quita una rotura prevista (2 → 1) y una noticia de la demo la añade (1 → 2).
+
+## 4. Modo demo y agente de comunicaciones: latencia
 
 Medido con `python scripts/latency_demo.py` el 21 oct 2026, **con el portátil en batería** (no estaba
 enchufado: la GPU va más lenta; hay que repetirlo enchufado). Ollama con qwen2.5:7b, modelo ya cargado.
@@ -99,7 +111,7 @@ del clic a los borradores en pantalla.
 
 Si la IA en directo tarda más de 60 s (`LIVE_TIMEOUT_S`), la demo usa el resultado precalculado y lo dice.
 
-## 4. Rendimiento
+## 5. Rendimiento
 
 Medido con Playwright: tiempo desde el clic hasta que la pantalla queda dibujada. Es decir, hasta que Streamlit
 termina la ejecución y el DOM lleva 400 ms sin cambios. Se toma la mediana de varias repeticiones; la primera

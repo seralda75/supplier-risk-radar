@@ -348,7 +348,8 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 .sem .w.late {{ color: {RED_INK}; font-weight: 600; }}
 .sem > .w {{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 [class*="st-key-sem-"]:not([class*="st-key-sem-order-"]) {{ gap: 6px !important; }}
-[class*="st-key-sem-order-"] {{ align-self: flex-end; }}
+[class*="st-key-sem-order-"] {{ align-self: flex-end; margin-top: 10px !important; }}
+.st-key-panel-semaforo {{ overflow-y: auto; }}
 [class*="st-key-sem-order-"] button {{ min-height: 34px !important; padding: 4px 14px !important; }}
 [class*="st-key-sem-order-"] button p {{ font-size: 14px !important; }}
 .st-key-cal-act, .st-key-cal-act [data-testid="stVerticalBlock"] {{ gap: 14px !important; }}
