@@ -103,21 +103,37 @@ def groups(states: dict[str, str]) -> list[tuple[str, list[tuple[str, float, lis
     return out
 
 
+CHAR_PX = 7.4                 # ancho medio de un carácter en negrita a 13 px (IBM Plex Sans)
+
+
+def _fit(options: list[str], w: float) -> str:
+    """El primer texto que cabe en `w` px (el lienzo nominal es más estrecho que el real: es conservador);
+    si ninguno cabe, el más corto, que el CSS recorta con puntos suspensivos."""
+    return next((t for t in options if len(t) * CHAR_PX + 16 <= w), options[-1])
+
+
 def _tile_text(tid: str, ids: list[str], state: str, spend: float, w: float, h: float) -> tuple[str, str, str]:
-    """(tamaño, HTML, aria-label) de una casilla. Siempre lleva al menos el nombre."""
+    """(tamaño, HTML, aria-label) de una casilla. Siempre lleva al menos el nombre: completo si cabe, si no
+    una abreviatura (la primera palabra del proveedor, «Otros (N)»)."""
     sup = load_suppliers()
     label, _, _ = STATES[state]
     money = f"{meur(spend)} M€"
     if tid.startswith(GROUP):
-        name = f"{'Otras categorías' if tid == REST else 'Otros'} sin riesgo ({len(ids)})"
+        n = len(ids)
+        full = f"{'Otras categorías' if tid == REST else 'Otros'} sin riesgo ({n})"
+        name = _fit([full, f"Sin riesgo ({n})" if tid == REST else f"Otros ({n})"], w)
         tag = "SIN RIESGO"
-        aria = f"{name}: {money} de gasto anual. Pulsa para ver la lista."
+        aria = f"{full}: {money} de gasto anual. Pulsa para ver la lista."
     else:
         s = sup[tid]
-        name, tag = short_supplier(s.name), label.upper()
-        aria = f"{s.name} ({CATEGORY_ES.get(s.category, s.category)}): {label.lower()}, {money} de gasto anual. "                "Pulsa para ver la ficha."
+        short = short_supplier(s.name)
+        name = _fit([short, short.split()[0]], w)
+        last = label.split()[-1].upper()                                 # «EN SEGUIMIENTO» -> «SEGUIMIENTO» -> «SEGUIM.»
+        tag = _fit([label.upper(), last, last[:6] + "." if len(last) > 7 else last], w)
+        aria = (f"{s.name} ({CATEGORY_ES.get(s.category, s.category)}): {label.lower()}, {money} de gasto anual. "
+                "Pulsa para ver la ficha.")
     b = f"<b>{html.escape(name)}</b>"
-    if w >= 105 and h >= 56:
+    if w >= 105 and h >= 66:
         size, body = "lg", f"{b}<span class='s'>{tag}</span><span class='m'>{money}</span>"
     elif w >= 72 and h >= 38:
         size, body = "md", f"{b}<span class='s'>{tag}</span>"
@@ -136,8 +152,9 @@ def layout(states: dict[str, str]) -> dict:
     out_cats, out_tiles = [], []
     for (name, tiles), (cx, cy, cw, ch) in zip(cats, cat_rects):
         head = HEAD if ch > 2.6 * HEAD and cw > 60 else 0.0
+        short = _fit([name, name.split()[0]], cw)                       # «Bioproceso de un solo uso» -> «Bioproceso»
         out_cats.append({"x": 100 * cx / W, "y": cy, "w": 100 * cw / W, "h": ch,
-                         "label": html.escape(name) if head else ""})
+                         "label": html.escape(short) if head else "", "title": html.escape(name)})
         tiles = sorted(tiles, key=lambda t: -t[2])
         inner = squarify([t[2] for t in tiles], cx + PAD, cy + head, cw - 2 * PAD, ch - head - PAD)
         for (tid, spend, _, ids), (x, y, w, h) in zip(tiles, inner):
@@ -182,7 +199,7 @@ export default function (component) {
     const d = document.createElement('div');
     d.className = 'cat';
     place(d, c);
-    d.innerHTML = '<span class="cl">' + c.label + '</span>';
+    d.innerHTML = '<span class="cl" title="' + c.title + '">' + c.label + '</span>';
     root.appendChild(d);
   }
   for (const t of data.tiles) {
