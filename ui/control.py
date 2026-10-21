@@ -22,7 +22,7 @@ from core.countdown import Countdown
 from core.labels import CRITICALITY_ES, material_es, product_es, product_short, short_supplier
 from core.suppliers import load_suppliers
 
-from . import cache, demo_view, sheet
+from . import cache, comms_view, demo_view, sheet
 from . import theme as T
 from .components import STATUS_DOT, dot_legend, esc, kpi, kpis, map_label, md, risk_map
 from .treemap import GROUP, REST, STATES, groups as tm_groups, spend_treemap
@@ -231,7 +231,7 @@ def kpi_row(b: Board) -> None:
 # ---------------------------------------------------------------------------
 
 def action_badges(its: list[dict]) -> str:
-    """«📦 Pedido creado · ⏰ Recordatorio 22 oct» con las acciones de una alerta."""
+    """«📦 Pedido creado · ⏰ Recordatorio 22 oct · ✉ Comunicado» con las acciones de una alerta."""
     out = []
     orders = [x for x in its if x["kind"] == "order"]
     rems = [x for x in its if x["kind"] == "reminder"]
@@ -242,6 +242,8 @@ def action_badges(its: list[dict]) -> str:
     if rems:
         pend = sorted((x for x in rems if x["status"] != "hecho"), key=lambda x: x["due"])
         out.append(f"⏰ Recordatorio {day_es(pend[0]['due'])}" if pend else "⏰ Recordatorio hecho")
+    if any(x["kind"] == "comm" for x in its):
+        out.append("✉ Comunicado")
     return f'<span class="acts">{esc(" · ".join(out))}</span>' if out else ""
 
 
@@ -439,6 +441,12 @@ def detail(split: str, a: Alert, verdict: dict | None, its: list[dict]) -> None:
 def _action_line(x: dict, a: Alert | None) -> str:
     src = f" · alerta de {esc(short_supplier(a.supplier.name))}" if a else ""
     done = f" · hecho el {day_es(x['done_ts'])}" if x["status"] == "hecho" and x.get("done_ts") else ""
+    if x["kind"] == "comm":
+        what = "Correo al proveedor" if x["channel"] == "correo" else "Nota interna al equipo"
+        return (f'<div class="act"><span class="ic" aria-hidden="true">✉</span><span><strong>{what}</strong> · '
+                f'{esc(x["subject"])}<span class="w">Marcado como enviado el {day_es(x["ts"])} · '
+                f'{"redactado por la IA local" if x["source"] == "ia" else "plantilla"} · no se envía nada{src}'
+                '</span></span></div>')
     if x["kind"] == "order":
         qty = f"{x['quantity']:,.0f}".replace(",", ".")
         return (f'<div class="act"><span class="ic" aria-hidden="true">📦</span><span><strong>Pedido: {qty} '
@@ -529,13 +537,18 @@ def alert_dialog(split: str, news_id: str) -> None:
         if msg := st.session_state.pop(f"made-{k}", None):
             st.success(msg)
         md(_trust(a))
-        t_dec, t_ord, t_rem = st.tabs(["Decidir", "📦 Crear pedido", "⏰ Crear recordatorio"])
+        # Con key y on_change="rerun" la pestaña activa se recuerda: tras crear un pedido o marcar un envío
+        # (la página se vuelve a ejecutar) la ventana sigue en la misma pestaña.
+        t_dec, t_ord, t_rem, t_com = st.tabs(["Decidir", "📦 Pedido", "⏰ Recordatorio", "✉ Comunicar"],
+                                             key=f"tabs-{k}", on_change="rerun")
         with t_dec:
             decision_controls(split, a, b.verdicts.get(a.id), where="dlg-")
         with t_ord:
             order_form(split, a)
         with t_rem:
             reminder_form(split, a)
+        with t_com:
+            comms_view.panel(split, a, [x for x in its if x["kind"] == "comm"])
         md('<h3 class="h3">Acciones de esta alerta</h3>' + (
             "".join(_action_line(x, None) for x in its) if its else
             '<p class="sub">Aún no hay pedidos ni recordatorios para esta alerta.</p>'))

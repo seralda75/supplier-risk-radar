@@ -291,6 +291,74 @@ def test_treemap_agrupa_lo_que_no_tiene_riesgo_y_toda_casilla_lleva_nombre():
     assert all(0 <= t["x"] and t["x"] + t["w"] <= 100.01 and t["y"] + t["h"] <= H + 0.01 for t in tm["tiles"])
 
 
+def _facts(news_id="N024"):
+    from ui.comms_view import facts
+    from ui.data import build_alerts
+    return facts(next(a for a in build_alerts(results.load("test")["results"]) if a.id == news_id))
+
+
+@NEEDS_RESULTS
+def test_plantilla_de_comunicaciones_sin_cifras_inventadas():
+    from core import comms
+    from ui.comms_view import facts
+    from ui.data import build_alerts
+    for a in build_alerts(results.load("test")["results"]):
+        f = facts(a)
+        d = comms.template(f)
+        assert comms.check(d, f) == [], a.id
+        assert ("partial allocation" in d.email_body) == f.ask_partial
+        assert f"{f.spend_meur} M€" in d.note and "Plan recomendado" in d.note
+
+
+@NEEDS_RESULTS
+def test_comunicaciones_detectan_cifras_inventadas_y_datos_internos():
+    from core import comms
+    f = _facts("N024")            # Celsius: proveedor único, el plan pide una asignación parcial
+    ok = comms.Written(email_subject="Bioreactor bags: status", summary_es="Escasez de 12 semanas.",
+                       email_body="Dear team, what is the status, when will supply resume and can you offer a "
+                                  "partial allocation? Regards")
+    assert comms.issues(ok, f) == []
+    assert comms.issues(ok.model_copy(update={"summary_es": "Retraso de 9 semanas."}), f)       # 9: inventado
+    leak = ok.model_copy(update={"email_body": ok.email_body + " Our stock covers 40 days."})
+    assert any("internal" in x for x in comms.issues(leak, f))                                    # revela el stock
+    no_partial = ok.model_copy(update={"email_body": "Dear team, what is the status? Regards"})
+    assert comms.issues(no_partial, f) == ["ask for a partial allocation"]
+
+
+@NEEDS_RESULTS
+def test_comunicaciones_con_ia_que_inventa_usa_la_plantilla(monkeypatch):
+    from core import comms, llm
+    f = _facts("N024")
+    bad = comms.Written(email_subject="Status", email_body="Please reply within 3 days. partial allocation?",
+                        summary_es="Faltan 7 semanas.")
+    monkeypatch.setattr(llm, "extract", lambda *a, **k: bad)
+    p = comms.prepare(f, use_llm=True)
+    assert p.source == "plantilla" and p.attempts == 2 and "3" in p.reason
+    good = bad.model_copy(update={"email_body": "Subject: x\nDear team, status and restart date? Could you offer "
+                                                "a partial allocation?", "summary_es": "Escasez de 12 semanas."})
+    monkeypatch.setattr(llm, "extract", lambda *a, **k: good)
+    p = comms.prepare(f, use_llm=True)
+    assert p.source == "ia" and not p.drafts.email_body.startswith("Subject")
+    assert "Resumen: Escasez de 12 semanas." in p.drafts.note and "−44 días" in p.drafts.note   # cifras del código
+
+
+@NEEDS_RESULTS
+def test_preparar_comunicaciones_y_marcar_como_enviado():
+    at = run()
+    sel = at.session_state["sel-test"]
+    at.button(key=f"qbtn-{sel}").click().run()
+    at.button(key=f"cmgo-test-{sel}").click().run()                  # sin Ollama: plantilla
+    assert not at.exception, at.exception
+    assert at.session_state[f"cm-info-test-{sel}"]["source"] == "plantilla"
+    assert "Dear" in at.text_area(key=f"cm-mail-test-{sel}").value
+    assert "Gasto anual" in at.text_area(key=f"cm-note-test-{sel}").value
+    at.button(key=f"cmsent-correo-test-{sel}").click().run()
+    assert not at.exception, at.exception
+    (c,) = [x for x in tasks.items("test", feedback.connect()) if x["kind"] == "comm"]
+    assert c["channel"] == "correo" and c["news_id"] == sel and c["source"] == "plantilla"
+    assert "✉ Comunicado" in html(at)
+
+
 @NEEDS_RESULTS
 def test_modo_demo_noticia_entrante_y_reiniciar():
     at = run()
