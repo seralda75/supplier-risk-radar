@@ -2,7 +2,9 @@
 
     python scripts/reset_demo.py            # vacía data/demo.db (todo lo hecho en «Modo demo»)
     python scripts/reset_demo.py --panel    # además, las pruebas hechas fuera del modo demo en data/app.db:
-                                            # decisiones, pedidos, recordatorios y comunicaciones
+                                            # decisiones, pedidos, recordatorios, comunicaciones y avisos
+
+Los chats de Telegram registrados se conservan (sus suscripciones automáticas se recrean solas).
 
 Nunca toca la auditoría del pipeline (tabla assessments de app.db), los resultados (data/results), la
 entrega (outputs/) ni la caché del LLM. Con --panel se guarda antes una copia: data/app.db.bak-<fecha>.
@@ -20,7 +22,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from core import demo, feedback                             # noqa: E402
 
-PANEL_TABLES = ("feedback", "orders", "reminders", "communications")
+# Los chats de Telegram registrados (tabla buyers) se conservan: no hay que volver a hacer /start
+PANEL_TABLES = ("feedback", "orders", "reminders", "communications", "subscriptions", "notifications")
 
 
 def clear(path: Path, tables: tuple[str, ...]) -> dict[str, int]:

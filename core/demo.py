@@ -6,8 +6,9 @@ Cada noticia se procesa con assess():
 - con Ollama: en directo (sin la caché del LLM) o con la caché, según el interruptor «IA en directo»;
 - sin Ollama, o si la IA tarda más de LIVE_TIMEOUT_S: el resultado precalculado (data/results/validation.json).
 
-Todo lo de la demo va a data/demo.db (decisiones, pedidos, recordatorios, comunicaciones y las noticias
-inyectadas): no toca la entrega, los resultados guardados ni data/app.db. «Reiniciar demo» vacía demo.db.
+Todo lo de la demo va a data/demo.db (decisiones, pedidos, recordatorios, comunicaciones, avisos de Telegram y
+las noticias inyectadas): no toca la entrega, los resultados guardados ni data/app.db. «Reiniciar demo» vacía
+demo.db salvo los chats de Telegram registrados.
 assess() se llama con log=False: tampoco escribe en la auditoría del pipeline.
 """
 from __future__ import annotations
@@ -19,7 +20,7 @@ import time
 from concurrent.futures import Future, ThreadPoolExecutor
 from datetime import datetime
 
-from . import feedback, results, tasks
+from . import feedback, results, subscriptions, tasks
 from .config import DATA_DIR
 from .data import load_news
 from .feedback import _LOCK
@@ -37,6 +38,7 @@ _warm = threading.Event()
 def ensure(con: sqlite3.Connection) -> sqlite3.Connection:
     """Tablas de la demo, además de las del panel (decisiones, pedidos, recordatorios, comunicaciones)."""
     tasks.ensure(con)
+    subscriptions.ensure(con)
     with _LOCK, con:
         con.execute("""CREATE TABLE IF NOT EXISTS demo_news (
             seq INTEGER PRIMARY KEY, ts TEXT, news_id TEXT, mode TEXT, seconds REAL, result TEXT)""")
@@ -97,10 +99,12 @@ def save(con: sqlite3.Connection, result: dict, mode: str, seconds: float) -> No
 
 
 def reset(con: sqlite3.Connection) -> None:
-    """Deja la demo como al principio: borra todo lo que hay en demo.db (y solo eso)."""
+    """Deja la demo como al principio: borra lo que hay en demo.db (y solo eso), salvo los chats de Telegram
+    registrados (sus suscripciones automáticas se recrean solas)."""
     with _LOCK, con:
         for table in ("demo_news", "feedback", "orders", "reminders", "communications"):
             con.execute(f"DELETE FROM {table}")
+    subscriptions.reset_demo(con)
 
 
 def warm_up() -> None:
