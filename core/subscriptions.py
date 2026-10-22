@@ -166,15 +166,23 @@ def subscribers(supplier_id: str, today: date | None = None, con: sqlite3.Connec
 
 def claim(chat_id: int, split: str, news_id: str, kind: str, supplier_ids: list[str], line: str,
           con: sqlite3.Connection | None = None) -> int | None:
-    """Reserva el aviso de una alerta para un chat. None si ya se le avisó (no se repite).
+    """Reserva el aviso de una alerta para un chat. None si ya se le avisó (no se repite); un aviso que falló
+    (sin token, sin internet) se puede volver a intentar.
     kind: urgente (estado inicial «enviando») | resumen (estado «pendiente»)."""
     db = _con(con)
+    state = "enviando" if kind == "urgente" else "pendiente"
     with _LOCK, db:
         cur = db.execute("INSERT OR IGNORE INTO notifications (ts, chat_id, split, news_id, kind, supplier_ids, "
                          "status, line) VALUES (?,?,?,?,?,?,?,?)",
-                         (_now(), chat_id, split, news_id, kind, "; ".join(supplier_ids),
-                          "enviando" if kind == "urgente" else "pendiente", line))
-    return cur.lastrowid if cur.rowcount else None
+                         (_now(), chat_id, split, news_id, kind, "; ".join(supplier_ids), state, line))
+        if cur.rowcount:
+            return cur.lastrowid
+        row = db.execute("SELECT id FROM notifications WHERE chat_id = ? AND split = ? AND news_id = ? "
+                         "AND status = 'error'", (chat_id, split, news_id)).fetchone()
+        if row:
+            db.execute("UPDATE notifications SET ts = ?, status = ?, error = '' WHERE id = ?", (_now(), state, row[0]))
+            return row[0]
+    return None
 
 
 def mark(notification_id: int, status: str, message_id: int | None = None, error: str = "",

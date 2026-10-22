@@ -117,13 +117,16 @@ TIEBREAK = {"Is_Risk": "llm", "Urgent": "llm", "Affected_Supplier_IDs": "llm"}
 # ---------------------------------------------------------------------------
 
 def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_MODEL,
-           exclude_examples: set[str] | None = None, use_cache: bool | None = None) -> AssessmentResult:
+           exclude_examples: set[str] | None = None, use_cache: bool | None = None,
+           notify: str | None = None) -> AssessmentResult:
     """Evalúa una noticia (dict con News_ID, Headline, Summary...).
 
     use_llm=False -> solo reglas. Sin candidatos no se llama al LLM: no hay ningún proveedor
     relacionado, así que la respuesta es 'sin riesgo' sin gastar ~20 s de GPU.
     exclude_examples -> IDs que no pueden usarse como ejemplo (leave-one-out en entrenamiento).
     use_cache=False -> sin la caché del LLM: llamada real a Ollama (modo demo en directo).
+    notify="test" -> si es una alerta, avisa a los compradores suscritos (bot/notifier.py) con data/app.db.
+    Por defecto no: evaluate.py, fill_test.py y build_results.py no envían nada.
     """
     headline, summary = news["Headline"], news.get("Summary", "") or ""
     cands = find_candidates(headline, summary)
@@ -198,4 +201,16 @@ def assess(news: dict, use_llm: bool = True, log: bool = True, model: str = LLM_
     )
     if log:
         audit.log(result)
+    if notify and result.is_risk:
+        _notify(result, notify)
     return result
+
+
+def _notify(result: AssessmentResult, split: str) -> None:
+    """Avisa por Telegram (sin hilo aparte: un script terminaría antes de enviar). Un fallo del aviso nunca
+    rompe el pipeline."""
+    try:
+        from bot import config, notifier
+        notifier.notify_result(result.model_dump(), split, False, config.connect(False), background=False)
+    except Exception as ex:
+        print(f"aviso no enviado: {type(ex).__name__}")

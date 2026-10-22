@@ -28,6 +28,7 @@ def db_temporal(tmp_path, monkeypatch):
     from ui import demo_view
     monkeypatch.setattr(demo_view, "STEP_S", 0)          # la demo sin pausas entre pasos
     monkeypatch.setattr(demo_view, "END_S", 0)
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "")         # nunca se envía nada de verdad desde los tests
 
 
 @pytest.fixture(autouse=True)
@@ -379,6 +380,37 @@ def test_modo_demo_noticia_entrante_y_reiniciar():
     at.button(key="demo-reset").click().run()
     assert int(kpi_value(at, "Alertas críticas")) == critical and demo.injected(con) == []
     assert feedback.latest("test", con) == {} and "● NUEVA" not in html(at)
+
+
+@NEEDS_RESULTS
+def test_simular_noticia_avisa_a_los_compradores_registrados_y_telegram_apagado_no_rompe_nada():
+    from core import subscriptions as subs
+    con = demo.connect()
+    subs.register(111, "B1", con=con)               # Nordic Lipids es proveedor habitual de B1
+    at = run()
+    at.toggle(key="demo").set_value(True).run()
+    at.button(key="demo-go").click().run()
+    assert not at.exception, at.exception
+    (n,) = subs.sent(demo.FEED[0], con)
+    assert (n["chat_id"], n["kind"]) == (111, "urgente")
+    for _ in range(50):                             # el envío va en segundo plano: sin token, «error»
+        if subs.sent(demo.FEED[0], con)[0]["status"] != "enviando":
+            break
+        import time
+        time.sleep(0.1)
+    assert subs.sent(demo.FEED[0], con)[0]["status"] == "error"
+    at.button(key="demo-reset").click().run()
+    assert subs.sent(con=con) == [] and subs.buyer(111, con)          # el chat sigue registrado
+
+
+@NEEDS_RESULTS
+def test_enlace_de_telegram_abre_la_alerta():
+    at = AppTest.from_file(str(APP), default_timeout=60)
+    at.query_params["alert"] = "N024"
+    at.run()
+    assert not at.exception, at.exception
+    assert at.session_state["alert_dialog"] == ("test", "N024") and at.session_state["sel-test"] == "N024"
+    assert "alert" not in at.query_params
 
 
 @NEEDS_RESULTS

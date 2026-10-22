@@ -369,7 +369,8 @@ def _news(a: Alert) -> str:
 
 def _decided(verdict: dict) -> str:
     v = verdict["verdict"]
-    who = f'· {esc(verdict["user"])} · {esc(when(verdict["ts"]))} · registrado en la auditoría'
+    via = " · desde Telegram" if verdict.get("channel") == "telegram" else ""
+    who = f'· {esc(verdict["user"])}{via} · {esc(when(verdict["ts"]))} · registrado en la auditoría'
     if v == "falsa_alarma":
         why = f' Motivo: «{esc(verdict["note"])}».' if verdict.get("note") else ""
         return (f'<div class="decided fa">{T.ICON_WARN}Falsa alarma <span class="w">{who}.{why} No cuenta en los '
@@ -779,7 +780,23 @@ def charts(split: str) -> None:
     spend(active)
 
 
+def open_linked() -> None:
+    """«Ver en el panel» de Telegram: ?alert=<id> abre la ventana de esa alerta (una vez; luego se quita de
+    la URL para que un clic posterior no la vuelva a abrir)."""
+    nid = st.query_params.get("alert")
+    if not nid:
+        return
+    st.query_params.pop("alert", None)
+    for split in dict.fromkeys([st.session_state.get("split", "test"), "test"]):
+        if any(a.id == nid for a in cache.alerts(split)):
+            st.session_state["split"] = split
+            _open(split, nid)
+            return
+    st.session_state["toast"] = (f"La alerta {nid} no está en el panel", "⚠️")
+
+
 def page() -> None:
+    open_linked()
     split = st.session_state.setdefault("split", "test")
     data = cache.data(split)
     if not data:

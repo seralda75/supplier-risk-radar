@@ -154,6 +154,16 @@ def _alert_html(r: dict) -> tuple[str, str | None]:
     return f'<span class="chip {color}">{text}</span><span class="sm">{where}</span>', a.id
 
 
+def _telegram(result: dict, con) -> str:
+    """Avisa por Telegram a los compradores suscritos (el envío va en segundo plano). Nunca rompe la demo."""
+    try:
+        from bot import notifier
+        rep = notifier.notify_result(result, demo.SPLIT, True, con)
+    except Exception as ex:                 # sin dependencias del bot, base bloqueada…
+        return f"Telegram desactivado ({type(ex).__name__})"
+    return rep.text() if rep else ""
+
+
 @st.dialog("Noticia entrante", width="large")
 def _incoming() -> None:
     con = cache.db()
@@ -208,8 +218,9 @@ def _incoming() -> None:
     show(3, "done", _countdown_html(result))
     time.sleep(STEP_S)
     html, alert_id = _alert_html(result)
-    show(4, "done", html)
     demo.save(con, result, mode, secs)
+    tg = _telegram(result, con)
+    show(4, "done", html + (f'<span class="sm">📱 {esc(tg)}</span>' if tg else ""))
     st.session_state["demo_last"] = {"news_id": news["News_ID"], "mode": mode, "pipeline_s": round(secs, 2),
                                      "total_s": round(time.perf_counter() - t0, 2)}
     if alert_id:
