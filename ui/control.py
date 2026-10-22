@@ -422,6 +422,7 @@ def detail(split: str, a: Alert, verdict: dict | None, its: list[dict]) -> None:
                       f'{esc(material_es(s.material))}</span></div>', unsafe_allow_html=True)
         with link.popover("Ver noticia original", type="tertiary", key=f"news-{split}-{a.id}"):
             md(_news(a))
+        md(sheet.purchases_html(s.id))
         quote, _ = quote_for(a.r)
         md(f'<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">Qué pasa</h3>'
            f'<p class="what">{esc(a.what())}</p><blockquote class="quote">«{quote}»</blockquote></div>')
@@ -534,6 +535,7 @@ def alert_dialog(split: str, news_id: str) -> None:
         md(f'<div style="display:flex;flex-direction:column;gap:6px"><span class="overline">Información</span>'
            f'<span class="chip {color}">{text}</span><h2 class="det-name">{esc(s.name)}</h2>'
            f'<span class="det-sub">{esc(a.place)} · {esc(material_es(s.material))}</span></div>')
+        md(sheet.purchases_html(s.id))
         md(f'<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">Qué pasa</h3>'
            f'<p class="what">{esc(a.what())}</p><blockquote class="quote">«{quote}»</blockquote></div>')
         md('<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">La noticia</h3>'

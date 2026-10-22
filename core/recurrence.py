@@ -130,6 +130,42 @@ def recurrence(supplier_id: str, today: date | None = None, buyer_id: str | None
     return r
 
 
+# ---------------------------------------------------------------------------
+# Textos (panel y avisos)
+# ---------------------------------------------------------------------------
+
+MESES = "ene feb mar abr may jun jul ago sep oct nov dic".split()
+UNIT_ES = {"kg": "kg", "units": "unidades", "m2": "m²", "litres": "litros"}
+
+
+def day_es(d: date) -> str:
+    return f"{d.day} {MESES[d.month - 1]}"
+
+
+def qty_es(q: float, unit: str) -> str:
+    """1280 kg -> «1.280 kg»; 2160000 units -> «2.160.000 unidades»."""
+    v = f"{q:,.0f}".replace(",", ".") if float(q).is_integer() else f"{q:g}".replace(".", ",")
+    return f"{v} {UNIT_ES.get(unit, unit)}"
+
+
+def habitual_label(r: Recurrence) -> str:
+    """«Proveedor habitual · 12 pedidos» (en 12 meses), «Pedidos puntuales · 2 pedidos» o «Sin pedidos»."""
+    if r.recurrent:
+        return f"Proveedor habitual · {r.orders_12m} pedidos"
+    if r.orders_12m:
+        return f"Pedidos puntuales · {r.orders_12m} pedido{'s' if r.orders_12m > 1 else ''}"
+    return "Sin pedidos en 12 meses"
+
+
+def transit_label(r: Recurrence) -> str:
+    """«1.280 kg · llega el 20 dic (y 1 más en camino)» o «ninguno»."""
+    nxt = r.next_arrival
+    if not nxt:
+        return "ninguno"
+    more = f" (y {len(r.in_transit) - 1} más en camino)" if len(r.in_transit) > 1 else ""
+    return f"{qty_es(nxt.quantity, nxt.unit)} · llega el {day_es(nxt.arrival)}{more}"
+
+
 def by_buyer(buyer_id: str, today: date | None = None,
              orders: tuple[Order, ...] | list[Order] | None = None) -> list[Recurrence]:
     """Todos los proveedores a los que ha pedido un comprador, de más a menos pedidos."""

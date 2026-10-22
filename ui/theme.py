@@ -176,6 +176,10 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 /* Detalle de la alerta */
 .stMarkdown .det-name, .det-name {{ margin: 0 !important; font-size: 24px !important; line-height: 1.3 !important; font-weight: 700; color: {INK}; }}
 .det-sub {{ font-size: 15px; color: {MUTED}; }}
+/* Recurrencia de compra y pedido en tránsito (historial sintético) */
+.buy {{ display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 14px; color: {MUTED}; }}
+.buy .t {{ flex-basis: 100%; color: {INK_2}; }}
+.buy .note {{ flex-basis: 100%; font-size: 12px; color: {MUTED}; font-style: italic; }}
 .what {{ margin: 0; font-size: 17px; line-height: 1.5; color: {INK}; }}
 .quote {{ margin: 0; padding: 12px 16px; background: {BG}; border-radius: 8px; font-size: 15px; color: {INK_2};
   font-style: italic; }}

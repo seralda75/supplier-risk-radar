@@ -13,6 +13,7 @@ import streamlit as st
 from core.countdown import alternate_margin
 from core.feedback import VERDICTS
 from core.labels import CATEGORY_ES, CRITICALITY_ES, material_es, place_es, product_es, short_supplier
+from core.recurrence import BUYERS, day_es, habitual_label, recurrence, transit_label
 from core.schemas import EVENT_LABELS_ES
 from core.suppliers import load_suppliers
 from core.urgency import dependency
@@ -49,6 +50,24 @@ def alt_text(s) -> tuple[str, bool]:
     if cover.in_time:
         return f"{name} · llega en {cover.lead_days:.0f} d", True
     return f"{name} · tarda {cover.lead_days or 0:.0f} d, no llega", False
+
+
+def purchases_html(sid: str) -> str:
+    """«Proveedor habitual · 12 pedidos» y el pedido en tránsito (historial de pedidos sintético)."""
+    r = recurrence(sid)
+    label = habitual_label(r)
+    if not r.orders_12m:
+        return f'<div class="buy"><span class="chip grey">{esc(label)}</span></div>'
+    last = r.last_order
+    who = BUYERS.get(last.buyer_id, {}).get("name", "")
+    sub = (f"{r.orders_6m} en los últimos 6 meses · {r.consecutive} meses seguidos · último pedido el "
+           f"{day_es(last.day)}{' · ' + who if who else ''}")
+    transit = transit_label(r)
+    return (f'<div class="buy"><span class="chip {"green" if r.recurrent else "grey"}">{esc(label)}</span>'
+            f'<span class="s">{esc(sub)}</span>'
+            f'<span class="t"><span aria-hidden="true">🚚</span> Pedido en tránsito: '
+            f'<strong>{esc(transit)}</strong></span>'
+            '<span class="note">historial de pedidos sintético (el reto no lo incluye)</span></div>')
 
 
 # ---------------------------------------------------------------------------
@@ -140,6 +159,7 @@ def render(sid: str) -> None:
     md(f'<div style="display:flex;flex-direction:column;gap:6px"><h2 class="det-name">{esc(s.name)}</h2>'
        f'<span class="det-sub">{esc(place_es(s.city, s.country))} · {esc(material_es(s.material))}</span>'
        f'<span style="display:flex;gap:8px;flex-wrap:wrap">{"".join(chips)}</span></div>')
+    md(purchases_html(sid))
     md(f'<div class="boxes"><div class="box"><span class="l">Stock de seguridad</span><span class="num v">{stock}'
        f'</span><span class="s">cobertura de inventario</span></div>'
        f'<div class="box"><span class="l">Plazo de entrega</span><span class="num v">{lead}</span>'

@@ -424,6 +424,23 @@ def test_sin_internet_el_panel_muestra_telegram_desactivado(monkeypatch):
 
 
 @NEEDS_RESULTS
+def test_detalle_ventana_y_ficha_muestran_proveedor_habitual_y_pedido_en_transito():
+    at = run()
+    at.session_state["sel-test"] = "N024"            # Celsius: pedido mensual con 90 días de plazo
+    at.run()
+    page = html(at)
+    assert re.search(r"Proveedor habitual · \d+ pedidos", page) and "Pedido en tránsito: <strong>" in page
+    at.button(key="qbtn-N024").click().run()          # la ventana de la alerta
+    assert not at.exception, at.exception
+    assert html(at).count("Proveedor habitual ·") >= 2
+    del at.session_state["alert_dialog"]             # una sola ventana a la vez
+    at.session_state["sheet"] = "S037"               # alternativo con pedidos puntuales: no es habitual
+    at.run()
+    assert not at.exception, at.exception
+    assert re.search(r"Pedidos puntuales · \d pedidos?", html(at))
+
+
+@NEEDS_RESULTS
 def test_enlace_de_telegram_abre_la_alerta():
     at = AppTest.from_file(str(APP), default_timeout=60)
     at.query_params["alert"] = "N024"

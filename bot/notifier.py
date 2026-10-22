@@ -27,29 +27,18 @@ import requests
 from core import subscriptions as subs
 from core.countdown import Countdown
 from core.labels import product_es, short_supplier
-from core.recurrence import recurrence
+from core.recurrence import habitual_label, recurrence, transit_label
 from core.suppliers import load_suppliers
-from core.tasks import UNIT_ES
 from ui.data import EVENT_SHORT, Alert, build_alerts, duration_es, signed
 
 from . import config
 
-MESES = "ene feb mar abr may jun jul ago sep oct nov dic".split()
 MARGIN_ES = {"rotura_prevista": "rotura prevista", "riesgo_latente": "riesgo latente",
              "margen_ajustado": "margen ajustado", "cubierto": "cubierto", "sin_inventario": "sin stock de reserva"}
 
 
 def e(text) -> str:
     return html.escape(str(text), quote=False)
-
-
-def day_es(d: date) -> str:
-    return f"{d.day} {MESES[d.month - 1]}"
-
-
-def qty_es(q: float, unit: str) -> str:
-    v = f"{q:,.0f}".replace(",", ".") if float(q).is_integer() else f"{q:g}".replace(".", ",")
-    return f"{v} {UNIT_ES.get(unit, unit)}"
 
 
 # ---------------------------------------------------------------------------
@@ -165,17 +154,12 @@ class WhatsAppChannel(Channel):
 def _recurrence_line(sid: str, buyer_id: str | None, today: date) -> tuple[str, str]:
     """(recurrencia, pedido en tránsito) de un proveedor para un comprador."""
     r = recurrence(sid, today, buyer_id)
+    label = habitual_label(r)
     if r.recurrent:
-        rec = f"Proveedor habitual · {r.orders_12m} pedidos en 12 meses ({r.consecutive} meses seguidos)"
-    elif r.orders_12m:
-        rec = f"Lo sigues · {r.orders_12m} pedidos puntuales en 12 meses"
-    else:
-        rec = "Lo sigues · sin pedidos en 12 meses"
-    nxt = r.next_arrival
-    if not nxt:
-        return rec, "ninguno"
-    more = f" (y {len(r.in_transit) - 1} más en camino)" if len(r.in_transit) > 1 else ""
-    return rec, f"{qty_es(nxt.quantity, nxt.unit)} · llega el {day_es(nxt.arrival)}{more}"
+        rec = f"{label} en 12 meses ({r.consecutive} meses seguidos)"
+    else:                                   # lo sigue a mano
+        rec = f"Lo sigues · {label[0].lower()}{label[1:]}"
+    return rec, transit_label(r)
 
 
 def _margin(c: Countdown) -> str:

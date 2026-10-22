@@ -73,6 +73,20 @@ y nota interna en español, editables. La IA local redacta el texto; las cifras 
 se comprueba que el texto de la IA no trae cifras ajenas a la alerta ni datos internos en el correo (si no,
 plantilla). «Copiar» y «Marcar como enviado» (auditoría; la tarjeta muestra «✉ Comunicado»). No se envía nada.
 
+**Avisos por Telegram** (fase 6, `docs/fase6_telegram.md`):
+- **Qué hace:** cuando se crea una alerta urgente, avisa al momento a los compradores que trabajan de forma
+  habitual con el proveedor afectado (al menos 3 pedidos en 6 meses) o que lo siguen. El aviso trae el evento,
+  la recurrencia, el pedido en tránsito, el margen, los medicamentos y el plan, con los botones Aprobar plan,
+  Falsa alarma, Recordarme mañana y Ver en el panel. Las alertas no urgentes van a `/resumen`.
+- **Datos:** el historial de pedidos (`data/purchase_history.csv`) es **sintético**, porque el reto no lo
+  trae.
+- **Token:** en `.env`, a partir de `.env.example`. Sin token o sin internet, el panel muestra «Telegram
+  desactivado» y funciona igual.
+
+```powershell
+.venv\Scripts\python -m bot.telegram_bot --demo   # el bot, con la base del modo demo (otra terminal)
+```
+
 **Simulador «¿Y si…?»** (fase 5): el LLM convierte la pregunta en un escenario estructurado que el usuario
 revisa; el código calcula proveedores, materiales, productos, margen, gasto expuesto y acciones. Sin Ollama
 funciona con los ejemplos precalculados (`python scripts/build_scenarios.py` los regenera). Ver
@@ -95,6 +109,9 @@ core/feedback.py     respuestas de los compradores (aprobar plan / falsa alarma 
 core/tasks.py        pedidos (pendientes de envío al ERP), recordatorios y comunicaciones marcadas como enviadas
 core/comms.py        agente de comunicaciones: correo al proveedor y nota interna, con comprobación de cifras
 core/demo.py         modo demo en directo: guion de noticias, pipeline en segundo plano, data/demo.db
+core/recurrence.py   recurrencia de compra (historial sintético): proveedor habitual, pedidos en tránsito
+core/subscriptions.py  chats de Telegram, suscripciones y avisos (SQLite)
+bot/                 Radar Bot de Telegram (telegram_bot.py) y notificador con interfaz de canal (notifier.py)
 core/order_calendar.py  fecha límite para pedir y estado (suficiente, en peligro, rotura) por material y medicamento
 core/results.py      resultados guardados para el panel y métricas
 core/countdown.py    cuenta atrás: TTS (inventario + alternativo) − TTR (recuperación)
@@ -110,6 +127,8 @@ ui/                  contenido de cada página, ficha de proveedor, treemap, cac
 core/labels.py       nombres en español para las vistas de negocio
 static/              fuentes IBM Plex (licencia OFL) y contorno del mapa: el panel funciona sin internet
 scripts/build_results.py  genera data/results/{train,validation,test}.json
+scripts/build_purchase_history.py  genera el historial de pedidos sintético (semilla fija)
+scripts/notify_alerts.py   avisa de las alertas ya calculadas (--demo, --dry-run)
 scripts/build_scenarios.py interpreta los ejemplos del simulador -> data/scenarios.json
 fill_test.py         rellena outputs/Supplier_Risk_3_Test_respuestas.xlsx y valida el formato
 deliverables/        entrega final del test (copia versionada de outputs/) + detalle con consenso
