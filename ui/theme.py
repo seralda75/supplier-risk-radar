@@ -313,7 +313,12 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 [class*="st-key-panel-set-"] [data-testid="stVerticalBlock"] {{ gap: 20px; }}
 .srow {{ display: flex; justify-content: space-between; gap: 16px; padding: 4px 0; font-size: 15px; }}
 .srow .l {{ color: {MUTED}; }} .srow .v {{ font-weight: 600; text-align: right; }}
-.settings-grid {{ max-width: 860px; }}
+/* Ajustes: tarjetas de la misma altura por fila */
+[data-testid="stHorizontalBlock"]:has([class*="st-key-panel-set-"]) {{ align-items: stretch; }}
+[data-testid="stHorizontalBlock"]:has([class*="st-key-panel-set-"]) [data-testid="stColumn"] :is(div):has(> [class*="st-key-panel-set-"]),
+[data-testid="stHorizontalBlock"]:has([class*="st-key-panel-set-"]) [data-testid="stColumn"] > [data-testid="stVerticalBlock"],
+[data-testid="stHorizontalBlock"]:has([class*="st-key-panel-set-"]) [class*="st-key-panel-set-"] {{ height: 100%; }}
+.st-key-set-actions {{ gap: 12px; }}
 .rk .go {{ color: {MUTED}; font-size: 18px; line-height: 1; }}
 [class*="st-key-rk-"]:hover .rk {{ background: {PURPLE_SOFT}; }}
 [class*="st-key-rk-"]:hover .rk .go {{ color: {PURPLE}; }}

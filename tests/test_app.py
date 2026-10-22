@@ -594,8 +594,9 @@ def test_fuente_de_noticias_por_defecto_cargadas_y_vuelta(monkeypatch):
 
 
 @NEEDS_RESULTS
-def test_ajustes_se_guardan_al_cambiarlos_y_se_restablecen():
+def test_ajustes_se_guardan_con_un_boton_y_se_restablecen():
     from core import settings
+    before = settings.load()
     at = run("settings")
     assert not at.exception, at.exception
     page = html(at)
@@ -605,6 +606,8 @@ def test_ajustes_se_guardan_al_cambiarlos_y_se_restablecen():
     at.number_input(key="set-urgent-days").set_value(10).run()
     at.radio(key="set-mode").set_value("En el resumen").run()
     at.toggle(key="set-live").set_value(False).run()
+    assert settings.load() == before                      # cambiar un control no guarda: solo «Guardar»
+    at.button(key="set-save").click().run()
     assert settings.load()["margin_tight_days"] == 30 and settings.get("urgent_buy_days") == 10
     assert settings.get("urgent_mode") == "resumen" and settings.get("live_ai") is False
     at.button(key="set-reset").click().run()

@@ -1,7 +1,9 @@
 """Ajustes: lo mínimo que un director de compras toca, agrupado. Todo afecta solo al panel.
 
-Noticias (cargar un xlsx o csv y volver a las del día) · IA · Criterios de riesgo · Notificaciones · Datos y demo.
-Los valores se guardan en data/settings.json (core/settings.py). Ni el pipeline evaluado ni fill_test.py los leen.
+Tarjetas en una cuadrícula de 2 columnas, siempre en este orden y con 4 controles como máximo cada una:
+Noticias · IA · Criterios de riesgo · Notificaciones · Datos y demo.
+Los valores se guardan con «Guardar» en data/settings.json (core/settings.py); «Restablecer» vuelve a los de
+fábrica. Ni el pipeline evaluado ni fill_test.py los leen.
 """
 from __future__ import annotations
 
@@ -92,7 +94,7 @@ def news_group() -> None:
         if active:
             c2.button("Volver a las noticias del día", key="news_back", on_click=_back_to_default, width="stretch")
         elif info:
-            c2.button("Usar las cargadas", key="news_use", on_click=_use_loaded, width="stretch")
+            c2.button("Usar cargadas", key="news_use", on_click=_use_loaded, width="stretch")
         if info:
             c3.button("Reprocesar", key="news_reprocess", on_click=_reprocess, width="stretch",
                       help="Vuelve a pasar el último fichero por el pipeline")
@@ -121,12 +123,13 @@ def _k(widget: str) -> str:
     return f"{widget}~{ver}" if ver else widget
 
 
-def _save(widget: str) -> None:
-    """Guarda al cambiar un control (sin botón «Guardar»)."""
-    value = st.session_state[_k(widget)]
-    if widget == "set-mode":
-        value = MODES[value]
-    settings.save(**{WIDGETS[widget]: value})
+def _save() -> None:
+    """«Guardar»: escribe los valores de todos los controles (data/settings.json)."""
+    ss = st.session_state
+    settings.save(live_ai=ss[_k("set-live")], ai_timeout_s=ss[_k("set-timeout")],
+                  margin_tight_days=ss[_k("set-margin")], urgent_buy_days=ss[_k("set-urgent-days")],
+                  recurrent_min=ss[_k("set-recurrent")], urgent_mode=MODES[ss[_k("set-mode")]])
+    ss["toast"] = ("Ajustes guardados", "✅")
 
 
 def _reset() -> None:
@@ -142,10 +145,10 @@ def ai_group(cfg: dict) -> None:
                 "usa la respuesta en caché. Si tarda más del máximo, se usa el resultado precalculado."))
         md(_row("Ollama", "activo" if up else "apagado (modo lectura)") + _row("Modelo", LLM_MODEL))
         c1, c2 = st.columns(2, vertical_alignment="bottom")
-        c1.toggle("IA en directo", value=cfg["live_ai"], key=_k("set-live"), on_change=_save, args=("set-live",),
+        c1.toggle("IA en directo", value=cfg["live_ai"], key=_k("set-live"),
                   help="Solo afecta a «Simular noticia entrante» del modo demo")
         c2.number_input("Tiempo máximo (s)", min_value=10, max_value=600, step=10, value=cfg["ai_timeout_s"],
-                        key=_k("set-timeout"), on_change=_save, args=("set-timeout",))
+                        key=_k("set-timeout"))
 
 
 def criteria_group(cfg: dict) -> None:
@@ -154,15 +157,13 @@ def criteria_group(cfg: dict) -> None:
                 "habitual en el panel. El diagnóstico de la entrega usa siempre la configuración evaluada."))
         c1, c2, c3 = st.columns(3)
         c1.number_input("Margen ajustado (días)", min_value=1, max_value=60, value=cfg["margin_tight_days"],
-                        key=_k("set-margin"), on_change=_save, args=("set-margin",),
+                        key=_k("set-margin"),
                         help="Por debajo, el margen se considera ajustado")
         c2.number_input("Compra urgente (días)", min_value=1, max_value=60, value=cfg["urgent_buy_days"],
-                        key=_k("set-urgent-days"), on_change=_save, args=("set-urgent-days",),
+                        key=_k("set-urgent-days"),
                         help="Plazo de una compra urgente sin alternativo libre")
         c3.number_input("Proveedor habitual (pedidos en 6 meses)", min_value=1, max_value=6,
-                        value=cfg["recurrent_min"], key=_k("set-recurrent"), on_change=_save,
-                        args=("set-recurrent",))
-        st.button("Restablecer valores por defecto", key="set-reset", on_click=_reset)
+                        value=cfg["recurrent_min"], key=_k("set-recurrent"))
 
 
 def notifications_group(cfg: dict) -> None:
@@ -175,7 +176,7 @@ def notifications_group(cfg: dict) -> None:
         md(_row("Telegram", text) + _row("Compradores registrados", str(len(buyers)) + (
             " · " + ", ".join(b["name"] for b in buyers) if buyers else "")))
         st.radio("Alertas urgentes", list(MODES), index=list(MODES.values()).index(cfg["urgent_mode"]),
-                 horizontal=True, key=_k("set-mode"), on_change=_save, args=("set-mode",),
+                 horizontal=True, key=_k("set-mode"),
                  help="Al momento: aviso inmediato. En el resumen: se agrupan en /resumen")
 
 
@@ -215,8 +216,8 @@ def data_group() -> None:
     with st.container(key="panel-set-data"):
         md(head("Datos y demo", "La demo usa data/demo.db: no toca la entrega ni data/app.db. «Reiniciar demo» "
                 "conserva los chats de Telegram registrados."))
-        st.toggle("Modo demo", key="set-demo", on_change=_set_demo)
-        c1, c2, c3 = st.columns(3)
+        c0, c1, c2, c3 = st.columns(4, vertical_alignment="center")
+        c0.toggle("Modo demo", key="set-demo", on_change=_set_demo, help="Se aplica al momento")
         c1.button("Reiniciar demo", key="set-demo-reset", on_click=_reset_demo, width="stretch")
         c2.download_button("Exportar auditoría (CSV)", data=_audit_csv(), file_name="auditoria.csv",
                            mime="text/csv", key="set-audit", width="stretch")
@@ -236,8 +237,17 @@ def render() -> None:
         st.toast(toast[0], icon=toast[1])
     md('<h1 class="h1">Ajustes</h1>')
     cfg = settings.load()
-    news_group()
-    ai_group(cfg)
-    criteria_group(cfg)
-    notifications_group(cfg)
-    data_group()
+    left, right = st.columns(2, gap="medium")
+    with left:
+        news_group()
+    with right:
+        ai_group(cfg)
+    left, right = st.columns(2, gap="medium")
+    with left:
+        criteria_group(cfg)
+    with right:
+        notifications_group(cfg)
+    data_group()                                  # ocupa las dos columnas: sin hueco en la última fila
+    with st.container(key="set-actions", horizontal=True):
+        st.button("Guardar", key="set-save", type="primary", on_click=_save)
+        st.button("Restablecer", key="set-reset", on_click=_reset)

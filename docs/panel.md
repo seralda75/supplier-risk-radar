@@ -10,8 +10,8 @@ coordenadas, como un usuario, y se comprueba qué cambia en la pantalla y en SQL
 | Todas | Menú lateral (5 entradas) | `st.page_link` de `st.navigation`: enlace real con su URL (`/proveedores`, `/simulador`); Transparencia queda fuera del menú, solo por `/transparencia`; solo se ejecuta la página activa |
 | Centro de control | Etiqueta «Noticias del día» | La fuente activa (ya no hay selector de conjunto): las noticias del test procesadas o las cargadas desde Ajustes. Las de validación solo salen en «Simular noticia entrante» |
 | Ajustes | «Cargar noticias» | Ventana: fichero .xlsx o .csv, valida las columnas (News_ID, Published_Date, Source, Headline, Summary), «Procesar noticias» con barra de progreso y queda como fuente (`data/custom/`, nunca `data/results`) |
-| Ajustes | «Volver a las noticias del día» · «Usar las cargadas» · «Reprocesar» | Cambia de fuente o repite el último fichero por el pipeline |
-| Ajustes | Controles de IA, criterios y avisos | Se guardan al cambiarlos (`data/settings.json`); «Restablecer valores por defecto» |
+| Ajustes | «Volver a las noticias del día» · «Usar cargadas» · «Reprocesar» | Cambia de fuente o repite el último fichero por el pipeline |
+| Ajustes | Tarjetas por grupo (Noticias, IA, Criterios, Notificaciones, Datos y demo; máx. 4 controles cada una) · «Guardar» · «Restablecer» | «Guardar» escribe `data/settings.json`; «Restablecer» vuelve a los valores por defecto |
 | Ajustes | «Reiniciar demo» · «Exportar auditoría (CSV)» · «Descargar la entrega (xlsx)» | Borra lo hecho en la demo (conserva los chats) · descarga la auditoría · descarga `deliverables/` tal cual |
 | Centro de control | «Simular escenario» | Enlace al simulador |
 | Centro de control | «Revisar ahora» (banner) | Elige la crítica **pendiente** con menos margen |
