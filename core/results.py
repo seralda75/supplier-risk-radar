@@ -16,15 +16,22 @@ RESULTS_DIR = DATA_DIR / "results"
 SPLITS = {"test": "Test (entrega)", "validation": "Validación", "train": "Entrenamiento"}
 
 
+CUSTOM_DIR = DATA_DIR / "custom"
+CUSTOM = "custom"        # noticias cargadas por el usuario: fuera de data/results, que es de la entrega
+
+
 def path(split: str):
+    if split == CUSTOM:
+        return CUSTOM_DIR / "news_results.json"
     return RESULTS_DIR / f"{split}.json"
 
 
-def save(split: str, results: list[dict], mode: str, model: str) -> None:
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+def save(split: str, results: list[dict], mode: str, model: str, **extra) -> None:
+    p = path(split)
+    p.parent.mkdir(parents=True, exist_ok=True)
     payload = {"split": split, "generated": datetime.now().isoformat(timespec="seconds"),
-               "mode": mode, "model": model, "results": results}
-    path(split).write_text(json.dumps(payload, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+               "mode": mode, "model": model, **extra, "results": results}
+    p.write_text(json.dumps(payload, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
 
 
 def load(split: str) -> dict | None:

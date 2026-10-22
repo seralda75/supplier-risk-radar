@@ -36,10 +36,6 @@ def bar(split: str) -> None:
     done, total = demo.progress(con)
     with st.container(key="demo-bar"):
         c1, c2, c3 = st.columns([4.2, 1.6, 1.1], vertical_alignment="center")
-        if split != demo.SPLIT:
-            c1.markdown('<div class="demo-t"><b>MODO DEMO</b> · cambia a «Noticias de test (entrega)» para '
-                        'simular noticias</div>', unsafe_allow_html=True)
-            return
         live = "IA en directo" if st.session_state.get("demo_live", True) else "IA con caché"
         up = cache.llm_up()
         c1.markdown(f'<div class="demo-t"><b>MODO DEMO</b> · {done} de {total} noticias · '

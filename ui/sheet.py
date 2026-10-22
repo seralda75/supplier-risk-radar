@@ -173,7 +173,8 @@ def render(sid: str) -> None:
 
 def history(sid: str) -> str:
     rows = []
-    for sp, d in cache.all_data().items():
+    sp = cache.split()
+    for d in [cache.data(sp)]:
         if not d:
             continue
         alerts = {a.id: a for a in cache.alerts(sp)}

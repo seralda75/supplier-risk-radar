@@ -137,7 +137,7 @@ def _pick() -> None:
 
 
 def _search(sup: dict) -> None:
-    exposed = {c.supplier_id for a in cache.alerts("test") for c in [a.worst] + a.others}
+    exposed = {c.supplier_id for a in cache.alerts(cache.split()) for c in [a.worst] + a.others}
     ids = sorted(sup, key=lambda i: (i not in exposed, sup[i].name))
     st.selectbox("Ficha de proveedor", ids, index=None, key="sup_pick", on_change=_pick,
                  placeholder="Buscar un proveedor y abrir su ficha…", label_visibility="collapsed",

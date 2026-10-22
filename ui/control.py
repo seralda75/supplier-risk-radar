@@ -16,7 +16,7 @@ from datetime import date, timedelta
 
 import streamlit as st
 
-from core import feedback, results, tasks
+from core import feedback, tasks
 from core.actions import plan_steps
 from core.countdown import Countdown
 from core.labels import CRITICALITY_ES, material_es, product_es, product_short, short_supplier
@@ -130,23 +130,16 @@ def day_es(iso: str) -> str:
     return f"{d.day} {MONTHS[d.month - 1]}"
 
 
-def _set_split() -> None:
-    st.session_state["split"] = st.session_state["split_widget"]
-
-
 # ---------------------------------------------------------------------------
 # Cabecera, banner y KPIs
 # ---------------------------------------------------------------------------
 
 def header(split: str, data: dict) -> None:
-    left, mid, right = st.columns([5, 1.9, 1.45], vertical_alignment="bottom")
+    left, mid, right = st.columns([5, 2.4, 1.45], vertical_alignment="bottom")
     left.markdown(f'<h1 class="h1">Centro de control{tip("Riesgo de suministro · datos del " + when(data["generated"]))}'
                   '</h1>', unsafe_allow_html=True)
-    splits = list(results.SPLITS)
-    mid.selectbox("Noticias", splits, index=splits.index(split), key="split_widget", on_change=_set_split,
-                  label_visibility="collapsed",
-                  format_func=lambda s: {"test": "Noticias de test (entrega)", "validation": "Validación",
-                                         "train": "Entrenamiento"}[s])
+    mid.markdown(f'<div class="stamp"><span class="chip grey">{esc(cache.source_label())}</span></div>',
+                 unsafe_allow_html=True)
     with right.container(key="go-sim"):
         st.page_link("views/simulator.py", label="Simular escenario", width="stretch")
 
@@ -764,21 +757,19 @@ def open_linked() -> None:
     if not nid:
         return
     st.query_params.pop("alert", None)
-    for split in dict.fromkeys([st.session_state.get("split", "test"), "test"]):
-        if any(a.id == nid for a in cache.alerts(split)):
-            st.session_state["split"] = split
-            _open(split, nid)
-            return
+    split = cache.split()
+    if any(a.id == nid for a in cache.alerts(split)):
+        _open(split, nid)
+        return
     st.session_state["toast"] = (f"La alerta {nid} no está en el panel", "⚠️")
 
 
 def page() -> None:
     open_linked()
-    split = st.session_state.setdefault("split", "test")
+    split = cache.split()
     data = cache.data(split)
     if not data:
-        st.warning(f"No hay resultados guardados para «{results.SPLITS[split]}». "
-                   f"Genéralos con `python scripts/build_results.py --split {split}`.")
+        st.warning("No hay resultados guardados. Genéralos con `python scripts/build_results.py`.")
         return
     header(split, data)
     if cache.demo_on():

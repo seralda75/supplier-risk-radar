@@ -18,7 +18,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from core import demo, feedback, llm, results, scenario, subscriptions, tasks
+from core import custom_news, demo, feedback, llm, results, scenario, subscriptions, tasks
 from core.config import ROOT
 
 from .data import Alert, build_alerts
@@ -39,8 +39,24 @@ def _results(split: str, mtime: float) -> dict | None:
 
 
 def data(split: str) -> dict | None:
-    """Resultados guardados de un conjunto (data/results/<split>.json)."""
+    """Resultados guardados de un conjunto (data/results/<split>.json; las noticias cargadas, en data/custom)."""
     return _results(split, _mtime(results.path(split)))
+
+
+def split() -> str:
+    """El conjunto que muestra el panel: «test» (Noticias del día) o «custom» (noticias cargadas desde Ajustes).
+    El modo demo trabaja siempre sobre las noticias del día."""
+    if not demo_on() and custom_news.active():
+        return results.CUSTOM
+    return demo.SPLIT
+
+
+def source_label() -> str:
+    """«Noticias del día» o «Noticias cargadas · fichero.xlsx»."""
+    if split() == results.CUSTOM:
+        name = (custom_news.info() or {}).get("name", "")
+        return "Noticias cargadas" + (f" · {name}" if name else "")
+    return "Noticias del día"
 
 
 def all_data() -> dict[str, dict | None]:

@@ -13,9 +13,10 @@ from core.config import ROOT
 
 APP = ROOT / "app.py"
 PAGES = {"control": None, "calendar": "views/calendar.py", "suppliers": "views/suppliers.py",
-         "simulator": "views/simulator.py", "transparency": "views/transparency.py"}
+         "simulator": "views/simulator.py", "transparency": "views/transparency.py",
+         "settings": "views/settings.py"}
 NAV = {"Centro de control": "", "Calendario": "calendario", "Proveedores": "proveedores",
-       "Simulador «¿Y si…?»": "simulador", "Transparencia": "transparencia"}
+       "Simulador «¿Y si…?»": "simulador", "Transparencia": "transparencia", "Ajustes": "ajustes"}
 NEEDS_RESULTS = pytest.mark.skipif(not results.path("test").exists(),
                                    reason="faltan data/results (scripts/build_results.py)")
 
@@ -44,9 +45,8 @@ def sin_llm(monkeypatch):
     st.cache_resource.clear()
 
 
-def run(view="control", split="test"):
+def run(view="control"):
     at = AppTest.from_file(str(APP), default_timeout=60)
-    at.session_state["split"] = split
     at.run()
     if PAGES[view]:
         at.switch_page(PAGES[view]).run()
@@ -66,9 +66,8 @@ def kpi_value(at, label: str) -> str:
 
 @NEEDS_RESULTS
 @pytest.mark.parametrize("view", list(PAGES))
-@pytest.mark.parametrize("split", list(results.SPLITS))
-def test_cada_pagina_arranca_en_cada_conjunto(view, split):
-    at = run(view, split)
+def test_cada_pagina_arranca(view):
+    at = run(view)
     assert not at.exception, at.exception
     links = {(x.proto.label, x.proto.page) for x in at.get("page_link")}
     assert set(NAV.items()) <= links                      # el menú son enlaces reales a cada página
@@ -570,3 +569,24 @@ def test_simulador_interpreta_con_el_llm_y_se_puede_corregir(monkeypatch):
     next(b for b in at.button if b.label == "Calcular impacto").click().run()
     calc = scenario.Scenario.model_validate(at.session_state["sc_calc"])
     assert calc.duration_days == 20 and scenario.simulate(calc).supplier_ids == ["S030", "S038"]
+
+
+@NEEDS_RESULTS
+def test_fuente_de_noticias_por_defecto_cargadas_y_vuelta(monkeypatch):
+    from core import custom_news
+    at = run()
+    assert "Noticias del día" in html(at)
+    assert not [s for s in at.selectbox if s.key == "split_widget"]      # ya no hay selector de conjunto
+    custom_news.process([{"News_ID": "X001", "Published_Date": "2026-10-20", "Source": "Reuters",
+                          "Headline": "Fire at Taizhou chemical park forces evacuation of several API plants",
+                          "Summary": "A fire broke out at a chemical park in Taizhou."}], name="n.xlsx",
+                        use_llm=False)
+    custom_news.use(True)
+    at = run()
+    assert "Noticias cargadas · n.xlsx" in html(at) and "Taizhou Hengyuan Pharma" in html(at)
+    assert at.session_state["sel-custom"] == "X001"
+    at = run("settings")
+    assert not at.exception, at.exception
+    assert "Cargar noticias" in {b.label for b in at.button}
+    next(b for b in at.button if b.label == "Volver a las noticias del día").click().run()
+    assert not custom_news.active() and "Noticias del día" in html(run())

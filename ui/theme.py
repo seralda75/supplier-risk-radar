@@ -27,6 +27,8 @@ _NAV_ICONS = {
     "suppliers": '<path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/>',
     "simulator": '<path d="M4 19l5-6 4 3 7-9"/><circle cx="20" cy="7" r="1.5"/>',
     "transparency": '<circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+    "settings": '<path d="M4 7h10"/><path d="M18 7h2"/><circle cx="16" cy="7" r="2"/><path d="M4 17h2"/>'
+                '<path d="M10 17h10"/><circle cx="8" cy="17" r="2"/>',
 }
 
 
@@ -307,6 +309,11 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
   text-transform: none; letter-spacing: 0; vertical-align: baseline; }}
 .tip:hover, .tip:focus-visible {{ color: {PURPLE}; outline: none; }}
 .sheet-chips {{ display: flex; gap: 8px; flex-wrap: wrap; }}
+/* Ajustes: tarjetas con filas de «etiqueta · valor» */
+[class*="st-key-panel-set-"] [data-testid="stVerticalBlock"] {{ gap: 20px; }}
+.srow {{ display: flex; justify-content: space-between; gap: 16px; padding: 4px 0; font-size: 15px; }}
+.srow .l {{ color: {MUTED}; }} .srow .v {{ font-weight: 600; text-align: right; }}
+.settings-grid {{ max-width: 860px; }}
 .rk .go {{ color: {MUTED}; font-size: 18px; line-height: 1; }}
 [class*="st-key-rk-"]:hover .rk {{ background: {PURPLE_SOFT}; }}
 [class*="st-key-rk-"]:hover .rk .go {{ color: {PURPLE}; }}

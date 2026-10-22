@@ -16,7 +16,7 @@ from datetime import date, timedelta
 
 import streamlit as st
 
-from core import results, tasks
+from core import tasks
 from core.labels import material_es, product_es, short_supplier
 from core.order_calendar import STATUS_ES, plan
 from core.suppliers import load_suppliers
@@ -375,10 +375,10 @@ def day_dialog(split: str, iso: str, mid: str | None) -> None:
 
 
 def page() -> None:
-    split = st.session_state.setdefault("split", "test")
+    split = cache.split()
     today = date.today()
     if not cache.data(split):
-        st.warning(f"No hay resultados guardados para «{results.SPLITS[split]}».")
+        st.warning("No hay resultados guardados.")
         return
     b, cds = active_countdowns(split)
     mats, meds = plan(cds, today)

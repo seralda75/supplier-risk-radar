@@ -12,5 +12,9 @@ outputs/
 .claude/settings.local.json
 data/*.db.bak-*
 
+# Ajustes del panel y noticias cargadas por el usuario (locales)
+data/settings.json
+data/custom/
+
 # Capturas, scripts de prueba y ficheros temporales
 tmp/
