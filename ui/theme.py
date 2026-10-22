@@ -409,6 +409,17 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 [data-testid="stForm"] {{ background: transparent; border: none; padding: 0; }}
 [data-testid="stExpander"] details {{ background: {CARD}; border: 1px solid {LINE}; border-radius: 12px; }}
 .stTextArea textarea, .stTextInput input {{ font-size: 15px; }}
+/* Simulador: indicador de pasos y chips de ejemplos */
+.sc-steps {{ list-style: none; margin: 0; padding: 0; display: flex; align-items: center; gap: 12px; }}
+.sc-steps li {{ display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; color: {MUTED_2}; }}
+.sc-steps li + li::before {{ content: ""; width: 40px; height: 2px; background: {LINE}; margin-right: 2px; }}
+.sc-steps .n {{ width: 26px; height: 26px; border-radius: 50%; border: 2px solid {LINE}; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 13px; }}
+.sc-steps li.on, .sc-steps li.done {{ color: {INK}; }}
+.sc-steps li.on .n {{ border-color: {PURPLE}; background: {PURPLE}; color: #FFFFFF; }}
+.sc-steps li.done .n {{ border-color: {GREEN}; color: {GREEN}; }}
+.st-key-sc-chips {{ flex-wrap: wrap; gap: 8px; }}
+.st-key-sc-chips button {{ min-height: 34px; padding: 4px 14px; border-radius: 999px; font-size: 13px; }}
 .foot {{ font-size: 13px; color: {MUTED_2}; }}
 </style>
 """

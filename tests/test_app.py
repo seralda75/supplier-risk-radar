@@ -542,14 +542,14 @@ def test_demo_guion_sin_etiquetas_y_en_orden(tmp_path):
 def test_simulador_sin_ollama_usa_los_ejemplos_precalculados():
     at = run("simulator")
     assert at.text_area(key="sc_text").disabled and at.button(key="sc_interpret").disabled
+    assert "Calcular impacto" not in [b.label for b in at.button]      # el paso 2 aparece al elegir un escenario
     gujarat = next(i for i, e in enumerate(scenario.load_examples()) if "Gujarat" in e["text"])
-    at.selectbox(key="sc_example").set_value(gujarat)
-    at.button(key="sc_use_example").click().run()
+    at.button(key=f"sc_ex_{gujarat}").click().run()
     next(b for b in at.button if b.label == "Calcular impacto").click().run()
     assert not at.exception, at.exception
     calc = scenario.Scenario.model_validate(at.session_state["sc_calc"])
     assert scenario.simulate(calc).supplier_ids == ["S002", "S006", "S014"]
-    assert "Kaveri Fine Chemicals" in html(at) and "Plan recomendado" in html(at)
+    assert "Kaveri" in html(at) and "Acciones" in html(at)
 
 
 @NEEDS_RESULTS

@@ -30,7 +30,7 @@ coordenadas, como un usuario, y se comprueba qué cambia en la pantalla y en SQL
 | Centro de control | Casilla «Otros sin riesgo (N)» del treemap | Abre la lista de esos proveedores; cada uno abre su ficha |
 | Proveedores | Buscador de la cabecera | Abre la ficha del proveedor elegido (ventana) |
 | Proveedores | Filas del ranking de vulnerabilidad | Abren la ficha (ventana) |
-| Simulador | Texto, «Interpretar con la IA», ejemplos, «Usar este ejemplo», formulario y «Calcular impacto» | Como antes |
+| Simulador | Tres pasos (indicador 1 → 2 → 3): caja de texto + «Interpretar con la IA» y ejemplos como chips · formulario de 2 columnas y «Calcular impacto» · KPIs, mapa y acciones | Cada paso aparece al completar el anterior |
 | Simulador | Puntos del mapa | Abren la ficha |
 | Transparencia | Dos desplegables (historial y documento de evaluación) | Como antes |
 
