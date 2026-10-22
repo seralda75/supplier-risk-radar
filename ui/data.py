@@ -13,8 +13,9 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 
+from core import settings
 from core.actions import situation
-from core.countdown import MARGIN_TIGHT_DAYS, Countdown
+from core.countdown import Countdown
 from core.judge import NUMBER_WORDS, UNIT_STEMS
 from core.labels import place_es, short_supplier
 from core.suppliers import Supplier, load_suppliers
@@ -94,7 +95,7 @@ def margin_color(margin: float, level: str) -> str:
         return "#5B5766"
     if margin < 0:
         return "#B3261E"
-    return "#8A5A00" if margin < MARGIN_TIGHT_DAYS else "#2E7D4F"
+    return "#8A5A00" if margin < settings.get("margin_tight_days") else "#2E7D4F"
 
 
 def highlight_duration(text: str, reported: str) -> tuple[str, bool]:

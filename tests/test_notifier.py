@@ -200,3 +200,14 @@ def test_recordarme_manana_crea_un_recordatorio_y_el_bot_lo_envia_ese_dia(tmp_pa
     app = SimpleNamespace(bot_data={"cons": {True: con}}, bot=SimpleNamespace(send_message=send_message))
     assert asyncio.run(tb.remind_due(app)) == 1 and asyncio.run(tb.remind_due(app)) == 0
     assert sent[0][0] == 111 and "Recordatorio" in sent[0][1]
+
+
+def test_ajuste_urgentes_en_el_resumen_no_avisa_al_momento(tmp_path):
+    from core import settings
+    con = demo.connect(tmp_path / "demo.db")
+    subs.register(111, "B1", "", REF, con)
+    settings.save(urgent_mode="resumen")
+    ch = FakeChannel()
+    rep = notifier.notify(alert("N008"), "test", True, con, ch, REF, background=False)
+    assert not rep.urgent and rep.chats == [111] and ch.sent == []
+    assert "/resumen" in rep.text() and subs.sent("N008", con)[0]["status"] == "pendiente"

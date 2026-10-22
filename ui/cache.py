@@ -102,6 +102,11 @@ def db() -> sqlite3.Connection:
     return _connection(str(feedback.DB_PATH), False)
 
 
+def demo_db() -> sqlite3.Connection:
+    """La base de la demo (data/demo.db), aunque el modo demo esté apagado: «Reiniciar demo» de Ajustes."""
+    return _connection(str(demo.DB_PATH), True)
+
+
 def decisions(split: str) -> dict[str, dict]:
     """Decisiones vigentes de los compradores (no se cachea: cambian con cada clic)."""
     return feedback.active(split, db())

@@ -590,3 +590,36 @@ def test_fuente_de_noticias_por_defecto_cargadas_y_vuelta(monkeypatch):
     assert "Cargar noticias" in {b.label for b in at.button}
     next(b for b in at.button if b.label == "Volver a las noticias del día").click().run()
     assert not custom_news.active() and "Noticias del día" in html(run())
+
+
+@NEEDS_RESULTS
+def test_ajustes_se_guardan_al_cambiarlos_y_se_restablecen():
+    from core import settings
+    at = run("settings")
+    assert not at.exception, at.exception
+    page = html(at)
+    for text in ("Noticias", "IA", "Criterios de riesgo", "Notificaciones", "Datos y demo"):
+        assert text in page
+    at.number_input(key="set-margin").set_value(30).run()
+    at.number_input(key="set-urgent-days").set_value(10).run()
+    at.radio(key="set-mode").set_value("En el resumen").run()
+    at.toggle(key="set-live").set_value(False).run()
+    assert settings.load()["margin_tight_days"] == 30 and settings.get("urgent_buy_days") == 10
+    assert settings.get("urgent_mode") == "resumen" and settings.get("live_ai") is False
+    at.button(key="set-reset").click().run()
+    assert not at.exception, at.exception
+    assert settings.load() == settings.DEFAULTS
+    assert at.number_input(key="set-margin~1").value == 14 and at.toggle(key="set-live~1").value is True
+
+
+@NEEDS_RESULTS
+def test_ajustes_reiniciar_demo_conserva_los_chats():
+    from core import subscriptions
+    con = demo.connect()
+    subscriptions.register(111, "B1", "prueba", con=con)
+    demo.save(con, {"news_id": "N008"}, "cache", 1.0)
+    assert demo.progress(con)[0] == 1
+    at = run("settings")
+    at.button(key="set-demo-reset").click().run()
+    assert not at.exception, at.exception
+    assert demo.progress(con)[0] == 0 and subscriptions.buyer(111, con) is not None

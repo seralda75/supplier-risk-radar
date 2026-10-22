@@ -7,8 +7,12 @@ coordenadas, como un usuario, y se comprueba qué cambia en la pantalla y en SQL
 
 | Página | Elemento | Qué hace |
 |---|---|---|
-| Todas | Menú lateral (4 entradas) | `st.page_link` de `st.navigation`: enlace real con su URL (`/proveedores`, `/simulador`, `/transparencia`); solo se ejecuta la página activa |
-| Centro de control | Selector de noticias (test, validación, entrenamiento) | Cambia el conjunto |
+| Todas | Menú lateral (6 entradas) | `st.page_link` de `st.navigation`: enlace real con su URL (`/proveedores`, `/simulador`, `/transparencia`); solo se ejecuta la página activa |
+| Centro de control | Etiqueta «Noticias del día» | La fuente activa (ya no hay selector de conjunto): las noticias del test procesadas o las cargadas desde Ajustes. Las de validación solo salen en «Simular noticia entrante» |
+| Ajustes | «Cargar noticias» | Ventana: fichero .xlsx o .csv, valida las columnas (News_ID, Published_Date, Source, Headline, Summary), «Procesar noticias» con barra de progreso y queda como fuente (`data/custom/`, nunca `data/results`) |
+| Ajustes | «Volver a las noticias del día» · «Usar las cargadas» · «Reprocesar» | Cambia de fuente o repite el último fichero por el pipeline |
+| Ajustes | Controles de IA, criterios y avisos | Se guardan al cambiarlos (`data/settings.json`); «Restablecer valores por defecto» |
+| Ajustes | «Reiniciar demo» · «Exportar auditoría (CSV)» · «Descargar la entrega (xlsx)» | Borra lo hecho en la demo (conserva los chats) · descarga la auditoría · descarga `deliverables/` tal cual |
 | Centro de control | «Simular escenario» | Enlace al simulador |
 | Centro de control | «Revisar ahora» (banner) | Elige la crítica **pendiente** con menos margen |
 | Centro de control | Tarjeta de «Requiere tu decisión» o fila «En seguimiento semanal» | La elige (detalle a la derecha) y abre su **ventana** (centrada, fondo difuminado) |
@@ -76,7 +80,7 @@ Lo que se ha cambiado para que no vuelva a pasar:
 | Fila del ranking · buscador de Proveedores | Ficha del proveedor |
 | Proveedores: fila de dos tarjetas | Misma altura (680 px y 680 px) |
 | Simulador: ejemplo + «Calcular impacto» | Resultado con el plan |
-| Menú lateral (4 páginas) | Cambia de página |
+| Menú lateral (6 páginas) | Cambia de página |
 
 Sin excepciones y sin ninguna petición fuera de `localhost`. El treemap tiene 19 casillas y ninguna vacía.
 
@@ -172,3 +176,10 @@ fronteras), así que el Centro de control actual debería ir algo más rápido q
 | CSS en una sola llamada | Una constante calculada al importar. Las fuentes se declaran en `config.toml` y se sirven desde `static/` |
 | Treemap en HTML (`st.components.v2`) en lugar de Plotly | Cada gráfico de Plotly cuesta unos 100 ms en montarse en el navegador. El treemap en HTML cuesta entre 20 y 45 ms |
 | Mapa sin fronteras entre países | Unos 70 ms menos al dibujarlo |
+
+## 6. Menos texto (fase 7)
+
+Cada pantalla se entiende en 5 segundos: las tarjetas muestran estado, proveedor con ciudad y margen; las notas y
+leyendas van en un tooltip ⓘ; el resto, en la ventana de detalle. Inventario completo en `docs/fase7_menos_texto.md`.
+Los clics reales de «Cargar noticias» y de Ajustes (cambiar, guardar, recargar, restablecer, descargar) se probaron con
+Playwright: sin excepciones, y `data/results` y `deliverables/` con el mismo md5 antes y después.

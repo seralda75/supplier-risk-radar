@@ -26,12 +26,13 @@ from functools import lru_cache
 
 import pandas as pd
 
+from . import settings          # Ajustes del panel: margen ajustado y días de compra urgente
 from .config import TRAIN_XLSX
 from .countdown import MARGIN_TIGHT_DAYS, Countdown
 from .suppliers import load_suppliers
 
-MARGEN_AJUSTADO = MARGIN_TIGHT_DAYS   # 14 días: margen de una alerta por debajo del cual hay peligro
-URGENTE_DIAS = 7                      # compra puntual con cualificación de urgencia (plan: «1 semana»)
+MARGEN_AJUSTADO = MARGIN_TIGHT_DAYS   # 14 días por defecto (Ajustes lo cambia en el panel: core/settings.py)
+URGENTE_DIAS = 7                      # días por defecto de la compra urgente (Ajustes lo cambia en el panel)
 STATUS_ORDER = {"rotura": 0, "peligro": 1, "suficiente": 2}
 STATUS_ES = {"rotura": "Rotura prevista", "peligro": "En peligro", "suficiente": "Suficiente"}
 
@@ -131,7 +132,8 @@ def material_plan(m: Material, cds: list[Countdown], today: date) -> MaterialPla
     hit = {c.supplier_id for c in mine}
     # A quién se pediría: el alternativo del afectado si existe y no está afectado; si no, compra urgente
     alt = w.alternate_id if w.alternate_id and w.alternate_id not in hit and not w.alternate_affected else None
-    lead = float(w.alternate_lead_days if alt and w.alternate_lead_days is not None else URGENTE_DIAS)
+    lead = float(w.alternate_lead_days if alt and w.alternate_lead_days is not None
+                 else settings.get("urgent_buy_days"))
     stock = float(w.inventory_days or 0)
     plan = MaterialPlan(m, "suficiente", "", alt or w.supplier_id, bool(alt), stock, affected=True,
                         margin=w.margin_days, alert_supplier=w.supplier_id,
@@ -154,7 +156,7 @@ def material_plan(m: Material, cds: list[Countdown], today: date) -> MaterialPla
     elif w.margin_days < 0:
         plan.status = "rotura"
         plan.why = f"alerta activa en {name} con margen de {round(w.margin_days)} días"
-    elif w.margin_days <= MARGEN_AJUSTADO:
+    elif w.margin_days <= settings.get("margin_tight_days"):
         plan.status = "peligro"
         plan.why = f"alerta activa en {name} con solo {round(w.margin_days)} días de margen"
     else:

@@ -18,7 +18,7 @@ ollama pull qwen2.5:7b; ollama pull nomic-embed-text
 .venv\Scripts\streamlit run app.py                 # http://localhost:8501
 ```
 Diseño de `docs/mockup_centro_control.html`, pensado para el director de compras: en 5 segundos, si hay
-riesgo, dónde, cuánto tiempo queda y qué hacer. Navegación lateral con cinco páginas (`st.navigation`:
+riesgo, dónde, cuánto tiempo queda y qué hacer. Navegación lateral con seis páginas (`st.navigation`:
 solo se ejecuta la activa):
 
 - **Centro de control**: banner de estado, 5 indicadores (alertas críticas, proveedores expuestos,
@@ -32,8 +32,8 @@ solo se ejecuta la activa):
   calculada, que queda como «pendiente de envío al ERP», y **crear recordatorio**), todo en SQLite
   (`core/feedback.py`, `core/tasks.py`). Debajo, a todo el ancho, el **calendario de roturas** (próximos 90
   días por medicamento) y el **treemap del gasto en riesgo** (lo que no tiene riesgo, agrupado en gris).
-  Pulsar un proveedor en el mapa o en el treemap abre su ficha. Por defecto, las noticias de test; un
-  selector discreto cambia a entrenamiento o validación.
+  Pulsar un proveedor en el mapa o en el treemap abre su ficha. Muestra las «Noticias del día» (las del test,
+  procesadas); en Ajustes se puede cargar otro fichero. Menos texto: las notas van en tooltips ⓘ.
 - **Calendario**: qué medicamentos tienen stock suficiente, cuáles están en peligro y cuáles se quedan sin stock,
   y hasta qué día se puede esperar para pedir (`core/order_calendar.py`). Proyección desde hoy que asume
   reposición regular salvo los proveedores con alerta activa: suficiente sin alerta (la cobertura solo informa),
@@ -46,6 +46,11 @@ solo se ejecuta la activa):
   zona y alternativos que no llegan a tiempo. La ficha de proveedor (con su historial) se abre en una ventana
   desde el ranking o desde el buscador de la cabecera.
 - **Simulador «¿Y si…?»** y **Transparencia** (métricas, cambios, límites, duraciones ancladas).
+- **Ajustes**: cargar noticias propias (.xlsx o .csv con News_ID, Published_Date, Source, Headline, Summary; se
+  procesan con el pipeline y su caché, con barra de progreso, en `data/custom/`), IA, criterios de riesgo (margen
+  ajustado 14 d, compra urgente 7 d, proveedor habitual 3 pedidos en 6 meses), avisos de Telegram, reiniciar la demo y
+  descargar la auditoría y la entrega. Se guardan en `data/settings.json`; solo afectan al panel (`fill_test.py` y
+  la entrega usan siempre la configuración evaluada; lo comprueba `tests/test_settings.py`).
 
 Las vistas de negocio no usan jerga: proveedores por nombre y ciudad, «días de margen» en lugar de TTS/TTR.
 Inventario de elementos clicables, interacciones probadas con clic real y tiempos de respuesta: `docs/panel.md`.

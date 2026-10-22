@@ -65,7 +65,8 @@ class Recurrence:
 
     @property
     def recurrent(self) -> bool:
-        return self.orders_6m >= RECURRENT_MIN
+        from . import settings              # Ajustes → «proveedor habitual»; 3 por defecto (RECURRENT_MIN)
+        return self.orders_6m >= settings.get("recurrent_min")
 
     @property
     def next_arrival(self) -> Order | None:

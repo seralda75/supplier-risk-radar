@@ -24,6 +24,7 @@ from datetime import date
 
 import requests
 
+from core import settings
 from core import subscriptions as subs
 from core.countdown import Countdown
 from core.labels import product_es, short_supplier
@@ -257,7 +258,8 @@ def notify(a: Alert, split: str, is_demo: bool, con: sqlite3.Connection, channel
     """Avisa de una alerta recién creada. Las reservas (sin duplicados) se hacen aquí; el envío, en un hilo
     aparte si background=True, para no frenar el panel si Telegram tarda o no hay internet."""
     channel = channel or TelegramChannel()
-    urgent = bool(a.r.get("urgent"))
+    # Ajustes → Notificaciones: «resumen» manda también las urgentes al /resumen en lugar de avisar al momento
+    urgent = bool(a.r.get("urgent")) and settings.get("urgent_mode") == "inmediato"
     rep = Report(urgent, channel_ok=channel.available())
     todo: list[tuple[int, int, AlertMessage]] = []
     for chat, sids in recipients(a, con, today).items():

@@ -14,7 +14,7 @@ import time
 
 import streamlit as st
 
-from core import demo
+from core import demo, settings
 from core.countdown import Countdown
 from core.labels import CITY_ES, COUNTRY_ES, ZONE_ES, product_es, short_supplier
 from core.matching import find_candidates
@@ -36,7 +36,7 @@ def bar(split: str) -> None:
     done, total = demo.progress(con)
     with st.container(key="demo-bar"):
         c1, c2, c3 = st.columns([4.2, 1.6, 1.1], vertical_alignment="center")
-        live = "IA en directo" if st.session_state.get("demo_live", True) else "IA con caché"
+        live = "IA en directo" if settings.get("live_ai") else "IA con caché"
         up = cache.llm_up()
         c1.markdown(f'<div class="demo-t"><b>MODO DEMO</b> · {done} de {total} noticias · '
                     f'{live if up else "IA apagada"}'
@@ -169,7 +169,7 @@ def _incoming() -> None:
         st.info("Se han usado todas las noticias del guion. Pulsa «Reiniciar demo» para empezar de nuevo.")
         return
     up = cache.llm_up()
-    live = st.session_state.get("demo_live", True)
+    live = settings.get("live_ai")
     state, body = ["todo"] * 5, {}
     ph = st.empty()
 
@@ -193,7 +193,7 @@ def _incoming() -> None:
     t_llm = time.perf_counter()
     result, mode = None, "precalculado"
     if future is not None:
-        while not future.done() and time.perf_counter() - t_llm < demo.LIVE_TIMEOUT_S:
+        while not future.done() and time.perf_counter() - t_llm < settings.get("ai_timeout_s"):
             show(2, "now", f'<span class="sm">La IA local ({"en directo" if live else "con caché"}) está leyendo '
                            f'la noticia y los proveedores candidatos… <b class="num">'
                            f'{time.perf_counter() - t_llm:.0f} s</b></span>')

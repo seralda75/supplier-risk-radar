@@ -57,8 +57,6 @@ with st.sidebar:
                        "ni data/app.db")
         if st.session_state["demo"]:
             demo.warm_up()
-            st.toggle("IA en directo", key="demo_live", value=True,
-                      help="Encendido: llamada real a la IA local (más lenta). Apagado: la respuesta en caché")
     tg_ok, tg = cache.telegram()
     with st.container(key="navfoot"):
         md(f'<div class="nav-foot"><span><span class="dot" style="background:{"#4CAF7A" if up else "#A9A3B6"}">'
