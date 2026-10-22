@@ -15,7 +15,7 @@ from core.suppliers import CITY_GEO, COUNTRY_ALIASES, MATERIAL_ALIASES, SUPPLIER
 
 from . import cache, sheet
 from . import theme as T
-from .components import STATUS_DOT, dot_legend, esc, kpi, kpis, map_label, md, risk_map, table
+from .components import STATUS_DOT, card, dot_legend, esc, head, kpi, kpis, map_label, md, risk_map, table, tip
 from .data import meur, pct, signed
 
 SC_REGIONS = sorted({x for g in CITY_GEO.values() for x in g.get("regions", []) + g.get("rivers", [])}
@@ -54,11 +54,8 @@ def _with_extra(options: list[str], current: list[str]) -> list[str]:
 def _form(loaded: dict) -> None:
     sc0 = scenario.Scenario.model_validate(loaded["scenario"])
     with st.form(f"sc_form_{st.session_state.get('sc_ver', 0)}", border=False):
-        md('<div class="card-head"><h2 class="h2">Escenario interpretado</h2>'
-           '<span class="sub">Revísalo y corrígelo antes de calcular</span></div>')
-        md(f'<span class="sub">{esc(loaded["source"])}</span>')
-        if loaded["dropped"]:
-            md(f'<span class="sub">Descartado porque no aparece en el texto: {esc(", ".join(loaded["dropped"]))}.</span>')
+        extra = f". Descartado (no está en el texto): {', '.join(loaded['dropped'])}" if loaded["dropped"] else ""
+        md(head("Escenario interpretado", f"Revísalo y corrígelo antes de calcular. {loaded['source']}{extra}"))
         c1, c2, c3 = st.columns([1.6, 1.2, .8])
         title = c1.text_input("Título", sc0.title)
         events = list(scenario.SCENARIO_EVENTS)
@@ -92,7 +89,7 @@ def _result(imp: scenario.ScenarioImpact) -> None:
            "duración típica del evento (estimada)")
     scope = ", ".join(sc.places) or "todo el mundo"
     filt = ", ".join([CATEGORY_ES.get(c, c) for c in sc.categories] + [material_es(m) for m in sc.materials])
-    md(f'<div style="display:flex;flex-direction:column;gap:4px"><span class="overline">Resultado del escenario</span>'
+    md(f'<div style="display:flex;flex-direction:column;gap:6px">'
        f'<h2 class="det-name">{esc(sc.title)}</h2><span class="det-sub">'
        f'{esc(EVENT_LABELS_ES.get(sc.event_type, sc.event_type).capitalize())} · {esc(dur)} · {esc(scope)}'
        f'{" · solo " + esc(filt) if filt else ""}</span></div>')
@@ -107,8 +104,7 @@ def _result(imp: scenario.ScenarioImpact) -> None:
     if warn:
         md('<div class="trust">' + "".join(f"<span>{T.ICON_WARN}{esc(w)}</span>" for w in warn) + "</div>")
     if not imp.hits:
-        md('<section class="card"><p class="what">Ningún proveedor de Helixa queda afectado por este escenario.'
-           '</p></section>')
+        md('<section class="card"><p class="what">Ningún proveedor queda afectado.</p></section>')
         return
 
     cds = {c.supplier_id: c for c in imp.countdowns}
@@ -146,18 +142,15 @@ def _result(imp: scenario.ScenarioImpact) -> None:
                          f'<span class="num">{c.deficit_days:.0f} d</span>' if c.deficit_days else "—",
                          f'<span class="chip" style="color:{color};background:{T.BG}">{esc(label)}</span>',
                          f'<span class="num">{meur(s.annual_spend_eur or 0)} M€</span>'])
-        md('<section class="card"><div class="card-head"><h2 class="h2">Proveedores afectados</h2>'
-           '<span class="sub">Ordenado por días de margen</span></div>'
-           + table(["Proveedor", "Días de margen", "Días sin suministro", "Estado", "Gasto anual"], rows,
-                   right={1, 2, 4}) + "</section>")
+        md(card("Proveedores afectados", table(["Proveedor", "Días de margen", "Días sin suministro", "Estado",
+                                                "Gasto anual"], rows, right={1, 2, 4}), "Ordenado por días de margen"))
     with right:
         exposure = {h.supplier.id: {"margin": cds[h.supplier.id].margin_days, "status": cds[h.supplier.id].status,
                                     "label": map_label(h.supplier.id, cds[h.supplier.id].margin_days,
                                                      no_stock=cds[h.supplier.id].inventory_days is None),
                                     "hover": "; ".join(h.reasons)} for h in imp.hits}
         with st.container(key="panel-simmap"):
-            md('<div class="card-head"><h2 class="h2">Dónde golpea</h2><span class="sub">Tamaño = gasto anual · '
-               'pulsa un proveedor</span></div>')
+            md(head("Dónde golpea", "Tamaño = gasto anual · pulsa un proveedor para ver su ficha"))
             sheet.clickable_chart(risk_map(exposure, fit=True), key="map-sim")
             present = [s for s in STATUS_DOT if any(e["status"] == s for e in exposure.values())]
             md(dot_legend([STATUS_DOT[s] for s in present] + [("Fuera del escenario", T.GREY_DOT)]))
@@ -170,17 +163,15 @@ def _result(imp: scenario.ScenarioImpact) -> None:
                  if m["alternate"] else "—",
                  f'<span class="num" style="color:{STATUS_DOT[m["status"]][1]};font-weight:600">'
                  f'{signed(m["margin"])} d</span>'] for m in mats]
-        md('<section class="card"><div class="card-head"><h2 class="h2">Materiales</h2>'
-           '<span class="sub">⚠ = afectado</span></div>'
-           + table(["Material", "Principal", "Alternativo", "Peor margen"], rows, right={3}) + "</section>")
+        md(card("Materiales", table(["Material", "Principal", "Alternativo", "Peor margen"], rows, right={3}),
+                "⚠ = afectado"))
     with right:
         rows = [[f"<strong>{esc(product_es(p['product']))}</strong>",
                  esc(", ".join(material_es(m) for m in p["materials"])),
                  f'<span class="num" style="color:{STATUS_DOT[p["status"]][1]};font-weight:600">'
                  f'{signed(p["margin"])} d</span>'] for p in prods]
-        md('<section class="card"><div class="card-head"><h2 class="h2">Medicamentos</h2>'
-           '<span class="sub">Peor margen de sus materiales</span></div>'
-           + table(["Medicamento", "Materiales afectados", "Peor margen"], rows, right={2}) + "</section>")
+        md(card("Medicamentos", table(["Medicamento", "Materiales afectados", "Peor margen"], rows, right={2}),
+                "Peor margen de sus materiales"))
 
     blocks = []
     for c in sorted(imp.countdowns, key=lambda c: (c.inventory_days is None, c.margin_days)):
@@ -192,21 +183,18 @@ def _result(imp: scenario.ScenarioImpact) -> None:
                           f'<li><span class="num i">{i}</span><span class="b"><span class="x">{esc(x.text)}</span>'
                           f'<span class="o">{esc(x.owner)} · {esc(x.when)}</span></span></li>'
                           for i, x in enumerate(steps, 1)) + "</ol></div>")
-    md('<section class="card" style="gap:18px"><div class="card-head"><h2 class="h2">Plan recomendado</h2>'
-       '<span class="sub">Del menor margen al mayor</span></div>' + "".join(blocks)
-       + '<span class="sub">Logística y servicios no tienen stock: el impacto es inmediato durante toda la '
-         'duración, aunque exista un alternativo.</span></section>')
+    md('<section class="card" style="gap:24px">'
+       + head("Plan recomendado", "Del menor margen al mayor. Logística y servicios no tienen stock: el impacto es "
+              "inmediato durante toda la duración, aunque exista un alternativo.") + "".join(blocks) + '</section>')
 
 
 def render() -> None:
     llm_up = cache.llm_up()
     examples = cache.examples()
-    md('<div style="display:flex;flex-direction:column;gap:4px"><span class="overline">Escenarios</span>'
-       '<h1 class="h1">Simulador «¿Y si…?»</h1></div>')
+    md('<h1 class="h1">Simulador «¿Y si…?»</h1>')
     with st.container(key="panel-siminput"):
-        md('<div class="card-head"><h2 class="h2">¿Qué pasaría si…?</h2><span class="sub">La IA solo traduce tu '
-           'pregunta; los proveedores, los márgenes y el plan los calcula el sistema con los datos de Helixa'
-           '</span></div>')
+        md(head("¿Qué pasaría si…?", "La IA solo traduce tu pregunta; los proveedores, los márgenes y el plan los "
+                "calcula el sistema con los datos de Helixa"))
         left, right = st.columns([1.3, 1], vertical_alignment="bottom")
         with left:
             st.text_area("Escribe un escenario", key="sc_text", height=90, disabled=not llm_up,
@@ -222,10 +210,11 @@ def render() -> None:
             b2.button("Usar este ejemplo", on_click=use_example, args=(examples,), key="sc_use_example",
                       width="stretch")
         if not llm_up:
-            md(f'<div class="trust"><span>{T.ICON_WARN}La IA local no está disponible: usa los ejemplos (ya '
-               'interpretados). Puedes corregirlos; el cálculo no necesita la IA.</span></div>')
+            md(f'<div class="trust"><span>{T.ICON_WARN}IA local no disponible: usa un ejemplo'
+               f'{tip("Los ejemplos ya están interpretados; puedes corregirlos. El cálculo no necesita la IA.")}'
+               '</span></div>')
         if not examples:
-            md('<span class="sub">No hay ejemplos precalculados: python scripts/build_scenarios.py</span>')
+            md('<span class="sub">Sin ejemplos: python scripts/build_scenarios.py</span>')
         if st.session_state.get("sc_error"):
             st.error(st.session_state["sc_error"])
 

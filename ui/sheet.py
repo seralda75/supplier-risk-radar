@@ -19,7 +19,7 @@ from core.suppliers import load_suppliers
 from core.urgency import dependency
 
 from . import cache
-from .components import esc, md, table
+from .components import esc, head, md, table, tip
 from .data import meur, signed, status_chip
 
 SPLIT_ES = {"test": "Test", "validation": "Validación", "train": "Entrenamiento"}
@@ -60,14 +60,13 @@ def purchases_html(sid: str) -> str:
         return f'<div class="buy"><span class="chip grey">{esc(label)}</span></div>'
     last = r.last_order
     who = BUYERS.get(last.buyer_id, {}).get("name", "")
-    sub = (f"{r.orders_6m} en los últimos 6 meses · {r.consecutive} meses seguidos · último pedido el "
-           f"{day_es(last.day)}{' · ' + who if who else ''}")
+    sub = (f"{r.orders_6m} pedidos en 6 meses · {r.consecutive} meses seguidos · último el "
+           f"{day_es(last.day)}{' · ' + who if who else ''} · historial sintético (el reto no lo incluye)")
     transit = transit_label(r)
     return (f'<div class="buy"><span class="chip {"green" if r.recurrent else "grey"}">{esc(label)}</span>'
-            f'<span class="s">{esc(sub)}</span>'
-            f'<span class="t"><span aria-hidden="true">🚚</span> Pedido en tránsito: '
-            f'<strong>{esc(transit)}</strong></span>'
-            '<span class="note">historial de pedidos sintético (el reto no lo incluye)</span></div>')
+            f'{tip(sub)}'
+            f'<span class="t"><span aria-hidden="true">🚚</span> En tránsito: <strong>{esc(transit)}</strong></span>'
+            '</div>')
 
 
 # ---------------------------------------------------------------------------
@@ -125,14 +124,12 @@ def _dialog(sid: str) -> None:
 def _list_dialog(title: str, ids: list[str]) -> None:
     sup = load_suppliers()
     ids = sorted(ids, key=lambda i: -(sup[i].annual_spend_eur or 0))
-    md(f'<div style="display:flex;flex-direction:column;gap:4px"><h2 class="det-name">{esc(title)}</h2>'
-       f'<span class="det-sub">{meur(sum(sup[i].annual_spend_eur or 0 for i in ids))} M€ de gasto anual · '
-       'ninguna alerta activa · pulsa uno para ver su ficha</span></div>')
+    md(f'<h2 class="det-name">{esc(title)}{tip("Ninguna alerta activa · pulsa uno para ver su ficha")}</h2>')
     for i in ids:
         s = sup[i]
         with st.container(key=f"rk-l{i}"):
             md(f'<div class="rk lst"><span><strong>{esc(s.name)}</strong><span class="w">'
-               f'{esc(place_es(s.city, s.country))} · {esc(CATEGORY_ES.get(s.category, s.category))}</span></span>'
+               f'{esc(place_es(s.city, s.country))}</span></span>'
                f'<span>{esc(material_es(s.material))}</span>'
                f'<span class="num r">{meur(s.annual_spend_eur or 0)} M€</span>'
                '<span class="go" aria-hidden="true">›</span></div>')
@@ -150,33 +147,28 @@ def render(sid: str) -> None:
     s = sup[sid]
     score, factors = vulnerability(s)
     alt, ok = alt_text(s)
-    chips = [f'<span class="chip purple">{esc(CATEGORY_ES.get(s.category, s.category))}</span>',
-             '<span class="chip red">Proveedor único</span>' if s.single_source else
+    chips = ['<span class="chip red">Proveedor único</span>' if s.single_source else
              '<span class="chip green">Con alternativo</span>',
              f'<span class="chip grey">Criticidad {CRITICALITY_ES.get(s.criticality, s.criticality)}</span>']
     stock = f"{s.inventory_cover_days:.0f} días" if s.inventory_cover_days is not None else "sin stock"
     lead = f"{s.lead_time_days:.0f} días" if s.lead_time_days is not None else "—"
-    md(f'<div style="display:flex;flex-direction:column;gap:6px"><h2 class="det-name">{esc(s.name)}</h2>'
-       f'<span class="det-sub">{esc(place_es(s.city, s.country))} · {esc(material_es(s.material))}</span>'
-       f'<span style="display:flex;gap:8px;flex-wrap:wrap">{"".join(chips)}</span></div>')
-    md(purchases_html(sid))
-    md(f'<div class="boxes"><div class="box"><span class="l">Stock de seguridad</span><span class="num v">{stock}'
-       f'</span><span class="s">cobertura de inventario</span></div>'
-       f'<div class="box"><span class="l">Plazo de entrega</span><span class="num v">{lead}</span>'
-       f'<span class="s">desde el pedido</span></div>'
-       f'<div class="box"><span class="l">Gasto anual</span><span class="num v">{meur(s.annual_spend_eur or 0)} M€'
-       f'</span><span class="s">{s.share_of_category_pct or 0:.0f} % de su categoría</span></div>'
-       f'<div class="box {"" if ok else "amber"}"><span class="l">Alternativo</span><span class="t" '
-       f'style="font-size:16px">{esc(alt)}</span><span class="s">índice de vulnerabilidad {score:.2f}</span></div>'
-       '</div>')
-    prods = ", ".join(product_es(p) for p in s.products) or "ninguno registrado"
-    need = f" · necesidad mensual {s.monthly_requirement}" if s.monthly_requirement else ""
     for en, es in CRITICALITY_ES.items():
         factors = [f.replace(f"criticidad {en}", f"criticidad {es.lower()}") for f in factors]
-    why = f'<br><span class="sub">Vulnerable por: {esc(", ".join(factors))}.</span>' if factors else ""
-    md(f'<p class="what" style="font-size:15px"><strong>Medicamentos que dependen de él:</strong> {esc(prods)}'
-       f'{esc(need)}{why}</p>')
-    md('<h3 class="h3">Historial de eventos</h3>' + history(sid))
+    why = f"Vulnerable por: {', '.join(factors)}" if factors else "Sin factores de vulnerabilidad"
+    md(f'<div style="display:flex;flex-direction:column;gap:10px"><h2 class="det-name">{esc(s.name)}</h2>'
+       f'<span class="det-sub">{esc(place_es(s.city, s.country))} · {esc(material_es(s.material))}</span>'
+       f'<span class="sheet-chips">{"".join(chips)}</span></div>')
+    md(purchases_html(sid))
+    md(f'<div class="boxes"><div class="box"><span class="l">Stock</span><span class="num v">{stock}</span></div>'
+       f'<div class="box"><span class="l">Plazo de entrega</span><span class="num v">{lead}</span></div>'
+       f'<div class="box"><span class="l">Gasto anual</span><span class="num v">{meur(s.annual_spend_eur or 0)} M€'
+       f'</span></div>'
+       f'<div class="box {"" if ok else "amber"}"><span class="l">Alternativo{tip(f"{why} · índice {score:.2f}")}'
+       f'</span><span class="t" style="font-size:16px">{esc(alt)}</span></div></div>')
+    prods = ", ".join(product_es(p) for p in s.products)
+    if prods:
+        md(f'<p class="what" style="font-size:15px"><strong>Medicamentos:</strong> {esc(prods)}</p>')
+    md('<h3 class="h3">Historial</h3>' + history(sid))
 
 
 def history(sid: str) -> str:
@@ -199,12 +191,10 @@ def history(sid: str) -> str:
             margin = (f'<span class="num">{signed(c["margin_days"])} d</span>'
                       if c and c["inventory_days"] is not None else "—")
             rows.append([f'<span class="num">{esc((r.get("published_date") or "")[:10])}</span>',
-                         f"{esc(r['headline'])}<span class='w'>{SPLIT_ES[sp]} · {esc(r['news_id'])} · "
-                         f"{esc(EVENT_LABELS_ES.get(r['event_type'], r['event_type']))}</span>",
-                         state, margin,
-                         esc(VERDICTS[fb[r["news_id"]]["verdict"]]) if r["news_id"] in fb else "—"])
+                         f'<span title="{SPLIT_ES[sp]} · {esc(r["news_id"])}">{esc(r["headline"])}</span>',
+                         state, margin])
     rows.sort(key=lambda x: x[0], reverse=True)
     if not rows:
-        return '<p class="sub">Ninguna noticia de los tres conjuntos menciona a este proveedor.</p>'
-    return table(["Fecha", "Noticia", "Estado", "Margen", "Decisión"], rows, right={3})
+        return '<p class="sub">Sin noticias.</p>'
+    return table(["Fecha", "Noticia", "Estado", "Margen"], rows, right={3})
 

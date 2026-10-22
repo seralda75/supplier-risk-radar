@@ -54,7 +54,7 @@ html, body, .stApp {{ background: {BG}; }}
   font-family: 'IBM Plex Sans', system-ui, sans-serif; }}
 .num {{ font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }}
 .block-container {{ padding: 32px 40px 48px !important; max-width: none !important; }}
-.block-container [data-testid="stVerticalBlock"] {{ gap: 24px; }}
+.block-container [data-testid="stVerticalBlock"] {{ gap: 32px; }}
 .stMarkdown p {{ margin: 0; }}
 a {{ color: {LINK}; }} a:hover {{ color: #3D0063; }}
 
@@ -102,7 +102,7 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 .stMarkdown .h3, .h3 {{ margin: 0 !important; font-size: 13px !important; line-height: 1.4 !important; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: {MUTED}; }}
 .sub {{ font-size: 13px; color: {MUTED}; }}
 .muted {{ color: {MUTED}; }}
-.card {{ background: {CARD}; border-radius: 12px; border: 1px solid {LINE}; padding: 22px; display: flex;
+.card {{ background: {CARD}; border-radius: 12px; border: 1px solid {LINE}; padding: 28px; display: flex;
   flex-direction: column; gap: 14px; box-sizing: border-box; }}
 .card-head {{ display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }}
 .chip {{ display: inline-flex; align-self: flex-start; align-items: center; gap: 6px; font-size: 12px; font-weight: 700;
@@ -125,8 +125,8 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 [class*="st-key-banner-"] [data-testid="stHorizontalBlock"] {{ align-items: center; }}
 
 /* KPIs */
-.kpis {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }}
-.kpi {{ background: {CARD}; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 8px;
+.kpis {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 24px; }}
+.kpi {{ background: {CARD}; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px;
   border: 1px solid {LINE}; }}
 .kpi.alert {{ border-color: {RED_LINE}; box-shadow: 0 0 0 3px {RED_BG}; }}
 .kpi .k {{ font-size: 13px; font-weight: 600; color: {MUTED}; text-transform: uppercase; letter-spacing: .8px; }}
@@ -136,11 +136,11 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 .kpi .s {{ font-size: 14px; color: {MUTED}; }}
 
 /* Paneles con widgets dentro (cola, detalle, mapa...) */
-[class*="st-key-panel-"] {{ background: {CARD}; border-radius: 12px; border: 1px solid {LINE}; padding: 22px;
+[class*="st-key-panel-"] {{ background: {CARD}; border-radius: 12px; border: 1px solid {LINE}; padding: 28px;
   box-sizing: border-box; }}
 .st-key-panel-detail {{ padding: 26px; }}
-.st-key-panel-queue [data-testid="stVerticalBlock"] {{ gap: 14px; }}
-.st-key-panel-detail > div > [data-testid="stVerticalBlock"] {{ gap: 22px; }}
+.st-key-panel-queue [data-testid="stVerticalBlock"] {{ gap: 18px; }}
+.st-key-panel-detail > div > [data-testid="stVerticalBlock"] {{ gap: 28px; }}
 
 /* Tarjetas y filas clicables: HTML propio + st.button real e invisible encima (cola y ranking) */
 :is([class*="st-key-qcard-"], [class*="st-key-rk-"]) {{ position: relative; }}
@@ -151,16 +151,16 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 [class*="st-key-qcard-"]:has(button:focus-visible) :is(.qitem, .qrow) {{ outline: 2px solid {PURPLE};
   outline-offset: 2px; }}
 [class*="st-key-qcard-"]:hover .qrow {{ border-color: #C9B3DD; }}
-.qitem {{ display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 10px; background: {CARD};
+.qitem {{ display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 10px; background: {CARD};
   border: 1px solid {LINE}; color: {INK}; }}
 [class*="st-key-qcard-"]:hover .qitem {{ border-color: #C9B3DD; }}
-.qitem.sel {{ background: {PURPLE_SOFT}; border: 2px solid {PURPLE}; padding: 15px; }}
+.qitem.sel {{ background: {PURPLE_SOFT}; border: 2px solid {PURPLE}; padding: 19px; }}
 .qitem .top {{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }}
 .qitem .chips {{ display: flex; flex-wrap: wrap; gap: 6px; }}
-.qitem.done {{ border-left: 4px solid {GREEN}; padding-left: 13px; }}
+.qitem.done {{ border-left: 4px solid {GREEN}; padding-left: 17px; }}
 .qitem.off {{ opacity: .62; }}
 .qitem.off .m {{ text-decoration: line-through; }}
-.qitem .m {{ font-size: 22px; font-weight: 600; }}
+.qitem .m {{ font-size: 22px; font-weight: 600; white-space: nowrap; }}
 .qrows {{ display: flex; flex-direction: column; gap: 8px; }}
 .st-key-panel-queue [data-testid="stExpander"] details {{ border: none; background: transparent; }}
 .st-key-panel-queue [data-testid="stExpander"] summary {{ padding: 4px 0; font-size: 13px; font-weight: 700;
@@ -296,13 +296,17 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 /* Ranking de vulnerabilidad: filas clicables que abren la ficha */
 .st-key-panel-ranking [data-testid="stVerticalBlock"] {{ gap: 0; }}
 .st-key-panel-ranking .card-head {{ margin-bottom: 12px; }}
-.rk {{ display: grid; grid-template-columns: 26px minmax(0, 2.3fr) minmax(0, 1.5fr) 74px minmax(0, 2fr) 84px 150px 14px;
-  gap: 12px; align-items: center; padding: 10px; border-bottom: 1px solid {LINE}; font-size: 14px; color: {INK};
+.rk {{ display: grid; grid-template-columns: 26px minmax(0, 3fr) 90px 170px 14px;
+  gap: 16px; align-items: center; padding: 14px 10px; border-bottom: 1px solid {LINE}; font-size: 14px; color: {INK};
   border-radius: 6px; }}
 .rk.head {{ font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: {MUTED};
   padding: 8px 10px; border-radius: 0; }}
 .rk .w {{ display: block; font-size: 13px; color: {MUTED}; }}
 .rk .r {{ text-align: right; }}
+.tip {{ display: inline-block; margin-left: 8px; font-size: 14px; font-weight: 400; color: {MUTED_2}; cursor: help;
+  text-transform: none; letter-spacing: 0; vertical-align: baseline; }}
+.tip:hover, .tip:focus-visible {{ color: {PURPLE}; outline: none; }}
+.sheet-chips {{ display: flex; gap: 8px; flex-wrap: wrap; }}
 .rk .go {{ color: {MUTED}; font-size: 18px; line-height: 1; }}
 [class*="st-key-rk-"]:hover .rk {{ background: {PURPLE_SOFT}; }}
 [class*="st-key-rk-"]:hover .rk .go {{ color: {PURPLE}; }}

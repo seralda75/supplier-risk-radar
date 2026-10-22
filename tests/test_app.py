@@ -58,8 +58,8 @@ def html(at) -> str:
 
 
 def kpi_value(at, label: str) -> str:
-    m = re.search(rf'<span class="k">{re.escape(label)}</span><span class="v"><span class="\w+"[^>]*>([^<]+)<',
-                  html(at))
+    m = re.search(rf'<span class="k">{re.escape(label)}(?:<span class="tip".*?</span>)?</span>'
+                  rf'<span class="v"><span class="\w+"[^>]*>([^<]+)<', html(at))
     assert m, label
     return m.group(1)
 
@@ -119,7 +119,7 @@ def test_la_cola_selecciona_la_alerta_y_abre_su_ventana():
     assert f"ok-test-{ids[1]}" in keys                  # el detalle muestra esa alerta
     assert f"dlg-ok-test-{ids[1]}" in keys              # y la ventana está abierta, con su decisión
     page = html(at)
-    for text in ("La noticia", "Impacto", "Calendario de", "Plan recomendado", "Acciones de esta alerta"):
+    for text in ("Margen", "Calendario de", "Plan recomendado"):
         assert text in page
 
 
@@ -429,7 +429,7 @@ def test_detalle_ventana_y_ficha_muestran_proveedor_habitual_y_pedido_en_transit
     at.session_state["sel-test"] = "N024"            # Celsius: pedido mensual con 90 días de plazo
     at.run()
     page = html(at)
-    assert re.search(r"Proveedor habitual · \d+ pedidos", page) and "Pedido en tránsito: <strong>" in page
+    assert re.search(r"Proveedor habitual · \d+ pedidos", page) and "En tránsito: <strong>" in page
     at.button(key="qbtn-N024").click().run()          # la ventana de la alerta
     assert not at.exception, at.exception
     assert html(at).count("Proveedor habitual ·") >= 2

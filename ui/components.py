@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import html
 import math
+import re
 
 import plotly.graph_objects as go
 import streamlit as st
@@ -35,15 +36,21 @@ def md(fragment: str) -> None:
     st.markdown(fragment.replace("\n", ""), unsafe_allow_html=True)
 
 
+def tip(text: str) -> str:
+    """ⓘ con el texto de ayuda como tooltip (title: se ve al pasar el ratón y al enfocarlo con el teclado)."""
+    return f'<span class="tip" tabindex="0" role="img" aria-label="{esc(text)}" title="{esc(text)}">ⓘ</span>'
+
+
 def kpi(label: str, value: str, unit: str = "", sub: str = "", color: str = "", alert: bool = False,
         text: bool = False) -> str:
-    """Indicador del mockup. text=True para valores que son palabras (un país), en la fuente normal."""
+    """Indicador del mockup: etiqueta, cifra y unidad. El texto de apoyo (sub, puede traer HTML) va en un
+    tooltip ⓘ, no en la tarjeta. text=True para valores que son palabras (un país), en la fuente normal."""
     style = f' style="color:{color}"' if color else ""
     u = f'<span class="u">{esc(unit)}</span>' if unit else ""
     cls = "txt" if text else "num"
-    return (f'<div class="kpi{" alert" if alert else ""}"><span class="k">{esc(label)}</span>'
-            f'<span class="v"><span class="{cls}"{style}>{esc(value)}</span>{u}</span>'
-            f'<span class="s">{sub}</span></div>')
+    note = tip(html.unescape(re.sub(r"<[^>]+>", "", sub))) if sub else ""
+    return (f'<div class="kpi{" alert" if alert else ""}"><span class="k">{esc(label)}{note}</span>'
+            f'<span class="v"><span class="{cls}"{style}>{esc(value)}</span>{u}</span></div>')
 
 
 def kpis(items: list[str]) -> None:
@@ -58,9 +65,14 @@ def table(headers: list[str], rows: list[list[str]], right: set[int] = frozenset
     return f'<div class="tbl-wrap"><table class="tbl"><thead><tr>{th}</tr></thead><tbody>{body}</tbody></table></div>'
 
 
+def head(title: str, note: str = "", hid: str = "") -> str:
+    """Cabecera de tarjeta: título y, si hay nota, un ⓘ con ella como tooltip."""
+    i = f' id="{hid}"' if hid else ""
+    return f'<div class="card-head"><h2 class="h2"{i}>{esc(title)}{tip(note) if note else ""}</h2></div>'
+
+
 def card(title: str, body: str, note: str = "") -> str:
-    n = f'<span class="sub">{note}</span>' if note else ""
-    return f'<section class="card"><div class="card-head"><h2 class="h2">{esc(title)}</h2>{n}</div>{body}</section>'
+    return f'<section class="card">{head(title, note)}{body}</section>'
 
 
 def dot_legend(items: list[tuple[str, str]]) -> str:

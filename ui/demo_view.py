@@ -22,7 +22,7 @@ from core.schemas import EVENT_LABELS_ES
 from core.suppliers import load_suppliers
 
 from . import cache
-from .components import esc
+from .components import esc, tip
 from .data import build_alerts, signed, status_chip
 
 STEP_S = float(os.getenv("DEMO_STEP_S", "1.6"))      # tiempo mínimo a la vista de cada paso
@@ -40,11 +40,11 @@ def bar(split: str) -> None:
             c1.markdown('<div class="demo-t"><b>MODO DEMO</b> · cambia a «Noticias de test (entrega)» para '
                         'simular noticias</div>', unsafe_allow_html=True)
             return
-        live = "IA local en directo" if st.session_state.get("demo_live", True) else "IA local con caché"
+        live = "IA en directo" if st.session_state.get("demo_live", True) else "IA con caché"
         up = cache.llm_up()
-        c1.markdown(f'<div class="demo-t"><b>MODO DEMO</b> · {done} de {total} noticias del guion · '
-                    f'{live if up else "IA apagada: resultados precalculados"} · base de datos aparte '
-                    '(demo.db)</div>', unsafe_allow_html=True)
+        c1.markdown(f'<div class="demo-t"><b>MODO DEMO</b> · {done} de {total} noticias · '
+                    f'{live if up else "IA apagada"}'
+                    f'{tip("Datos aparte (demo.db): no toca la entrega ni data/app.db")}</div>', unsafe_allow_html=True)
         if c2.button("Simular noticia entrante", key="demo-go", type="primary", width="stretch",
                      disabled=done >= total, help="Procesa la siguiente noticia del guion con el pipeline real"):
             st.session_state.pop("alert_dialog", None)       # una sola ventana a la vez

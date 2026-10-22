@@ -24,7 +24,7 @@ from core.suppliers import load_suppliers
 
 from . import cache, comms_view, demo_view, sheet
 from . import theme as T
-from .components import STATUS_DOT, dot_legend, esc, kpi, kpis, map_label, md, risk_map
+from .components import STATUS_DOT, dot_legend, esc, head, kpi, kpis, map_label, md, risk_map, tip
 from .treemap import GROUP, REST, STATES, groups as tm_groups, spend_treemap
 from .data import EVENT_SHORT, Alert, margin_color, meur, pct, quote_for, signed, status_chip, when
 
@@ -139,10 +139,9 @@ def _set_split() -> None:
 # ---------------------------------------------------------------------------
 
 def header(split: str, data: dict) -> None:
-    left, stamp, mid, right = st.columns([3.6, 1.5, 1.9, 1.45], vertical_alignment="bottom")
-    left.markdown('<div style="display:flex;flex-direction:column;gap:4px"><span class="overline">Riesgo de suministro'
-                  '</span><h1 class="h1">Centro de control</h1></div>', unsafe_allow_html=True)
-    stamp.markdown(f'<div class="stamp">Datos del {esc(when(data["generated"]))}</div>', unsafe_allow_html=True)
+    left, mid, right = st.columns([5, 1.9, 1.45], vertical_alignment="bottom")
+    left.markdown(f'<h1 class="h1">Centro de control{tip("Riesgo de suministro · datos del " + when(data["generated"]))}'
+                  '</h1>', unsafe_allow_html=True)
     splits = list(results.SPLITS)
     mid.selectbox("Noticias", splits, index=splits.index(split), key="split_widget", on_change=_set_split,
                   label_visibility="collapsed",
@@ -156,7 +155,7 @@ def banner(split: str, b: Board) -> None:
     if b.pending:
         top = min(b.pending, key=lambda a: a.margin)
         n = len(b.pending)
-        title = f"{n} situaci{'ones críticas requieren' if n > 1 else 'ón crítica requiere'} tu decisión hoy"
+        title = f"{n} situaci{'ones críticas requieren' if n > 1 else 'ón crítica requiere'} tu decisión"
         prod = product_es(top.products[0]) if top.products else short_supplier(top.supplier.name)
         if top.worst.inventory_days is None:
             sub = f"{short_supplier(top.supplier.name)} no tiene stock de reserva: impacto inmediato si no se actúa."
@@ -166,23 +165,21 @@ def banner(split: str, b: Board) -> None:
             sub = f"El menor margen es de {signed(top.margin)} días ({short_supplier(top.supplier.name)})."
         with st.container(key="banner-red"):
             c1, c2 = st.columns([5, 1.1], vertical_alignment="center")
-            c1.markdown(f'<div class="banner">{T.ICON_ALERT}<div><span class="t">{esc(title)}</span>'
-                        f'<span class="s">{esc(sub)}</span></div></div>', unsafe_allow_html=True)
+            c1.markdown(f'<div class="banner">{T.ICON_ALERT}<div><span class="t">{esc(title)}{tip(sub)}</span>'
+                        '</div></div>', unsafe_allow_html=True)
             c2.button("Revisar ahora", key="review-now", type="primary", on_click=_select, args=(split, top.id),
                       width="stretch", help=f"Abre la más urgente: {top.supplier.name}")
         return
     if b.critical:
         n = len(b.critical)
-        title = (f"Las {n} situaciones críticas tienen un plan aprobado" if n > 1 else
-                 "La situación crítica tiene un plan aprobado")
-        sub = "Siguen en la cola para su seguimiento; cualquier decisión se puede reabrir."
+        title = "Planes críticos aprobados" if n > 1 else "Plan crítico aprobado"
+        sub = "Siguen en la cola; cualquier decisión se puede reabrir."
     else:
         n = len(b.active)
         title = "Sin situaciones críticas"
         sub = f"{n} alerta{'s' if n != 1 else ''} en seguimiento: pueden esperar al informe semanal."
     with st.container(key="banner-ok"):
-        md(f'<div class="banner">{T.ICON_OK_BIG}<div><span class="t">{esc(title)}</span>'
-           f'<span class="s">{esc(sub)}</span></div></div>')
+        md(f'<div class="banner">{T.ICON_OK_BIG}<div><span class="t">{esc(title)}{tip(sub)}</span></div></div>')
 
 
 def kpi_row(b: Board) -> None:
@@ -257,25 +254,19 @@ def queue_item(a: Alert, selected: bool, verdict: str | None, its: list[dict] | 
         chips = '<span class="chip purple">● NUEVA</span>' + chips
     if verdict and verdict != "falsa_alarma":
         chips += f'<span class="chip green">✓ {esc(feedback.VERDICTS[verdict]).upper()}</span>'
-    est = '<span class="e"> estimado</span>' if a.estimated and a.worst.inventory_days is not None else ""
     m_txt = f"{signed(a.margin)} d" if a.worst.inventory_days is not None else "sin stock"
-    prod = product_es(a.products[0]) if a.products else "sin medicamentos asociados"
     cls = "qitem" + (" sel" if selected else "") + (" new" if new else "") + (
         " off" if verdict == "falsa_alarma" else " done" if verdict else "")
     return (f'<div class="{cls}"><span class="top"><span class="chips">{chips}</span>'
-            f'<span class="num m" style="color:{margin_color(a.margin, a.level)}">{m_txt}{est}</span></span>'
-            f'<span><span class="n">{esc(a.supplier.name)}</span><span class="w">{esc(a.place)} · '
-            f'{esc(a.what_short)}</span></span>'
-            f'<span class="a">Afecta a <strong>{esc(prod)}</strong> · {esc(a.affects_note)}</span>'
-            f'{action_badges(its or [])}</div>')
+            f'<span class="num m" style="color:{margin_color(a.margin, a.level)}">{m_txt}</span></span>'
+            f'<span><span class="n">{esc(a.supplier.name)}</span><span class="w">{esc(a.place)}</span></span></div>')
 
 
 def queue(split: str, b: Board, sel: str, its: list[dict]) -> None:
     with st.container(key="panel-queue"):
-        md('<div class="card-head"><h2 class="h2" id="cola-t">Requiere tu decisión</h2>'
-           '<span class="sub">Por días de margen · pulsa una alerta para abrirla</span></div>')
+        md(head("Requiere tu decisión", "Por días de margen · pulsa una alerta para abrirla", "cola-t"))
         if not b.queue:
-            md('<p class="sub">Nada pendiente: no hay alertas críticas ni en riesgo latente.</p>')
+            md('<p class="sub">Nada pendiente.</p>')
         for a in b.queue:
             with st.container(key=f"qcard-{a.id}"):
                 md(queue_item(a, a.id == sel, b.verdict(a), [x for x in its if x["news_id"] == a.id],
@@ -300,7 +291,7 @@ def queue(split: str, b: Board, sel: str, its: list[dict]) -> None:
                         tag = ' · <span class="chip purple">● NUEVA</span>' + tag
                     off = ";text-decoration:line-through;opacity:.6" if v == "falsa_alarma" else ""
                     md(f'<div class="qrow"{sel_style}><span><strong>{esc(a.supplier.name)}</strong>{tag}'
-                       f'<span class="w" style="display:block">{esc(a.place)} · {esc(a.what_short)}</span></span>'
+                       f'<span class="w" style="display:block">{esc(a.place)}</span></span>'
                        f'<span class="num" style="color:{margin_color(a.margin, a.level)};font-weight:600{off}">'
                        f'{m_txt}</span></div>')
                     st.button(f"Abrir la alerta de {a.supplier.name}", key=f"qbtn-{a.id}", on_click=_open,
@@ -310,33 +301,30 @@ def queue(split: str, b: Board, sel: str, its: list[dict]) -> None:
 def _impact_boxes(a: Alert) -> str:
     c, s = a.worst, a.supplier
     if c.inventory_days is None:
-        margin_box = (f'<div class="box red"><span class="l">Margen</span><span class="num v">Inmediato</span>'
-                      f'<span class="s">sin stock de reserva · {c.ttr_days} d hasta recuperarse'
-                      f'{" (estimado)" if c.ttr_estimated else ""}</span></div>')
+        why = f"Sin stock de reserva · {c.ttr_days} d hasta recuperarse{' (estimado)' if c.ttr_estimated else ''}"
+        margin_box = (f'<div class="box red" title="{esc(why)}"><span class="l">Margen</span>'
+                      '<span class="num v">Inmediato</span></div>')
     else:
         cls = "red" if c.margin_days < 0 else ("amber" if c.status in ("margen_ajustado", "riesgo_latente") else "green")
         stock = f"{c.inventory_days:.0f} d de stock"
         if c.alternate_margin_days:
             stock += f" + {c.alternate_margin_days:.0f} d del alternativo"
-        margin_box = (f'<div class="box {cls}"><span class="l">Margen</span>'
-                      f'<span class="num v">{signed(c.margin_days)} días</span>'
-                      f'<span class="s">{stock} frente a {c.ttr_days} d de '
-                      f'{"recuperación estimada" if c.ttr_estimated else "retraso"}</span></div>')
+        why = f"{stock} frente a {c.ttr_days} d de {'recuperación estimada' if c.ttr_estimated else 'retraso'}"
+        margin_box = (f'<div class="box {cls}" title="{esc(why)}"><span class="l">Margen</span>'
+                      f'<span class="num v">{signed(c.margin_days)} días</span></div>')
     prods = a.products
     if prods:
         name = product_es(prods[0])
         form = next((f.strip() for f in FORM_WORDS if name.endswith(f)), "")
         big = name[: -len(form) - 1] if form else name
-        sub = form + (f" · y {len(prods) - 1} más" if len(prods) > 1 else "")
-        med_box = (f'<div class="box"><span class="l">Medicamento{"s" if len(prods) > 1 else ""} afectado'
-                   f'{"s" if len(prods) > 1 else ""}</span><span class="t">{esc(big)}</span>'
-                   f'<span class="s">{esc(sub)}</span></div>')
+        more = f" · y {len(prods) - 1} más" if len(prods) > 1 else ""
+        med_box = (f'<div class="box" title="{esc(", ".join(product_es(p) for p in prods))}"><span class="l">'
+                   f'Medicamento{"s" if len(prods) > 1 else ""}</span><span class="t">{esc(big)}{esc(more)}</span></div>')
     else:
-        med_box = ('<div class="box"><span class="l">Medicamento afectado</span><span class="t">—</span>'
-                   '<span class="s">servicio sin medicamentos asociados</span></div>')
+        med_box = '<div class="box"><span class="l">Medicamento</span><span class="t">—</span></div>'
     dep = "proveedor único" if s.single_source else "con alternativo aprobado"
-    spend_box = (f'<div class="box"><span class="l">Gasto anual</span><span class="num v">{meur(s.annual_spend_eur or 0)} M€'
-                 f'</span><span class="s">{dep} · criticidad {CRITICALITY_ES.get(s.criticality, s.criticality)}</span></div>')
+    spend_box = (f'<div class="box" title="{dep} · criticidad {CRITICALITY_ES.get(s.criticality, s.criticality)}">'
+                 f'<span class="l">Gasto anual</span><span class="num v">{meur(s.annual_spend_eur or 0)} M€</span></div>')
     return f'<div class="boxes">{margin_box}{med_box}{spend_box}</div>'
 
 
@@ -355,7 +343,10 @@ def _trust(a: Alert) -> str:
         lines.append((T.ICON_WARN, f"Plazo estimado ({a.worst.ttr_days} d): la noticia no indica duración"))
     if "confianza_baja" in (r.get("review_reasons") or []):
         lines.append((T.ICON_WARN, "La IA declara poca confianza"))
-    return '<div class="trust">' + "".join(f"<span>{i}{esc(t)}</span>" for i, t in lines) + "</div>"
+    warn = any(i == T.ICON_WARN for i, _ in lines)
+    return (f'<div class="trust"><span>{T.ICON_WARN if warn else T.ICON_CHECK}'
+            f'{"Revisar el diagnóstico" if warn else "Diagnóstico fiable"}'
+            f'{tip(" · ".join(t for _, t in lines))}</span></div>')
 
 
 def _news(a: Alert) -> str:
@@ -370,18 +361,19 @@ def _news(a: Alert) -> str:
 def _decided(verdict: dict) -> str:
     v = verdict["verdict"]
     via = " · desde Telegram" if verdict.get("channel") == "telegram" else ""
-    who = f'· {esc(verdict["user"])}{via} · {esc(when(verdict["ts"]))} · registrado en la auditoría'
+    who = f'· {esc(verdict["user"])}{via} · {esc(when(verdict["ts"]))}'
     if v == "falsa_alarma":
         why = f' Motivo: «{esc(verdict["note"])}».' if verdict.get("note") else ""
-        return (f'<div class="decided fa">{T.ICON_WARN}Falsa alarma <span class="w">{who}.{why} No cuenta en los '
-                'indicadores, el calendario, el mapa ni el treemap.</span></div>')
-    return (f'<div class="decided ok">{T.ICON_CHECK}✓ {esc(feedback.VERDICTS[v])} <span class="w">{who}. Sigue '
-            'en el calendario y el mapa: el riesgo no ha pasado.</span></div>')
+        return (f'<div class="decided fa">{T.ICON_WARN}Falsa alarma <span class="w">{who}.{why}</span>'
+                f'{tip("No cuenta en los indicadores, el calendario, el mapa ni el treemap. Queda en la auditoría.")}'
+                '</div>')
+    return (f'<div class="decided ok">{T.ICON_CHECK}✓ {esc(feedback.VERDICTS[v])} <span class="w">{who}</span>'
+            f'{tip("Sigue en el calendario y el mapa: el riesgo no ha pasado. Queda en la auditoría.")}</div>')
 
 
 def _plan(a: Alert) -> str:
     steps = plan_steps(a.worst, a.supplier, urgent=a.level == "critica")
-    return ('<div style="display:flex;flex-direction:column;gap:10px"><h3 class="h3">Plan recomendado</h3>'
+    return ('<div style="display:flex;flex-direction:column;gap:12px"><h3 class="h3">Plan recomendado</h3>'
             '<ol class="steps">' + "".join(
                 f'<li><span class="num i">{i}</span><span class="b"><span class="x">{esc(st_.text)}</span>'
                 f'<span class="o">{esc(st_.owner)} · {esc(st_.when)}</span></span></li>'
@@ -402,10 +394,9 @@ def decision_controls(split: str, a: Alert, verdict: dict | None, where: str = "
         return
     c1, c2 = st.columns(2, vertical_alignment="top")
     with c1.popover("Falsa alarma", width="stretch", key=f"{where}fapop-{k}"):
-        md('<p class="sub" style="max-width:340px">La alerta deja de contar en los indicadores, el calendario, '
-           'el mapa y el treemap. Se puede reabrir.</p>')
         note = st.text_input("Motivo (opcional)", key=f"{where}fanote-{k}",
-                             placeholder="p. ej. el proveedor confirma que la planta no está afectada")
+                             placeholder="p. ej. la planta no está afectada",
+                             help="La alerta deja de contar en indicadores, calendario y mapa. Se puede reabrir.")
         if st.button("Marcar como falsa alarma", key=f"{where}fa-{k}", width="stretch"):
             decide(split, a, "falsa_alarma", note)
     if c2.button("Aprobar plan", key=f"{where}ok-{k}", type="primary", width="stretch"):
@@ -418,20 +409,18 @@ def detail(split: str, a: Alert, verdict: dict | None, its: list[dict]) -> None:
     with st.container(key="panel-detail"):
         head, link = st.columns([3.4, 1.6], vertical_alignment="top")
         head.markdown(f'<div style="display:flex;flex-direction:column;gap:6px"><span class="chip {color}">{text}</span>'
-                      f'<h2 class="det-name" id="det-t">{esc(s.name)}</h2><span class="det-sub">{esc(a.place)} · '
-                      f'{esc(material_es(s.material))}</span></div>', unsafe_allow_html=True)
+                      f'<h2 class="det-name" id="det-t">{esc(s.name)}</h2><span class="det-sub">{esc(a.place)}'
+                      '</span></div>', unsafe_allow_html=True)
         with link.popover("Ver noticia original", type="tertiary", key=f"news-{split}-{a.id}"):
             md(_news(a))
         md(sheet.purchases_html(s.id))
-        quote, _ = quote_for(a.r)
-        md(f'<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">Qué pasa</h3>'
-           f'<p class="what">{esc(a.what())}</p><blockquote class="quote">«{quote}»</blockquote></div>')
+        md(f'<p class="what">{esc(a.what())}</p>')
         md(_impact_boxes(a))
         md(_plan(a))
         with st.container(key="decision"):
             md(_trust(a) + action_badges(its))
             decision_controls(split, a, verdict)
-            st.button("Crear pedido o recordatorio", key=f"more-{split}-{a.id}", on_click=_open,
+            st.button("Pedido o recordatorio", key=f"more-{split}-{a.id}", on_click=_open,
                       args=(split, a.id), width="stretch", type="tertiary",
                       help="Abre la alerta completa: pedido prellenado, recordatorio y decisión")
 
@@ -441,22 +430,20 @@ def detail(split: str, a: Alert, verdict: dict | None, its: list[dict]) -> None:
 # ---------------------------------------------------------------------------
 
 def _action_line(x: dict, a: Alert | None) -> str:
-    src = f" · alerta de {esc(short_supplier(a.supplier.name))}" if a else ""
+    src = f" · {esc(short_supplier(a.supplier.name))}" if a else ""
     done = f" · hecho el {day_es(x['done_ts'])}" if x["status"] == "hecho" and x.get("done_ts") else ""
     if x["kind"] == "comm":
-        what = "Correo al proveedor" if x["channel"] == "correo" else "Nota interna al equipo"
-        return (f'<div class="act"><span class="ic" aria-hidden="true">✉</span><span><strong>{what}</strong> · '
-                f'{esc(x["subject"])}<span class="w">Marcado como enviado el {day_es(x["ts"])} · '
-                f'{"redactado por la IA local" if x["source"] == "ia" else "plantilla"} · no se envía nada{src}'
-                '</span></span></div>')
+        what = "Correo al proveedor" if x["channel"] == "correo" else "Nota interna"
+        return (f'<div class="act"><span class="ic" aria-hidden="true">✉</span><span><strong>{what}</strong>'
+                f'<span class="w">Enviado el {day_es(x["ts"])}{src}</span></span></div>')
     if x["kind"] == "order":
         qty = f"{x['quantity']:,.0f}".replace(",", ".")
         return (f'<div class="act"><span class="ic" aria-hidden="true">📦</span><span><strong>Pedido: {qty} '
-                f'{esc(x["unit"])} de {esc(x["material"])}</strong> a {esc(x["supplier_name"])}<span class="w">'
-                f'Para el {day_es(x["needed_by"])} · prioridad {esc(x["priority"].lower())} · '
-                f'{esc(tasks.ORDER_STATES[x["status"]])}{done}{src}</span></span></div>')
+                f'{esc(x["unit"])} de {esc(x["material"])}</strong><span class="w">'
+                f'Para el {day_es(x["needed_by"])} · {esc(tasks.ORDER_STATES[x["status"]])}{done}{src}'
+                '</span></span></div>')
     return (f'<div class="act"><span class="ic" aria-hidden="true">⏰</span><span><strong>{esc(x["text"])}</strong>'
-            f'<span class="w">Recordatorio · {esc(x["owner"] or "sin responsable")} · {day_es(x["due"])}{done}{src}'
+            f'<span class="w">{esc(x["owner"] or "sin responsable")} · {day_es(x["due"])}{done}{src}'
             '</span></span></div>')
 
 
@@ -531,21 +518,17 @@ def alert_dialog(split: str, news_id: str) -> None:
     info, act = st.columns([7, 5], gap="large")
     with info, st.container(key="dlg-info"):
         text, color = status_chip(a)
-        quote, _ = quote_for(a.r)
-        md(f'<div style="display:flex;flex-direction:column;gap:6px"><span class="overline">Información</span>'
-           f'<span class="chip {color}">{text}</span><h2 class="det-name">{esc(s.name)}</h2>'
+        md(f'<div style="display:flex;flex-direction:column;gap:8px"><span class="chip {color}">{text}</span>'
+           f'<h2 class="det-name">{esc(s.name)}</h2>'
            f'<span class="det-sub">{esc(a.place)} · {esc(material_es(s.material))}</span></div>')
         md(sheet.purchases_html(s.id))
-        md(f'<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">Qué pasa</h3>'
-           f'<p class="what">{esc(a.what())}</p><blockquote class="quote">«{quote}»</blockquote></div>')
-        md('<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">La noticia</h3>'
-           f'<div class="news-card">{_news(a)}</div></div>')
-        md('<div style="display:flex;flex-direction:column;gap:8px"><h3 class="h3">Impacto</h3>'
-           f'{_impact_boxes(a)}</div>')
+        md(f'<p class="what">{esc(a.what())}</p>')
+        md(_impact_boxes(a))
         md(calendar([a], card=False))
         md(_plan(a))
+        with st.expander("Noticia original"):
+            md(_news(a))
     with act, st.container(key="dlg-act"):
-        md('<span class="overline">Decisión</span>')
         if msg := st.session_state.pop(f"made-{k}", None):
             st.success(msg)
         md(_trust(a))
@@ -561,9 +544,8 @@ def alert_dialog(split: str, news_id: str) -> None:
             reminder_form(split, a)
         with t_com:
             comms_view.panel(split, a, [x for x in its if x["kind"] == "comm"])
-        md('<h3 class="h3">Acciones de esta alerta</h3>' + (
-            "".join(_action_line(x, None) for x in its) if its else
-            '<p class="sub">Aún no hay pedidos ni recordatorios para esta alerta.</p>'))
+        if its:
+            md('<h3 class="h3">Acciones</h3>' + "".join(_action_line(x, None) for x in its))
 
 
 def actions_panel(split: str, b: Board, its: list[dict]) -> None:
@@ -572,14 +554,12 @@ def actions_panel(split: str, b: Board, its: list[dict]) -> None:
     pend = [x for x in its if x["status"] != "hecho"]
     done = [x for x in its if x["status"] == "hecho"]
     with st.container(key="panel-actions"):
-        md('<div class="card-head"><h2 class="h2" id="acc-t">Acciones en curso</h2>'
-           f'<span class="sub">{len(pend)} pendiente{"s" if len(pend) != 1 else ""} · pedidos y recordatorios'
-           '</span></div>')
+        md(head(f"Acciones en curso · {len(pend)}", "Pedidos y recordatorios creados desde cada alerta", "acc-t"))
         if not its:
-            md('<p class="sub">Aún no hay pedidos ni recordatorios. Se crean desde la ventana de cada alerta.</p>')
+            md('<p class="sub">Aún no hay acciones.</p>')
         for x in pend:
             with st.container(key=f"act-{x['kind']}-{x['id']}"):
-                c1, c2 = st.columns([5, 1.25], vertical_alignment="center")
+                c1, c2 = st.columns([4, 1.5], vertical_alignment="center")
                 c1.markdown(_action_line(x, by_id.get(x["news_id"])), unsafe_allow_html=True)
                 c2.button("Hecho", key=f"done-{x['kind']}-{x['id']}", on_click=_done, args=(x["kind"], x["id"]),
                           width="stretch", help="Marcar como hecho")
@@ -654,14 +634,12 @@ def calendar(alerts: list[Alert], card: bool = True) -> str:
     """Calendario de roturas de los próximos HORIZON días. card=False: sin tarjeta, para la ventana de una
     alerta (solo los medicamentos de esa alerta)."""
     rows = calendar_rows(alerts)
-    head = ('<div class="card-head"><h2 class="h2" id="cal-t">Calendario de roturas</h2>'
-            f'<span class="sub">¿Cuánto aguantamos? Próximos {HORIZON} días por medicamento</span></div>') if card else \
-        f'<h3 class="h3">Calendario de {"este medicamento" if len(rows) == 1 else "estos medicamentos"}</h3>'
+    head_ = (head("Calendario de roturas", f"¿Cuánto aguantamos? Próximos {HORIZON} días por medicamento", "cal-t")
+             if card else f'<h3 class="h3">Calendario de {"este medicamento" if len(rows) == 1 else "estos medicamentos"}</h3>')
     if not rows:
-        empty = ("Ningún medicamento en riesgo en la cola." if card else
-                 "Sin medicamentos con stock afectado: el impacto es directo sobre el servicio.")
-        return f'<section class="card">{head}<p class="sub">{empty}</p></section>' if card else \
-            f'<div style="display:flex;flex-direction:column;gap:8px">{head}<p class="sub">{empty}</p></div>'
+        empty = "Ningún medicamento en riesgo." if card else "Sin medicamentos con stock afectado."
+        return f'<section class="card">{head_}<p class="sub">{empty}</p></section>' if card else \
+            f'<div style="display:flex;flex-direction:column;gap:8px">{head_}<p class="sub">{empty}</p></div>'
     sup = load_suppliers()
     cells = []
     for i, (prod, c, a) in enumerate(rows, 1):
@@ -700,8 +678,8 @@ def calendar(alerts: list[Alert], card: bool = True) -> str:
             f'<span class="track" style="grid-row:{i};grid-column:2" title="{esc(title)}">{bars}{marks}</span>'
             f'<span class="val" style="grid-row:{i};grid-column:3"><span class="num" style="color:'
             f'{margin_color(c.margin_days, a.level)}">{signed(c.margin_days)} d</span>'
-            f'<span class="st" style="color:{state_color}">{state}</span>'
-            f'<span class="sub">{when_}{" (estimado)" if est else ""}</span></span>')
+            f'<span class="st" style="color:{state_color}" title="{esc(when_)}{" (estimado)" if est else ""}">'
+            f'{state}</span></span>')
     n = len(rows)
     ticks = "".join(f'<span style="left:{_x(d):.2f}%">{d if d < HORIZON else f"{d} días"}</span>'
                     for d in range(15, HORIZON + 1, 15))
@@ -710,16 +688,15 @@ def calendar(alerts: list[Alert], card: bool = True) -> str:
                  f'<span>Hoy</span></span>')
     legend = ('<span class="legend">'
               f'<span><span class="sw" style="background:{T.GREEN}"></span>Con stock</span>'
-              f'<span><span class="sw" style="background:{T.RED}"></span>Rotura (sin stock)</span>'
-              '<span><span class="sw" style="background:#BFE3CC"></span>Suministro recuperado</span>'
-              '<span><span class="mk-rec"></span>Se recupera el proveedor</span>'
-              '<span><span class="mk-alt"></span>Llega el alternativo</span>'
-              '<span><span class="sw hatch"></span>Plazo estimado</span></span>')
+              f'<span><span class="sw" style="background:{T.RED}"></span>Rotura</span>'
+              '<span><span class="sw" style="background:#BFE3CC"></span>Recuperado</span>'
+              f'{tip("Rombo: se recupera el proveedor · Triángulo: llega el alternativo · Rayado: plazo estimado")}'
+              '</span>')
     grid = (f'<div class="cal{"" if card else " small"}" role="img" aria-label="Calendario de roturas de {n} '
             f'medicamento{"s" if n != 1 else ""}">{"".join(cells)}</div>')
     if not card:
-        return f'<div style="display:flex;flex-direction:column;gap:10px">{head}{legend}{grid}</div>'
-    return f'<section class="card">{head}{legend}{grid}</section>'
+        return f'<div style="display:flex;flex-direction:column;gap:12px">{head_}{grid}</div>'
+    return f'<section class="card">{head_}{legend}{grid}</section>'
 
 
 # ---------------------------------------------------------------------------
@@ -739,8 +716,7 @@ def where(alerts: list[Alert], queue_ids: set[str]) -> None:
                     "hover": f"{STATUS_DOT[c.status][0]} · margen {signed(c.margin_days)} d"
                              + (" (estimado)" if c.ttr_estimated else "")}
     with st.container(key="panel-map"):
-        md('<div class="card-head"><h2 class="h2" id="map-t">Dónde está el riesgo</h2>'
-           '<span class="sub">Tamaño = gasto anual · pulsa un proveedor</span></div>')
+        md(head("Dónde está el riesgo", "Tamaño = gasto anual · pulsa un proveedor para ver su ficha", "map-t"))
         sheet.clickable_chart(risk_map(exposure), key="map-control")
         present = [s for s in STATUS_DOT if any(e["status"] == s for e in exposure.values())]
         md(dot_legend([STATUS_DOT[s] for s in present] + [("Sin exposición", T.GREY_DOT)]))
@@ -756,9 +732,10 @@ def spend(alerts: list[Alert]) -> None:
     total = sum(s.annual_spend_eur or 0 for s in sup.values())
     risky = sum(sup[i].annual_spend_eur or 0 for i in states)
     with st.container(key="panel-treemap"):
-        md('<div class="card-head"><h2 class="h2" id="tm-t">¿Dónde está el gasto en riesgo?</h2>'
-           f'<span class="sub">{meur(risky)} M€ de {meur(total)} M€ de gasto anual en proveedores con alertas · '
-           'pulsa una casilla para ver la ficha</span></div>')
+        md(head("¿Dónde está el gasto en riesgo?",
+                f"{meur(risky)} M€ de {meur(total)} M€ de gasto anual están en proveedores con alertas. "
+                "Pulsa una casilla para ver la ficha. Las casillas pequeñas tienen un tamaño mínimo para que "
+                "quepa el nombre; el gasto real va escrito en cada una.", "tm-t"))
         picked = spend_treemap(states, key="tm-control")
         if picked and picked.startswith(GROUP):
             for cat, tiles in tm_groups(states):
@@ -770,9 +747,7 @@ def spend(alerts: list[Alert]) -> None:
             sheet.request(picked)
         md('<span class="legend">' + "".join(f'<span><span class="sw" style="background:{c};border:1px solid '
                                              f'{T.LINE_2}"></span>{esc(t)}</span>'
-                                             for t, c, _ in STATES.values())
-           + '<span>Las casillas más pequeñas tienen un tamaño mínimo para que quepa el nombre; el gasto real va '
-             'escrito en cada una.</span></span>')
+                                             for t, c, _ in STATES.values()) + '</span>')
 
 
 def charts(split: str) -> None:
@@ -811,7 +786,5 @@ def page() -> None:
     decision_zone(split)
     if cache.alerts(split):
         charts(split)
-    md('<footer class="foot">Datos del reto (Helixa Pharmaceuticals, empresa ficticia). Toda decisión requiere '
-       'aprobación humana y queda registrada.</footer>')
     sheet.open_requested()
     demo_view.open_requested()
