@@ -18,13 +18,15 @@ from pathlib import Path
 
 import streamlit as st
 
-from core import demo, feedback, llm, results, scenario, tasks
+from core import demo, feedback, llm, results, scenario, subscriptions, tasks
 from core.config import ROOT
 
 from .data import Alert, build_alerts
 
 OLLAMA_TTL_S = 30
 OLLAMA_TIMEOUT_S = 0.5
+TELEGRAM_TTL_S = 60
+TELEGRAM_TIMEOUT_S = 1.5
 
 
 def _mtime(p: Path) -> float:
@@ -97,6 +99,26 @@ def items(split: str) -> list[dict]:
 @st.cache_data(ttl=OLLAMA_TTL_S, show_spinner=False)
 def llm_up() -> bool:
     return llm.is_up(timeout=OLLAMA_TIMEOUT_S)
+
+
+@st.cache_data(ttl=TELEGRAM_TTL_S, show_spinner=False)
+def _telegram() -> tuple[bool, str]:
+    try:
+        from bot import notifier
+        return notifier.status(timeout=TELEGRAM_TIMEOUT_S)
+    except Exception:                     # sin las dependencias del bot: el panel funciona igual
+        return False, "Telegram desactivado"
+
+
+def telegram() -> tuple[bool, str]:
+    """(activo, texto) para el pie del menú: «Telegram activo · @bot · 2 chats» o «Telegram desactivado (…)».
+    Se comprueba con un timeout corto y la respuesta vale TELEGRAM_TTL_S: sin token o sin internet, el panel
+    sigue igual."""
+    ok, text = _telegram()
+    if ok:
+        n = len(subscriptions.chats(db()))
+        text += f" · {n} chat{'s' if n != 1 else ''}"
+    return ok, text
 
 
 @st.cache_data(show_spinner=False)

@@ -404,6 +404,26 @@ def test_simular_noticia_avisa_a_los_compradores_registrados_y_telegram_apagado_
 
 
 @NEEDS_RESULTS
+def test_sin_token_el_panel_muestra_telegram_desactivado():
+    at = run()
+    assert not at.exception, at.exception
+    assert "Telegram desactivado (sin token)" in html(at)
+
+
+@NEEDS_RESULTS
+def test_sin_internet_el_panel_muestra_telegram_desactivado(monkeypatch):
+    import requests
+    monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123:FALSO")
+
+    def sin_red(*a, **k):
+        raise requests.ConnectionError("sin red")
+    monkeypatch.setattr(requests, "post", sin_red)
+    at = run()
+    assert not at.exception, at.exception
+    assert "Telegram desactivado (sin conexión)" in html(at)
+
+
+@NEEDS_RESULTS
 def test_enlace_de_telegram_abre_la_alerta():
     at = AppTest.from_file(str(APP), default_timeout=60)
     at.query_params["alert"] = "N024"

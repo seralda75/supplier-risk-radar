@@ -50,8 +50,9 @@ def bar(split: str) -> None:
             st.session_state.pop("alert_dialog", None)       # una sola ventana a la vez
             st.session_state["demo_run"] = True
         if c3.button("Reiniciar demo", key="demo-reset", width="stretch",
-                     help="Borra lo hecho en la demo (decisiones, pedidos, recordatorios, comunicaciones y "
-                          "noticias recibidas). No toca data/app.db ni los resultados"):
+                     help="Borra lo hecho en la demo (decisiones, pedidos, recordatorios, comunicaciones, avisos "
+                          "y suscripciones de Telegram y noticias recibidas). Conserva los chats registrados. "
+                          "No toca data/app.db ni los resultados"):
             demo.reset(con)
             for k in ("demo_new", "alert_dialog", f"sel-{split}"):
                 st.session_state.pop(k, None)
