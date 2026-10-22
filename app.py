@@ -4,7 +4,7 @@
 
 Para el director de compras: en 5 segundos, si hay riesgo, dónde, cuánto tiempo queda y qué hacer.
 Páginas (views/, una por fichero; st.navigation solo ejecuta la activa): Centro de control ·
-Proveedores · Simulador «¿Y si…?» · Transparencia. El contenido de cada una está en ui/.
+Proveedores · Simulador «¿Y si…?». Transparencia (solo por URL directa, fuera del menú). El contenido de cada una está en ui/.
 
 Lee los resultados guardados (data/results/*.json, de scripts/build_results.py): al abrir no se llama
 al LLM y funciona sin internet (fuentes y mapa servidos desde static/). Lo único que puede llamar al
@@ -34,6 +34,7 @@ PAGES = {
     "settings": st.Page("views/settings.py", title="Ajustes", url_path="ajustes"),
 }
 current = st.navigation(list(PAGES.values()), position="hidden")
+OCULTAS = {"transparency"}     # registradas (URL directa /transparencia) pero fuera del menú lateral
 
 # ---------------------------------------------------------------------------
 # Navegación lateral: enlaces reales a cada página (la activa lleva la clave navon-)
@@ -42,6 +43,8 @@ with st.sidebar:
     md(f'<div class="nav-brand">{T.RADAR_LOGO}<div><span class="t">Supplier Risk Radar</span>'
        '<span class="s">Helixa Pharmaceuticals</span></div></div>')
     for key, page in PAGES.items():
+        if key in OCULTAS:
+            continue
         with st.container(key=f"{'navon' if page.title == current.title else 'nav'}-{key}"):
             st.page_link(page, label=page.title, width="stretch")
     shown = cache.data(cache.split()) or {"results": [], "generated": ""}

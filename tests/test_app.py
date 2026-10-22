@@ -16,7 +16,7 @@ PAGES = {"control": None, "calendar": "views/calendar.py", "suppliers": "views/s
          "simulator": "views/simulator.py", "transparency": "views/transparency.py",
          "settings": "views/settings.py"}
 NAV = {"Centro de control": "", "Calendario": "calendario", "Proveedores": "proveedores",
-       "Simulador «¿Y si…?»": "simulador", "Transparencia": "transparencia", "Ajustes": "ajustes"}
+       "Simulador «¿Y si…?»": "simulador", "Ajustes": "ajustes"}
 NEEDS_RESULTS = pytest.mark.skipif(not results.path("test").exists(),
                                    reason="faltan data/results (scripts/build_results.py)")
 
@@ -71,6 +71,7 @@ def test_cada_pagina_arranca(view):
     assert not at.exception, at.exception
     links = {(x.proto.label, x.proto.page) for x in at.get("page_link")}
     assert set(NAV.items()) <= links                      # el menú son enlaces reales a cada página
+    assert "transparencia" not in {p for _, p in links}   # Transparencia: solo por URL directa
 
 
 @NEEDS_RESULTS
