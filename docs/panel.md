@@ -84,7 +84,7 @@ Lo que se ha cambiado para que no vuelva a pasar:
 
 Sin excepciones y sin ninguna petición fuera de `localhost`. El treemap tiene 19 casillas y ninguna vacía.
 
-## 3. Calendario: cambio de mes
+## 3. Calendario: cambio de mes (la fila calendario + semáforo llena la altura de la ventana bajo la cabecera, con las dos columnas igual de altas; el semáforo se desplaza dentro si tiene más filas; comprobado a 1366×768 y 1920×1080)
 
 El calendario es HTML (`st.components.v2`) con los marcadores de unos meses: cambiar de mes o de vista lo hace el
 navegador, sin volver a ejecutar la página. Medido con clics reales (desde el `pointerdown` hasta que el mes nuevo

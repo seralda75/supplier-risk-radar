@@ -32,7 +32,6 @@ KINDS = {"pedir": ("🛒", "Último día para pedir"), "rotura": ("⛔", "Rotura
          "vuelve": ("↺", "Se recupera el proveedor"), "llega": ("🚚", "Llega el alternativo"),
          "pedido": ("📦", "Pedido guardado"), "recordatorio": ("⏰", "Recordatorio")}
 WINDOW = (-62, 200)           # días (desde hoy) con marcadores: unos meses hacia atrás y hacia delante
-SEM_HEIGHT = 814              # px: el alto del calendario de un mes de 5 semanas, con su leyenda
 MONTHS_LONG = "enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre".split()
 
 
@@ -107,7 +106,9 @@ def events(mats, its: list[dict], today: date) -> dict[str, list[dict]]:
 # ---------------------------------------------------------------------------
 
 CSS = f"""
-.ocal {{ font-family: 'IBM Plex Sans', system-ui, sans-serif; color: {T.INK}; }}
+:host, :host > div, :host > div > div {{ height: 100%; }}
+.ocal {{ font-family: 'IBM Plex Sans', system-ui, sans-serif; color: {T.INK}; height: 100%; display: flex;
+  flex-direction: column; }}
 .oc-head {{ display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
   margin-bottom: 12px; }}
 .oc-nav {{ display: flex; align-items: center; gap: 8px; }}
@@ -118,10 +119,12 @@ CSS = f"""
 .oc-btn:focus-visible, .oc-day:focus-visible {{ outline: 2px solid {T.PURPLE}; outline-offset: 2px; }}
 .oc-btn[aria-pressed="true"] {{ background: {T.PURPLE}; border-color: {T.PURPLE}; color: #FFFFFF; }}
 .oc-btn:disabled {{ opacity: .35; cursor: default; }}
-.oc-grid {{ display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }}
+.oc-grid {{ display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-auto-rows: minmax(96px, 1fr);
+  grid-template-rows: auto; gap: 4px; flex: 1; }}
+.oc-grid > .oc-dow {{ min-height: 0; }}
 .oc-dow {{ font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: {T.MUTED};
   padding: 2px 6px; }}
-.oc-day {{ min-height: 122px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 5px 4px;
+.oc-day {{ min-height: 96px; display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 5px 4px;
   border: 1px solid {T.LINE}; border-radius: 8px; background: #FFFFFF; text-align: left; cursor: pointer;
   font: inherit; color: inherit; min-width: 0; }}
 .oc-day:hover {{ border-color: {T.PURPLE}; box-shadow: 0 0 0 1px {T.PURPLE}; }}
@@ -227,6 +230,22 @@ export default function (component) {
     root.append(grid);
   }
   render();
+
+  // Alto de la fila calendario + semáforo: lo que queda de ventana bajo la cabecera (título y KPIs)
+  const fit = () => {
+    const row = document.querySelector('.st-key-cal-row');
+    if (!row) return;
+    const main = row.closest('[data-testid="stMain"]') || document.scrollingElement;
+    const top = row.getBoundingClientRect().top + (main ? main.scrollTop : 0);
+    row.style.setProperty('--cal-h', Math.max(window.innerHeight - top - 48, 480) + 'px');
+  };
+  fit();
+  if (!window.__calFit) {
+    window.__calFit = true;
+    window.addEventListener('resize', () => window.__calFitNow && window.__calFitNow());
+  }
+  window.__calFitNow = fit;
+  setTimeout(fit, 250);
 }
 """
 
@@ -275,8 +294,9 @@ def _deadline_text(m) -> str:
 
 
 def semaphore(meds, today: date) -> None:
-    # Misma altura que el calendario del mes (la lista se desplaza dentro): sin huecos al lado del calendario
-    with st.container(key="panel-semaforo", height=SEM_HEIGHT):
+    # Misma altura que el calendario (la fila llena la ventana, ver cal-row en theme.py): si hay más filas, la
+    # lista se desplaza dentro; si hay menos, la tarjeta se estira
+    with st.container(key="panel-semaforo"):
         md(head("Semáforo de medicamentos", "El peor de sus materiales. Sin alerta, la cobertura es solo "
                 "informativa: se asume reposición regular."))
         for i, d in enumerate(meds):
@@ -390,12 +410,14 @@ def page() -> None:
             "(o de una compra urgente si no lo hay).")
     md(f'<h1 class="h1">Calendario{tip(note)}</h1>')
     _kpis(meds, mats, today)
-    left, right = st.columns([7.4, 4.6], gap="medium")
-    with left, st.container(key="panel-calendar"):
-        picked = calendar(events(mats, cache.items(split), today), today)
-        md('<span class="legend">' + "".join(f'<span>{i} {esc(t)}</span>' for i, t in KINDS.values()) + "</span>")
-    with right:
-        semaphore(meds, today)
+    with st.container(key="cal-row"):
+        left, right = st.columns([7.4, 4.6], gap="medium")
+        with left, st.container(key="panel-calendar"):
+            picked = calendar(events(mats, cache.items(split), today), today)
+            md('<span class="legend">' + "".join(f'<span>{i} {esc(t)}</span>' for i, t in KINDS.values())
+               + "</span>")
+        with right:
+            semaphore(meds, today)
     if picked:
         _open_day(picked)
     if req := st.session_state.get("cal_day"):

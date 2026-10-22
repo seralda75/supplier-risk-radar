@@ -371,6 +371,18 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 .sem > .w {{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 [class*="st-key-sem-"]:not([class*="st-key-sem-order-"]) {{ gap: 6px !important; }}
 [class*="st-key-sem-order-"] {{ align-self: flex-end; margin-top: 10px !important; }}
+/* Calendario + semáforo: la fila llena la ventana (--cal-h lo calcula el componente) y las dos columnas
+   miden lo mismo. La columna del semáforo no aporta altura propia (contain: size): si tiene más filas
+   se desplaza dentro; si tiene menos, se estira. */
+.st-key-cal-row [data-testid="stHorizontalBlock"] {{ align-items: stretch; min-height: var(--cal-h, 640px); }}
+.st-key-cal-row [data-testid="stColumn"] > [data-testid="stVerticalBlock"],
+.st-key-cal-row [data-testid="stColumn"] div:has(> [class*="st-key-panel-"]),
+.st-key-cal-row [class*="st-key-panel-"] {{ height: 100%; }}
+.st-key-cal-row [data-testid="stColumn"]:last-child {{ contain: size; }}
+.st-key-panel-calendar [data-testid="stVerticalBlock"] {{ height: 100%; }}
+.st-key-panel-calendar .stBidiComponent, .st-key-panel-calendar [data-testid="stBidiComponentIsolated"] {{ height: 100%; }}
+.st-key-panel-calendar, .st-key-panel-calendar [data-testid="stVerticalBlock"] {{ display: flex; flex-direction: column; }}
+.st-key-panel-calendar [data-testid="stElementContainer"]:has(.stBidiComponent) {{ flex: 1; min-height: 0; }}
 .st-key-panel-semaforo {{ overflow-y: auto; }}
 [class*="st-key-sem-order-"] button {{ min-height: 34px !important; padding: 4px 14px !important; }}
 [class*="st-key-sem-order-"] button p {{ font-size: 14px !important; }}
