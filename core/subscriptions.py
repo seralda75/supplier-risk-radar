@@ -17,8 +17,12 @@ from __future__ import annotations
 import sqlite3
 from datetime import date, datetime, timedelta
 
+from rapidfuzz import fuzz, process
+
 from .feedback import _LOCK, _db
+from .matching import normalize
 from .recurrence import BUYERS, recurrent_suppliers
+from .suppliers import Supplier, load_suppliers
 
 NOTIFY_STATES = {"enviando": "Enviando", "enviado": "Enviado", "pendiente": "Pendiente para /resumen", "resumido": "Incluido en /resumen",
                  "error": "No se pudo enviar"}
@@ -99,6 +103,24 @@ def sync_auto(chat_id: int, today: date | None = None, con: sqlite3.Connection |
         db.executemany("INSERT OR IGNORE INTO subscriptions (chat_id, supplier_id, origin, active, ts) "
                        "VALUES (?,?,'auto',1,?)",
                        [(chat_id, s, _now()) for s in recurrent_suppliers(b["buyer_id"], today)])
+
+
+def find_suppliers(query: str) -> list[Supplier]:
+    """Proveedores que encajan con lo que escribe el comprador: «S015», «Lumina», «lumina glass»…
+    Primero el ID exacto; si no, los nombres que contienen el texto; si no, el nombre más parecido."""
+    sup = load_suppliers()
+    q = query.strip()
+    if q.upper() in sup:
+        return [sup[q.upper()]]
+    norm = normalize(q).strip()
+    if not norm:
+        return []
+    hits = [s for s in sup.values() if norm in normalize(s.name)]
+    if hits:
+        return hits
+    best = process.extractOne(norm, {s.id: normalize(s.name) for s in sup.values()}, scorer=fuzz.partial_ratio,
+                              score_cutoff=80)
+    return [sup[best[2]]] if best else []
 
 
 def follow(chat_id: int, supplier_id: str, con: sqlite3.Connection | None = None) -> None:
