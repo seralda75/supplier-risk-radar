@@ -23,6 +23,7 @@ coordenadas, como un usuario, y se comprueba qué cambia en la pantalla y en SQL
 | Centro de control · detalle | «Crear pedido o recordatorio» | Abre la ventana de la alerta |
 | Ventana de la alerta | «Crear pedido» | Formulario prellenado (material, proveedor según el plan, cantidad = necesidad mensual × días de déficit / 30 con el cálculo explicado, fecha requerida, prioridad). Se guarda como «Pedido pendiente de envío al ERP» (no se envía) |
 | Ventana de la alerta | «Crear recordatorio» | Texto (el primer paso del plan), responsable y fecha. Se guarda en SQLite |
+| Ventana de la alerta · Comunicar | «Enviar» (correo y nota) | Pide confirmación (para quién, asunto y comprobación de cifras/datos internos); «Confirmar y enviar» manda por SMTP + STARTTLS a `DEMO_RECIPIENT` (los proveedores son ficticios: «redirigido a la bandeja de la demo»). Sin SMTP o si falla: «simulado» con el motivo y descarga del .eml. Se registra en la auditoría; la tarjeta muestra «✉ Enviado HH:MM» o «✉ Simulado» |
 | Ventana de la alerta | X o pulsar fuera | Cierra la ventana |
 | Centro de control | «Acciones en curso» · «Hecho» | Marca el pedido o el recordatorio como hecho (pasa a «Hechas») |
 | Centro de control | Puntos del mapa | Abren la ficha del proveedor (ventana) |

@@ -210,6 +210,28 @@ def _clean_body(body: str) -> str:
     return "\n".join(lines).strip()
 
 
+def leaks(text: str, f: Facts) -> list[str]:
+    """Cifras internas de Helixa (stock, margen, gasto) que aparecen en un texto para el proveedor."""
+    internal = {abs(round(f.margin_days)), float(f.spend_meur.replace(",", "."))}
+    if f.inventory_days is not None:
+        internal.add(round(f.inventory_days))
+    return [f"{x:g}" for x in sorted(figures(text, f) & {float(x) for x in internal})]
+
+
+def send_issues(kind: str, subject: str, body: str, f: Facts) -> list[str]:
+    """Comprobación previa a un envío (lista vacía = se puede enviar): las cifras deben ser las de la alerta y el
+    correo al proveedor no puede revelar el stock, el margen ni el gasto de Helixa. kind: correo | nota."""
+    out = []
+    bad = extra(f"{subject}\n{body}", f)
+    if bad:
+        out.append("Cifras que no están en la alerta: " + ", ".join(bad))
+    if kind == "correo":
+        leaked = leaks(f"{subject}\n{body}", f)
+        if leaked:
+            out.append("El correo revela cifras internas de Helixa (stock, margen o gasto): " + ", ".join(leaked))
+    return out
+
+
 def issues(w: Written, f: Facts) -> list[str]:
     """Problemas del texto de la IA (lista vacía = se puede usar):
     - cifras que no están en los datos de la alerta;
@@ -219,12 +241,9 @@ def issues(w: Written, f: Facts) -> list[str]:
     bad = extra(f"{w.email_subject}\n{w.email_body}\n{w.summary_es}", f)
     if bad:
         out.append("figures not in the facts: " + ", ".join(bad))
-    internal = {abs(round(f.margin_days)), float(f.spend_meur.replace(",", "."))}
-    if f.inventory_days is not None:
-        internal.add(round(f.inventory_days))
-    leaked = figures(f"{w.email_subject}\n{w.email_body}", f) & {float(x) for x in internal}
+    leaked = leaks(f"{w.email_subject}\n{w.email_body}", f)
     if leaked:
-        out.append("the email reveals internal figures: " + ", ".join(f"{x:g}" for x in sorted(leaked)))
+        out.append("the email reveals internal figures: " + ", ".join(leaked))
     asks = "partial allocation" in w.email_body.lower()
     if asks != f.ask_partial:
         out.append("ask for a partial allocation" if f.ask_partial else "do not mention a partial allocation")

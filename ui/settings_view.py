@@ -12,7 +12,7 @@ import io
 
 import streamlit as st
 
-from core import audit, custom_news, demo, feedback, settings, subscriptions
+from core import audit, custom_news, demo, feedback, settings, subscriptions, tasks
 from core.config import LLM_MODEL, ROOT
 
 from . import cache
@@ -192,6 +192,11 @@ def _audit_csv() -> bytes:
                         f"proveedores={r['affected_ids']}", "", r["mode"]])
     except Exception:                    # sin auditoría todavía: solo las decisiones
         pass
+    for r in tasks.all_communications(cache.db()):
+        how = {"real": f"enviado a {r['to_addr']}", "simulado": f"simulado ({r['error']})"}.get(r["delivery"],
+                                                                                          "marcado como enviado")
+        w.writerow(["comunicación", r["ts"], r["news_id"], f"{r['kind']} · {r['recipient']} · {r['subject']}", how,
+                    r["user"], "correo"])
     for r in feedback.history(5000, cache.db()):
         w.writerow(["decisión", r["ts"], r["news_id"], r["note"], feedback.VERDICTS.get(r["verdict"], r["verdict"]),
                     r["user"], r["channel"]])

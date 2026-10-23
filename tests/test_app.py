@@ -627,3 +627,36 @@ def test_ajustes_reiniciar_demo_conserva_los_chats():
     at.button(key="set-demo-reset").click().run()
     assert not at.exception, at.exception
     assert demo.progress(con)[0] == 0 and subscriptions.buyer(111, con) is not None
+
+
+@NEEDS_RESULTS
+def test_enviar_pide_confirmacion_y_sin_smtp_queda_simulado(monkeypatch):
+    from core import mailer
+    monkeypatch.setattr(mailer, "config", lambda: mailer.Config())     # sin SMTP: nunca sale nada de verdad
+    at = run()
+    sel = at.session_state["sel-test"]
+    at.button(key=f"qbtn-{sel}").click().run()
+    at.button(key=f"cmgo-test-{sel}").click().run()
+    at.button(key=f"cmsend-correo-test-{sel}").click().run()
+    assert not at.exception, at.exception
+    assert "redirigido a la bandeja de la demo" in html(at) and "Confirmar envío" in html(at)
+    assert not [x for x in tasks.items("test", feedback.connect()) if x["kind"] == "comm"]    # aún no se ha enviado
+    at.button(key=f"cmyes-correo-test-{sel}").click().run()
+    assert not at.exception, at.exception
+    (c,) = [x for x in tasks.items("test", feedback.connect()) if x["kind"] == "comm"]
+    assert c["delivery"] == "simulado" and "SMTP_USER" in c["error"] and c["to_addr"] == ""
+    assert "✉ Simulado" in html(at) and at.get("download_button")
+
+
+@NEEDS_RESULTS
+def test_enviar_no_envia_si_el_correo_revela_cifras_internas(monkeypatch):
+    from core import mailer
+    monkeypatch.setattr(mailer, "config", lambda: mailer.Config())
+    at = run()
+    sel = at.session_state["sel-test"]
+    at.button(key=f"qbtn-{sel}").click().run()
+    at.button(key=f"cmgo-test-{sel}").click().run()
+    at.text_area(key=f"cm-mail-test-{sel}").set_value("Dear team, we need 987654 units.").run()
+    at.button(key=f"cmsend-correo-test-{sel}").click().run()
+    assert "No se envía" in html(at) or any("No se envía" in e.value for e in at.error)
+    assert not [x for x in tasks.items("test", feedback.connect()) if x["kind"] == "comm"]

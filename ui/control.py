@@ -232,8 +232,15 @@ def action_badges(its: list[dict]) -> str:
     if rems:
         pend = sorted((x for x in rems if x["status"] != "hecho"), key=lambda x: x["due"])
         out.append(f"⏰ Recordatorio {day_es(pend[0]['due'])}" if pend else "⏰ Recordatorio hecho")
-    if any(x["kind"] == "comm" for x in its):
-        out.append("✉ Comunicado")
+    cm = [x for x in its if x["kind"] == "comm"]
+    if cm:
+        real = [x for x in cm if x.get("delivery") == "real"]
+        if real:
+            out.append(f"✉ Enviado {real[-1]['ts'][11:16]}")
+        elif any(x.get("delivery") == "simulado" for x in cm):
+            out.append("✉ Simulado")
+        else:
+            out.append("✉ Comunicado")
     return f'<span class="acts">{esc(" · ".join(out))}</span>' if out else ""
 
 
@@ -427,8 +434,9 @@ def _action_line(x: dict, a: Alert | None) -> str:
     done = f" · hecho el {day_es(x['done_ts'])}" if x["status"] == "hecho" and x.get("done_ts") else ""
     if x["kind"] == "comm":
         what = "Correo al proveedor" if x["channel"] == "correo" else "Nota interna"
+        how = {"real": "Enviado", "simulado": "Simulado"}.get(x.get("delivery"), "Marcado como enviado")
         return (f'<div class="act"><span class="ic" aria-hidden="true">✉</span><span><strong>{what}</strong>'
-                f'<span class="w">Enviado el {day_es(x["ts"])}{src}</span></span></div>')
+                f'<span class="w">{how} el {day_es(x["ts"])}{src}</span></span></div>')
     if x["kind"] == "order":
         qty = f"{x['quantity']:,.0f}".replace(",", ".")
         return (f'<div class="act"><span class="ic" aria-hidden="true">📦</span><span><strong>Pedido: {qty} '

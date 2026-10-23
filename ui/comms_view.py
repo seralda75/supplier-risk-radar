@@ -2,13 +2,15 @@
 
 «Preparar comunicaciones» redacta dos borradores editables (correo al proveedor en inglés, nota interna en
 español) con la IA local y comprueba sus cifras; sin IA, plantilla. «Copiar» los copia al portapapeles y
-«Marcar como enviado» lo registra en la auditoría (la tarjeta muestra «✉ Comunicado»). No se envía nada.
+«Enviar» manda el borrador por correo (core/mailer.py) tras una confirmación que muestra destinatario y asunto
+y comprueba las cifras; «Marcar como enviado» solo lo registra (la tarjeta muestra «✉ Comunicado»). Nada sale
+sin pulsar «Enviar» y confirmar.
 """
 from __future__ import annotations
 
 import streamlit as st
 
-from core import comms, tasks
+from core import comms, mailer, tasks
 from core.actions import plan_steps, situation
 from core.labels import material_es, product_es
 
@@ -16,6 +18,7 @@ from . import cache
 from .components import esc, md
 from .data import Alert, meur, when
 
+BUYER = "Director de compras"        # el comprador que firma las notas internas (asunto del correo)
 LEVEL_ES = {"critica": "crítica", "vigilar": "en vigilancia (riesgo latente)", "seguimiento": "en seguimiento semanal"}
 
 # Botón «Copiar»: st.components.v2 (sin iframe) con la API del portapapeles; localhost es contexto seguro.
@@ -77,7 +80,7 @@ def _prepare(k: str, a: Alert) -> None:
                                         "attempts": p.attempts}
 
 
-def _send(split: str, a: Alert, k: str, kind: str, info: dict) -> None:
+def _mark(split: str, a: Alert, k: str, kind: str, info: dict) -> None:
     if kind == "correo":
         recipient, subject, body = a.supplier.name, st.session_state[f"cm-sub-{k}"], st.session_state[f"cm-mail-{k}"]
     else:
@@ -97,7 +100,7 @@ def panel(split: str, a: Alert, sent: list[dict]) -> None:
     info = st.session_state.get(f"cm-info-{k}")
     if not info:
         md('<p class="sub">Redacta un correo al proveedor y una nota para el equipo con los datos de esta alerta. '
-           'Son borradores editables: no se envía nada.</p>')
+           'Son borradores editables: nada se envía sin tu confirmación.</p>')
         return
     if info["source"] == "ia":
         took = ("al instante (respuesta en caché)" if info["seconds"] < 0.5 else
@@ -120,11 +123,70 @@ def panel(split: str, a: Alert, sent: list[dict]) -> None:
         if extra:            # el comprador ha editado y ha escrito una cifra que no está en la alerta
             st.warning("Cifras que no están en la alerta: " + ", ".join(extra))
         done = [x for x in sent if x["channel"] == kind]
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns(3)
         with c1:
             _copy(data={"text": full if kind == "correo" else text}, key=f"cmcp-{kind}-{k}")
-        if c2.button("Marcar como enviado", key=f"cmsent-{kind}-{k}", width="stretch",
-                     help="Lo registra en la auditoría; no se envía nada"):
-            _send(split, a, k, kind, info)
-        if done:
-            md(f'<p class="sub">✉ Marcado como enviado el {esc(when(done[-1]["ts"]))}.</p>')
+        c2.button("Enviar", key=f"cmsend-{kind}-{k}", type="primary", width="stretch", on_click=_ask, args=(k, kind),
+                  help="Pide confirmación antes de enviar: nada sale sin que la confirmes")
+        if c3.button("Marcar enviado", key=f"cmsent-{kind}-{k}", width="stretch",
+                     help="Lo registra en la auditoría sin enviar nada (si lo has enviado por tu cuenta)"):
+            _mark(split, a, k, kind, info)
+        if st.session_state.get(f"cm-ask-{k}") == kind:
+            _confirm(split, a, k, kind, info, f, st.session_state[f"cm-sub-{k}"] if kind == "correo" else "", text)
+        _history(k, kind, done)
+
+
+def _history(k: str, kind: str, done: list[dict]) -> None:
+    """Lo ya hecho con este borrador: envíos reales, simulados (con su motivo y el .eml) y marcas manuales."""
+    for x in done[-3:]:
+        hm = esc(x["ts"][11:16])
+        if x.get("delivery") == "real":
+            md(f'<p class="sub">✉ Enviado {hm} a {esc(x["to_addr"])} · registrado en la auditoría.</p>')
+        elif x.get("delivery") == "simulado":
+            md(f'<p class="sub">✉ Simulado {hm} · {esc(x["error"])}</p>')
+        else:
+            md(f'<p class="sub">✉ Marcado como enviado el {esc(when(x["ts"]))}.</p>')
+    last = st.session_state.get(f"cm-res-{k}-{kind}")
+    if last and last["delivery"] == "simulado":
+        st.download_button("Descargar el .eml", data=last["eml"], file_name=f"{kind}-{k}.eml",
+                           mime="message/rfc822", key=f"cmeml-{kind}-{k}")
+
+
+def _ask(k: str, kind: str) -> None:
+    st.session_state[f"cm-ask-{k}"] = kind
+
+
+def _cancel(k: str) -> None:
+    st.session_state.pop(f"cm-ask-{k}", None)
+
+
+def _confirm(split: str, a: Alert, k: str, kind: str, info: dict, f: comms.Facts, subject: str, body: str) -> None:
+    """Confirmación humana: destinatario y asunto, y la comprobación previa. Nada se envía sin pulsar el botón."""
+    cfg = mailer.config()
+    p = mailer.plan(kind, a.supplier.name, subject, body, BUYER, a.id, cfg, demo=cache.demo_on())
+    problems = comms.send_issues(kind, subject, body, f)
+    with st.container(key=f"cmconf-{kind}-{k}"):
+        md('<h3 class="h3">Confirmar envío</h3>'
+           f'<div class="srow"><span class="l">Para</span><span class="v">{esc(p.to_line)}</span></div>'
+           f'<div class="srow"><span class="l">Asunto</span><span class="v">{esc(p.subject)}</span></div>')
+        if problems:
+            st.error("No se envía. " + " ".join(problems) + " Corrige el borrador.")
+            st.button("Cerrar", key=f"cmno-{kind}-{k}", on_click=_cancel, args=(k,))
+            return
+        miss = cfg.missing()
+        aviso = (f"Sin configuración SMTP (falta {', '.join(miss)} en .env): quedará como simulado." if miss
+                 else f"Se enviará de verdad a {p.to_addr}.")
+        md(f'<p class="sub">{esc(aviso)}</p>')
+        b1, b2 = st.columns(2)
+        if b1.button("Confirmar y enviar", key=f"cmyes-{kind}-{k}", type="primary", width="stretch"):
+            with st.spinner("Enviando…"):
+                res = mailer.send(p, cfg)
+            tasks.log_communication(split, a.id, kind, p.display_to, p.subject, p.body, info["source"],
+                                    user="director de compras (panel)", con=cache.db(), delivery=res.delivery,
+                                    to_addr=p.to_addr if res.delivery == "real" else "", error=res.reason)
+            st.session_state[f"cm-res-{k}-{kind}"] = {"delivery": res.delivery, "eml": res.eml}
+            st.session_state.pop(f"cm-ask-{k}", None)
+            st.session_state["toast"] = (("Correo enviado" if res.delivery == "real" else "Envío simulado")
+                                         + " · registrado en la auditoría", "✉️")
+            st.rerun()
+        b2.button("Cancelar", key=f"cmno-{kind}-{k}", width="stretch", on_click=_cancel, args=(k,))

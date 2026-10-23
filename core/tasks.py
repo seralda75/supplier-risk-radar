@@ -38,10 +38,15 @@ def ensure(con: sqlite3.Connection) -> sqlite3.Connection:
         con.execute("""CREATE TABLE IF NOT EXISTS reminders (
             id INTEGER PRIMARY KEY, ts TEXT, split TEXT, news_id TEXT, text TEXT, owner TEXT, due TEXT,
             status TEXT, user TEXT, done_ts TEXT)""")
-        # Comunicaciones marcadas como enviadas (correo al proveedor, nota interna). No se envían de verdad.
+        # Comunicaciones: marcadas como enviadas (delivery vacío) o enviadas desde el panel (core/mailer.py):
+        # delivery = real | simulado, to_addr = a quién llegó de verdad, error = por qué fue simulado.
         con.execute("""CREATE TABLE IF NOT EXISTS communications (
             id INTEGER PRIMARY KEY, ts TEXT, split TEXT, news_id TEXT, kind TEXT, recipient TEXT,
             subject TEXT, body TEXT, source TEXT, user TEXT)""")
+        have = {r[1] for r in con.execute("PRAGMA table_info(communications)")}
+        for col in ("delivery", "to_addr", "error"):          # bases creadas antes del envío real
+            if col not in have:
+                con.execute(f"ALTER TABLE communications ADD COLUMN {col} TEXT DEFAULT ''")
     return con
 
 
@@ -197,15 +202,18 @@ def create_reminder(split: str, news_id: str, text: str, owner: str, due: date, 
 
 
 def log_communication(split: str, news_id: str, kind: str, recipient: str, subject: str, body: str,
-                      source: str, user: str = "comprador", con: sqlite3.Connection | None = None) -> int:
-    """Registra en la auditoría que una comunicación se ha marcado como enviada (kind: correo | nota)."""
+                      source: str, user: str = "comprador", con: sqlite3.Connection | None = None,
+                      delivery: str = "", to_addr: str = "", error: str = "") -> int:
+    """Registra en la auditoría una comunicación (kind: correo | nota). Sin delivery: marcada como enviada a mano;
+    con delivery «real» o «simulado»: enviada desde el panel (to_addr = destinatario real, error = motivo)."""
     if kind not in COMM_KINDS:
         raise ValueError(f"Comunicación desconocida: {kind}")
     db = _con(con)
     with _LOCK, db:
         cur = db.execute("INSERT INTO communications (ts, split, news_id, kind, recipient, subject, body, source, "
-                         "user) VALUES (?,?,?,?,?,?,?,?,?)",
-                         (_now(), split, news_id, kind, recipient, subject, body, source, user))
+                         "user, delivery, to_addr, error) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                         (_now(), split, news_id, kind, recipient, subject, body, source, user, delivery, to_addr,
+                          error))
     return cur.lastrowid
 
 
@@ -226,13 +234,24 @@ def items(split: str, con: sqlite3.Connection | None = None) -> list[dict]:
                             (split,)).fetchall()
         rems = db.execute("SELECT id, ts, news_id, text, owner, due, status, user, done_ts FROM reminders "
                           "WHERE split = ?", (split,)).fetchall()
-        comms = db.execute("SELECT id, ts, news_id, kind, recipient, subject, body, source, user FROM "
-                           "communications WHERE split = ?", (split,)).fetchall()
+        comms = db.execute("SELECT id, ts, news_id, kind, recipient, subject, body, source, user, delivery, to_addr, "
+                           "error FROM communications WHERE split = ?", (split,)).fetchall()
     out = [dict(zip(["id", "ts", "news_id", "supplier_id", "supplier_name", "material", "quantity", "unit",
                      "needed_by", "priority", "calc", "status", "user", "done_ts"], r), kind="order", date=r[8])
            for r in orders]
     out += [dict(zip(["id", "ts", "news_id", "text", "owner", "due", "status", "user", "done_ts"], r),
                  kind="reminder", date=r[5]) for r in rems]
-    out += [dict(zip(["id", "ts", "news_id", "channel", "recipient", "subject", "body", "source", "user"], r),
+    out += [dict(zip(["id", "ts", "news_id", "channel", "recipient", "subject", "body", "source", "user",
+                      "delivery", "to_addr", "error"], r),
                  kind="comm", date=r[1][:10], status="hecho", done_ts=r[1]) for r in comms]
     return sorted(out, key=lambda x: (x["status"] == "hecho", x["date"], x["ts"]))
+
+
+def all_communications(con: sqlite3.Connection | None = None) -> list[dict]:
+    """Todas las comunicaciones (auditoría), de todos los conjuntos, de la más antigua a la más reciente."""
+    db = _con(con)
+    cols = ["ts", "split", "news_id", "kind", "recipient", "subject", "source", "user", "delivery", "to_addr",
+            "error"]
+    with _LOCK:
+        rows = db.execute(f"SELECT {', '.join(cols)} FROM communications ORDER BY ts, id").fetchall()
+    return [dict(zip(cols, r)) for r in rows]
