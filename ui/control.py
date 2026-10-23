@@ -98,6 +98,15 @@ def _open(split: str, news_id: str) -> None:
     st.session_state["alert_dialog"] = (split, news_id)
 
 
+def _review(split: str) -> None:
+    """«Revisar ahora»: abre la ventana de la alerta pendiente con menos margen (la primera de la cola)."""
+    pending = board(split).pending
+    if pending:
+        _open(split, min(pending, key=lambda a: a.margin).id)
+    else:
+        st.session_state["toast"] = ("No hay alertas pendientes de decidir", "✅")
+
+
 def _close() -> None:
     """Al cerrar la ventana con la X o pulsando fuera de ella."""
     st.session_state.pop("alert_dialog", None)
@@ -160,7 +169,7 @@ def banner(split: str, b: Board) -> None:
             c1, c2 = st.columns([5, 1.1], vertical_alignment="center")
             c1.markdown(f'<div class="banner">{T.ICON_ALERT}<div><span class="t">{esc(title)}{tip(sub)}</span>'
                         '</div></div>', unsafe_allow_html=True)
-            c2.button("Revisar ahora", key="review-now", type="primary", on_click=_select, args=(split, top.id),
+            c2.button("Revisar ahora", key="review-now", type="primary", on_click=_review, args=(split,),
                       width="stretch", help=f"Abre la más urgente: {top.supplier.name}")
         return
     if b.critical:

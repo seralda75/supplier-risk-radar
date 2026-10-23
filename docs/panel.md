@@ -14,7 +14,7 @@ coordenadas, como un usuario, y se comprueba qué cambia en la pantalla y en SQL
 | Ajustes | Tarjetas por grupo (Noticias, IA, Criterios, Notificaciones, Datos y demo; máx. 4 controles cada una) · «Guardar» · «Restablecer» | «Guardar» escribe `data/settings.json`; «Restablecer» vuelve a los valores por defecto |
 | Ajustes | «Reiniciar demo» · «Exportar auditoría (CSV)» · «Descargar la entrega (xlsx)» | Borra lo hecho en la demo (conserva los chats) · descarga la auditoría · descarga `deliverables/` tal cual |
 | Centro de control | «Simular escenario» | Enlace al simulador |
-| Centro de control | «Revisar ahora» (banner) | Elige la crítica **pendiente** con menos margen |
+| Centro de control | «Revisar ahora» (banner) | Abre la ventana de la crítica **pendiente** con menos margen (la primera de la cola); sin pendientes, un aviso |
 | Centro de control | Tarjeta de «Requiere tu decisión» o fila «En seguimiento semanal» | La elige (detalle a la derecha) y abre su **ventana** (centrada, fondo difuminado) |
 | Centro de control · detalle | «Ver noticia original» | Desplegable con fuente, fecha, tipo de evento, titular y resumen (el reto no trae enlaces) |
 | Centro de control · detalle y ventana | «Aprobar plan» | Guarda en SQLite, avisa, la tarjeta pasa a «✓ PLAN APROBADO», baja el KPI de críticas sin decidir y aparece la confirmación (quién y cuándo) |

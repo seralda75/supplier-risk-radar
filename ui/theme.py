@@ -147,7 +147,9 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 /* Tarjetas y filas clicables: HTML propio + st.button real e invisible encima (cola y ranking) */
 :is([class*="st-key-qcard-"], [class*="st-key-rk-"]) {{ position: relative; }}
 :is([class*="st-key-qbtn-"], [class*="st-key-rkbtn-"]) {{ position: absolute !important; inset: 0; z-index: 2;
-  margin: 0 !important; }}
+  margin: 0 !important; width: 100% !important; height: 100% !important; }}
+:is([class*="st-key-qbtn-"], [class*="st-key-rkbtn-"]) :is([data-testid="stElementContainer"], [data-testid="stButton"]) {{
+  width: 100% !important; height: 100% !important; }}
 :is([class*="st-key-qbtn-"], [class*="st-key-rkbtn-"]) button {{ width: 100%; height: 100%; opacity: 0;
   cursor: pointer; }}
 [class*="st-key-qcard-"]:has(button:focus-visible) :is(.qitem, .qrow) {{ outline: 2px solid {PURPLE};
@@ -155,7 +157,9 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 [class*="st-key-qcard-"]:hover .qrow {{ border-color: #C9B3DD; }}
 .qitem {{ display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 10px; background: {CARD};
   border: 1px solid {LINE}; color: {INK}; }}
-[class*="st-key-qcard-"]:hover .qitem {{ border-color: #C9B3DD; }}
+.qitem {{ transition: background-color .15s ease, border-color .15s ease; }}
+[class*="st-key-qcard-"]:hover .qitem {{ background: {PURPLE_SOFT}; border: 2px solid {PURPLE}; padding: 19px; }}
+[class*="st-key-qcard-"] {{ cursor: pointer; }}
 .qitem.sel {{ background: {PURPLE_SOFT}; border: 2px solid {PURPLE}; padding: 19px; }}
 .qitem .top {{ display: flex; justify-content: space-between; align-items: center; gap: 10px; }}
 .qitem .chips {{ display: flex; flex-wrap: wrap; gap: 6px; }}

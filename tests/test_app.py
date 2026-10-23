@@ -124,13 +124,14 @@ def test_la_cola_selecciona_la_alerta_y_abre_su_ventana():
 
 
 @NEEDS_RESULTS
-def test_revisar_ahora_selecciona_la_mas_critica():
+def test_revisar_ahora_abre_la_ventana_de_la_mas_critica():
     at = run()
     first = at.session_state["sel-test"]                 # por defecto, la más crítica pendiente
     ids = [b.key.removeprefix("qbtn-") for b in at.button if b.key.startswith("qbtn-")]
     at.button(key=f"qbtn-{ids[2]}").click().run()
     at.button(key="review-now").click().run()
     assert at.session_state["sel-test"] == first == ids[0]
+    assert at.session_state["alert_dialog"] == ("test", first)          # y abre su ventana
 
 
 @NEEDS_RESULTS
