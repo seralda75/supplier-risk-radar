@@ -171,7 +171,7 @@ def render() -> None:
     llm_up = cache.llm_up()
     examples = cache.examples()
     loaded = st.session_state.get("sc_loaded")
-    md('<h1 class="h1">Simulador «¿Y si…?»</h1>')
+    md('<h1 class="h1">Simulador de escenarios</h1>')
     stepper = st.empty()                       # el indicador se pinta al final, cuando ya se sabe el paso
 
     # Paso 1 · Escenario: texto libre y ejemplos como chips

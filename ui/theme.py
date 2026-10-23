@@ -435,6 +435,9 @@ section[data-testid="stSidebar"] [data-testid="stLayoutWrapper"]:has(> .st-key-n
 .sc-steps li.on, .sc-steps li.done {{ color: {INK}; }}
 .sc-steps li.on .n {{ border-color: {PURPLE}; background: {PURPLE}; color: #FFFFFF; }}
 .sc-steps li.done .n {{ border-color: {GREEN}; color: {GREEN}; }}
+/* Caja de texto del escenario: el borde morado se ve siempre, no solo con el foco */
+.st-key-panel-siminput [data-testid="stTextAreaRootElement"] {{
+  border: 1px solid {PURPLE} !important; border-radius: 8px; }}
 .st-key-sc-chips {{ flex-wrap: wrap; gap: 8px; }}
 .st-key-sc-chips button {{ min-height: 34px; padding: 4px 14px; border-radius: 999px; font-size: 13px; }}
 .foot {{ font-size: 13px; color: {MUTED_2}; }}

@@ -45,7 +45,7 @@ solo se ejecuta la activa):
 - **Proveedores**: ranking de vulnerabilidad, % del gasto en proveedores únicos, concentración por país y por
   zona y alternativos que no llegan a tiempo. La ficha de proveedor (con su historial) se abre en una ventana
   desde el ranking o desde el buscador de la cabecera.
-- **Simulador «¿Y si…?»** y **Transparencia** (métricas, cambios, límites, duraciones ancladas).
+- **Simulador de escenarios** («Escenarios» en el menú) y **Transparencia** (métricas, cambios, límites, duraciones ancladas).
 - **Ajustes**: cargar noticias propias (.xlsx o .csv con News_ID, Published_Date, Source, Headline, Summary; se
   procesan con el pipeline y su caché, con barra de progreso, en `data/custom/`), IA, criterios de riesgo (margen
   ajustado 14 d, compra urgente 7 d, proveedor habitual 3 pedidos en 6 meses), avisos de Telegram, reiniciar la demo y

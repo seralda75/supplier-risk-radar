@@ -4,7 +4,7 @@
 
 Para el director de compras: en 5 segundos, si hay riesgo, dónde, cuánto tiempo queda y qué hacer.
 Páginas (views/, una por fichero; st.navigation solo ejecuta la activa): Centro de control ·
-Proveedores · Simulador «¿Y si…?». Transparencia (solo por URL directa, fuera del menú). El contenido de cada una está en ui/.
+Proveedores · Escenarios (simulador «¿Y si…?»). Transparencia (solo por URL directa, fuera del menú). El contenido de cada una está en ui/.
 
 Lee los resultados guardados (data/results/*.json, de scripts/build_results.py): al abrir no se llama
 al LLM y funciona sin internet (fuentes y mapa servidos desde static/). Lo único que puede llamar al
@@ -29,7 +29,7 @@ PAGES = {
     "control": st.Page("views/control.py", title="Centro de control", default=True),
     "calendar": st.Page("views/calendar.py", title="Calendario", url_path="calendario"),
     "suppliers": st.Page("views/suppliers.py", title="Proveedores", url_path="proveedores"),
-    "simulator": st.Page("views/simulator.py", title="Simulador «¿Y si…?»", url_path="simulador"),
+    "simulator": st.Page("views/simulator.py", title="Escenarios", url_path="simulador"),
     "transparency": st.Page("views/transparency.py", title="Transparencia", url_path="transparencia"),
     "settings": st.Page("views/settings.py", title="Ajustes", url_path="ajustes"),
 }

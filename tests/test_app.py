@@ -16,7 +16,7 @@ PAGES = {"control": None, "calendar": "views/calendar.py", "suppliers": "views/s
          "simulator": "views/simulator.py", "transparency": "views/transparency.py",
          "settings": "views/settings.py"}
 NAV = {"Centro de control": "", "Calendario": "calendario", "Proveedores": "proveedores",
-       "Simulador «¿Y si…?»": "simulador", "Ajustes": "ajustes"}
+       "Escenarios": "simulador", "Ajustes": "ajustes"}
 NEEDS_RESULTS = pytest.mark.skipif(not results.path("test").exists(),
                                    reason="faltan data/results (scripts/build_results.py)")
 
